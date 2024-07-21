@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>AutoInjectGenerator</RootNamespace>
+	</PropertyGroup>
+
+	<Import Project="..\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
+	<Import Project="..\Generators.Shared\MT.Generators.props" />
+</Project>

@@ -3,11 +3,82 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35111.106
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Generators.Shared", "Generators.Shared\Generators.Shared.shproj", "{BD984BDA-E2B5-4695-9B5A-53B46D8E6725}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProject1", "TestProject1\TestProject1.csproj", "{6994C35E-E92F-418C-B5C9-B437FF25A6A0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoWasmApiGenerator", "AutoWasmApiGenerator\AutoWasmApiGenerator.csproj", "{9C1A1324-0111-468F-9644-F80F72A66DC5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoInjectGenerator", "AutoInjectGenerator\AutoInjectGenerator.csproj", "{1CA123D0-5B2A-4BBD-A90E-B58E01A7B2CA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MT.Generators.Abstraction", "MT.Generators.Abstraction\MT.Generators.Abstraction.csproj", "{B37BF9C7-9A20-46D3-9854-A11121B83D2E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoInject", "AutoInject", "{FD7A81EE-6E54-461B-8766-BB36EB5F31D8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoInject.Roslyn", "AutoInject.Roslyn\AutoInject.Roslyn.csproj", "{E48C1C4F-8111-4513-86EC-0C968E5437CD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoWasm", "AutoWasm", "{0D1AD616-22D2-4D10-BD23-92040AFD90D5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoWasmApi.Roslyn", "AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj", "{625157FF-90BB-4950-9643-7BAEF5CEF6A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Test", "Blazor.Test\Blazor.Test\Blazor.Test.csproj", "{4A47713C-2332-40C1-9AAB-7B2A14D148A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Test.Client", "Blazor.Test\Blazor.Test.Client\Blazor.Test.Client.csproj", "{20CA19C8-3036-4D1B-B095-C59A4C76B8D0}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6994C35E-E92F-418C-B5C9-B437FF25A6A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6994C35E-E92F-418C-B5C9-B437FF25A6A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6994C35E-E92F-418C-B5C9-B437FF25A6A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6994C35E-E92F-418C-B5C9-B437FF25A6A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C1A1324-0111-468F-9644-F80F72A66DC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C1A1324-0111-468F-9644-F80F72A66DC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C1A1324-0111-468F-9644-F80F72A66DC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C1A1324-0111-468F-9644-F80F72A66DC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CA123D0-5B2A-4BBD-A90E-B58E01A7B2CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CA123D0-5B2A-4BBD-A90E-B58E01A7B2CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CA123D0-5B2A-4BBD-A90E-B58E01A7B2CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CA123D0-5B2A-4BBD-A90E-B58E01A7B2CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B37BF9C7-9A20-46D3-9854-A11121B83D2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B37BF9C7-9A20-46D3-9854-A11121B83D2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B37BF9C7-9A20-46D3-9854-A11121B83D2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B37BF9C7-9A20-46D3-9854-A11121B83D2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E48C1C4F-8111-4513-86EC-0C968E5437CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E48C1C4F-8111-4513-86EC-0C968E5437CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E48C1C4F-8111-4513-86EC-0C968E5437CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E48C1C4F-8111-4513-86EC-0C968E5437CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{625157FF-90BB-4950-9643-7BAEF5CEF6A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{625157FF-90BB-4950-9643-7BAEF5CEF6A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{625157FF-90BB-4950-9643-7BAEF5CEF6A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{625157FF-90BB-4950-9643-7BAEF5CEF6A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A47713C-2332-40C1-9AAB-7B2A14D148A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A47713C-2332-40C1-9AAB-7B2A14D148A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A47713C-2332-40C1-9AAB-7B2A14D148A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A47713C-2332-40C1-9AAB-7B2A14D148A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20CA19C8-3036-4D1B-B095-C59A4C76B8D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20CA19C8-3036-4D1B-B095-C59A4C76B8D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20CA19C8-3036-4D1B-B095-C59A4C76B8D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20CA19C8-3036-4D1B-B095-C59A4C76B8D0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9C1A1324-0111-468F-9644-F80F72A66DC5} = {0D1AD616-22D2-4D10-BD23-92040AFD90D5}
+		{1CA123D0-5B2A-4BBD-A90E-B58E01A7B2CA} = {FD7A81EE-6E54-461B-8766-BB36EB5F31D8}
+		{E48C1C4F-8111-4513-86EC-0C968E5437CD} = {FD7A81EE-6E54-461B-8766-BB36EB5F31D8}
+		{625157FF-90BB-4950-9643-7BAEF5CEF6A8} = {0D1AD616-22D2-4D10-BD23-92040AFD90D5}
+	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E16846FC-C2B2-43ED-A534-5726B5C9DDEE}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Generators.Shared\Generators.Shared.projitems*{625157ff-90bb-4950-9643-7baef5cef6a8}*SharedItemsImports = 5
+		Generators.Shared\Generators.Shared.projitems*{bd984bda-e2b5-4695-9b5a-53b46d8e6725}*SharedItemsImports = 13
+		Generators.Shared\Generators.Shared.projitems*{e48c1c4f-8111-4513-86ec-0c968e5437cd}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

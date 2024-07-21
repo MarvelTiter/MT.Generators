@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <LangVersion>latest</LangVersion>
+    <Version>1.0.0</Version>
+    <Title>MT.Generators.Abstraction</Title>
+    <Authors>MarvelTiter</Authors>
+    <Copyright>MIT</Copyright>
+  </PropertyGroup>
+
+</Project>
