@@ -21,9 +21,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoWasm", "AutoWasm", "{0D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoWasmApi.Roslyn", "AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj", "{625157FF-90BB-4950-9643-7BAEF5CEF6A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Test", "Blazor.Test\Blazor.Test\Blazor.Test.csproj", "{4A47713C-2332-40C1-9AAB-7B2A14D148A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Test", "Blazor.Test\Blazor.Test\Blazor.Test.csproj", "{4A47713C-2332-40C1-9AAB-7B2A14D148A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Test.Client", "Blazor.Test\Blazor.Test.Client\Blazor.Test.Client.csproj", "{20CA19C8-3036-4D1B-B095-C59A4C76B8D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Test.Client", "Blazor.Test\Blazor.Test.Client\Blazor.Test.Client.csproj", "{20CA19C8-3036-4D1B-B095-C59A4C76B8D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
