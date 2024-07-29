@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<RootNamespace>AutoWasmApiGenerator</RootNamespace>
+		<RootNamespace>AutoAopProxyGenerator</RootNamespace>
 	</PropertyGroup>
 
 	<Import Project="..\Generators.Shared\Generators.Shared.projitems" Label="Shared" />

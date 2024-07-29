@@ -25,7 +25,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Test", "Blazor.Test\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Test.Client", "Blazor.Test\Blazor.Test.Client\Blazor.Test.Client.csproj", "{20CA19C8-3036-4D1B-B095-C59A4C76B8D0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{CEA3CBA8-53A4-4A37-B084-8238EC501DEE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoAopProxy", "AutoAopProxy", "{FCEAEFA9-132B-4945-9E97-53612B8A5CBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoAopProxyGenerator", "AutoAopProxyGenerator\AutoAopProxyGenerator.csproj", "{8638056F-E36D-4EBC-A4EA-A7AE22DDC161}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoAopProxy.Roslyn", "AutoAopProxy.Roslyn\AutoAopProxy.Roslyn.csproj", "{BA595E23-BD3A-4B36-A094-06E5814FE5E9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +69,14 @@ Global
 		{20CA19C8-3036-4D1B-B095-C59A4C76B8D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20CA19C8-3036-4D1B-B095-C59A4C76B8D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20CA19C8-3036-4D1B-B095-C59A4C76B8D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8638056F-E36D-4EBC-A4EA-A7AE22DDC161}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8638056F-E36D-4EBC-A4EA-A7AE22DDC161}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8638056F-E36D-4EBC-A4EA-A7AE22DDC161}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8638056F-E36D-4EBC-A4EA-A7AE22DDC161}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA595E23-BD3A-4B36-A094-06E5814FE5E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA595E23-BD3A-4B36-A094-06E5814FE5E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA595E23-BD3A-4B36-A094-06E5814FE5E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA595E23-BD3A-4B36-A094-06E5814FE5E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -75,14 +87,15 @@ Global
 		{1CA123D0-5B2A-4BBD-A90E-B58E01A7B2CA} = {FD7A81EE-6E54-461B-8766-BB36EB5F31D8}
 		{E48C1C4F-8111-4513-86EC-0C968E5437CD} = {FD7A81EE-6E54-461B-8766-BB36EB5F31D8}
 		{625157FF-90BB-4950-9643-7BAEF5CEF6A8} = {0D1AD616-22D2-4D10-BD23-92040AFD90D5}
-		{4A47713C-2332-40C1-9AAB-7B2A14D148A2} = {CEA3CBA8-53A4-4A37-B084-8238EC501DEE}
-		{20CA19C8-3036-4D1B-B095-C59A4C76B8D0} = {CEA3CBA8-53A4-4A37-B084-8238EC501DEE}
+		{8638056F-E36D-4EBC-A4EA-A7AE22DDC161} = {FCEAEFA9-132B-4945-9E97-53612B8A5CBF}
+		{BA595E23-BD3A-4B36-A094-06E5814FE5E9} = {FCEAEFA9-132B-4945-9E97-53612B8A5CBF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E16846FC-C2B2-43ED-A534-5726B5C9DDEE}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Generators.Shared\Generators.Shared.projitems*{625157ff-90bb-4950-9643-7baef5cef6a8}*SharedItemsImports = 5
+		Generators.Shared\Generators.Shared.projitems*{ba595e23-bd3a-4b36-a094-06e5814fe5e9}*SharedItemsImports = 5
 		Generators.Shared\Generators.Shared.projitems*{bd984bda-e2b5-4695-9b5a-53b46d8e6725}*SharedItemsImports = 13
 		Generators.Shared\Generators.Shared.projitems*{e48c1c4f-8111-4513-86ec-0c968e5437cd}*SharedItemsImports = 5
 	EndGlobalSection
