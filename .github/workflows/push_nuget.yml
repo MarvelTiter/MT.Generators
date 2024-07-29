@@ -33,3 +33,10 @@ jobs:
     - name: Push
       run: |
         dotnet nuget push 'publish/autowasmapi/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.AUTOWASMAPI}} --skip-duplicate
+    - name: Pack
+      run: |
+        dotnet pack ./src/MT.Generators.Abstraction/MT.Generators.Abstraction.csproj -c Release -o publish/genabs
+    - name: Push
+      run: |
+        dotnet nuget push 'publish/genabs/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_ABSTRACTION}} --skip-duplicate
+        
