@@ -26,4 +26,12 @@ namespace Blazor.Test
             throw new NotImplementedException();
         }
     }
+
+
+    [AutoInjectGenerator.AutoInjectContext]
+    public static partial class AutoInjectContext
+    {
+        //[AutoInjectGenerator.]
+        public static partial void Inject(this IServiceCollection services);
+    }
 }

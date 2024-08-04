@@ -7,8 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" OutputItemType="Analyzer"/>
+    <ProjectReference Include="..\..\AutoInject.Roslyn\AutoInject.Roslyn.csproj" OutputItemType="Analyzer"/>
+    <ProjectReference Include="..\..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="..\..\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj" />
+    <ProjectReference Include="..\..\InjectTest\InjectTest.csproj" />
     <ProjectReference Include="..\Blazor.Test.Client\Blazor.Test.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.5" />
   </ItemGroup>

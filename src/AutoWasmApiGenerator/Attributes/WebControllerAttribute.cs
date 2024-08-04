@@ -2,7 +2,7 @@
 
 namespace AutoWasmApiGenerator
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = false)]
     public class WebControllerAttribute : Attribute
     {
         public string? Route { get; set; }

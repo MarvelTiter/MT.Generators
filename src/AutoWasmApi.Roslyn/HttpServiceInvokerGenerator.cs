@@ -11,18 +11,30 @@ namespace AutoWasmApiGenerator
     [Generator(LanguageNames.CSharp)]
     public class HttpServiceInvokerGenerator : IIncrementalGenerator
     {
+        static List<INamedTypeSymbol> types = [];
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             var list = context.SyntaxProvider.ForAttributeWithMetadataName(
                GeneratorHepers.ApiInvokerAttributeFullName,
-               static (node, token) => node is ClassDeclarationSyntax,
+               static (node, token) => true,
                static (c, t) => c);
 
             context.RegisterSourceOutput(list.Combine(context.AnalyzerConfigOptionsProvider), static (context, p) =>
             {
                 try
                 {
+
                     var (source, options) = p;
+                    //if (source.TargetSymbol is INamedTypeSymbol n)
+                    //{
+                    //    types.Add(n);
+                    //    return;
+                    //}
+                    ////Debugger.Launch();
+                    //if (source.TargetSymbol is IAssemblySymbol a)
+                    //{
+
+                    //}
 
                     if (options.CheckDisableGenerator(DisableApiInvokerGenerator))
                     {
