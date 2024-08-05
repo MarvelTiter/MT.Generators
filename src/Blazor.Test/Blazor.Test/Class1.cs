@@ -7,13 +7,16 @@ using System.Threading.Tasks;
 
 namespace Blazor.Test
 {
+    [WebController]
+    [ApiInvokerGenerate(typeof(AutoInjectGenerator.AutoInjectAttribute))]
+    [MT.Generators.Abstraction.AttachAttributeArgument(typeof(ApiInvokerGenerateAttribute), typeof(AutoInjectGenerator.AutoInjectAttribute),"Group","WASM")]
     public interface ITest
     {
+        [WebMethod(Method = WebMethod.Get)]
         void Log(string message);
         Task<bool> LogAsync(string message);
     }
-    [WebController]
-    [ApiInvokerGenera]
+    
     public class Class1 : ITest
     {
         public void Log(string message)

@@ -27,7 +27,7 @@ namespace AutoInjectGenerator
             {
                 var compilcation = source.SemanticModel.Compilation;
                 var used = compilcation.GetUsedAssemblyReferences();
-                var all = GetAllSymbols(compilcation.GlobalNamespace);
+                var all = compilcation.GetAllSymbols<INamedTypeSymbol>(AutoInject);
                 var classSymbol = (INamedTypeSymbol)source.TargetSymbol;
                 var className = classSymbol.MetadataName;
                 if (classSymbol.GetMembers().FirstOrDefault(m => m is IMethodSymbol { IsPartialDefinition: true, IsStatic: true }) is not IMethodSymbol methodSymbol)
@@ -143,24 +143,24 @@ namespace AutoInjectGenerator
             };
         }
 
-        private static IEnumerable<INamedTypeSymbol> GetAllSymbols(INamespaceSymbol global)
-        {
-            foreach (var symbol in global.GetMembers())
-            {
-                if (symbol is INamespaceSymbol s)
-                {
-                    foreach (var item in GetAllSymbols(s))
-                    {
-                        //if (item.HasAttribute(AutoInject))
-                        yield return item;
-                    }
-                }
-                else if (symbol is INamedTypeSymbol target && !target.IsImplicitlyDeclared)
-                {
-                    if (target.HasAttribute(AutoInject))
-                        yield return target;
-                }
-            }
-        }
+        //private static IEnumerable<INamedTypeSymbol> GetAllSymbols(INamespaceSymbol global)
+        //{
+        //    foreach (var symbol in global.GetMembers())
+        //    {
+        //        if (symbol is INamespaceSymbol s)
+        //        {
+        //            foreach (var item in GetAllSymbols(s))
+        //            {
+        //                //if (item.HasAttribute(AutoInject))
+        //                yield return item;
+        //            }
+        //        }
+        //        else if (symbol is INamedTypeSymbol target && !target.IsImplicitlyDeclared)
+        //        {
+        //            if (target.HasAttribute(AutoInject))
+        //                yield return target;
+        //        }
+        //    }
+        //}
     }
 }

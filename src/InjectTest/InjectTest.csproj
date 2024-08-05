@@ -7,8 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AutoInject.Roslyn\AutoInject.Roslyn.csproj" OutputItemType="Analyzer"/>
+    <ProjectReference Include="..\AutoInject.Roslyn\AutoInject.Roslyn.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="..\AutoInjectGenerator\AutoInjectGenerator.csproj" />
+    <ProjectReference Include="..\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj" />
   </ItemGroup>
 
 </Project>

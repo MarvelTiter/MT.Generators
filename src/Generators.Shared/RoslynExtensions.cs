@@ -85,7 +85,6 @@ namespace Generators.Shared
         {
             if (source.TargetNode is
                 {
-
                     Parent: NamespaceDeclarationSyntax
                     {
                         Usings: var nu,
@@ -102,6 +101,64 @@ namespace Generators.Shared
             }
 
             return [];
+        }
+
+        //public static string[] GetTargetUsings(this INamedTypeSymbol typeSymbol)
+        //{
+        //    typeSymbol.ContainingNamespace.NamespaceKind
+        //}
+
+        public static IEnumerable<TSymbol> GetAllSymbols<TSymbol>(this Compilation compilation, string fullName)
+            where TSymbol : ISymbol
+        {
+
+            return GetAllSymbols(compilation.GlobalNamespace);
+
+            IEnumerable<TSymbol> GetAllSymbols(INamespaceSymbol global)
+            {
+                foreach (var symbol in global.GetMembers())
+                {
+                    if (symbol is INamespaceSymbol s)
+                    {
+                        foreach (var item in GetAllSymbols(s))
+                        {
+                            //if (item.HasAttribute(AutoInject))
+                            yield return item;
+                        }
+                    }
+                    else if (symbol is TSymbol target && !target.IsImplicitlyDeclared)
+                    {
+                        if (target.HasAttribute(fullName))
+                            yield return target;
+                    }
+                }
+            }
+
+        }
+
+
+        public static string FormatClassName(this INamedTypeSymbol interfaceSymbol)
+        {
+            var meta = interfaceSymbol.MetadataName;
+            if (meta.IndexOf('`') > -1)
+            {
+                meta = meta.Substring(0, meta.IndexOf('`'));
+            }
+            if (interfaceSymbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
+            {
+                meta = meta.Substring(1);
+            }
+            return meta;
+        }
+
+        public static string FormatFileName(this INamedTypeSymbol interfaceSymbol)
+        {
+            var meta = interfaceSymbol.MetadataName;
+            if (interfaceSymbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
+            {
+                meta = meta.Substring(1);
+            }
+            return meta;
         }
 
         public static IEnumerable<(IMethodSymbol Symbol, AttributeData? AttrData)> GetAllMethodWithAttribute(this INamedTypeSymbol interfaceSymbol, string fullName, INamedTypeSymbol? classSymbol = null)
@@ -130,6 +187,8 @@ namespace Generators.Shared
                 }
             }
         }
+
+
 
         public static IEnumerable<ITypeSymbol> GetGenericTypes(this ITypeSymbol symbol)
         {

@@ -11,76 +11,33 @@ namespace AutoWasmApiGenerator
     [Generator(LanguageNames.CSharp)]
     public class HttpServiceInvokerGenerator : IIncrementalGenerator
     {
-        static List<INamedTypeSymbol> types = [];
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            var list = context.SyntaxProvider.ForAttributeWithMetadataName(
-               GeneratorHepers.ApiInvokerAttributeFullName,
-               static (node, token) => true,
-               static (c, t) => c);
+            //var list = context.SyntaxProvider.ForAttributeWithMetadataName(
+            //   ApiInvokerAssemblyAttributeFullName,
+            //   static (node, token) => true,
+            //   static (c, t) => c);
 
-            context.RegisterSourceOutput(list.Combine(context.AnalyzerConfigOptionsProvider), static (context, p) =>
+            context.RegisterSourceOutput(context.CompilationProvider, static (context, compilation) =>
             {
                 try
                 {
-
-                    var (source, options) = p;
-                    //if (source.TargetSymbol is INamedTypeSymbol n)
-                    //{
-                    //    types.Add(n);
-                    //    return;
-                    //}
-                    ////Debugger.Launch();
-                    //if (source.TargetSymbol is IAssemblySymbol a)
-                    //{
-
-                    //}
-
-                    if (options.CheckDisableGenerator(DisableApiInvokerGenerator))
+                    if (!compilation.Assembly.HasAttribute(ApiInvokerAssemblyAttributeFullName))
                     {
                         return;
                     }
-
-                    var classSymbol = (INamedTypeSymbol)source.TargetSymbol;
-
-                    if (!classSymbol.HasAttribute(WebControllerAttributeFullName))
+                    var all = compilation.GetAllSymbols<INamedTypeSymbol>(ApiInvokerAttributeFullName);
+                    foreach (var item in all)
                     {
-                        return;
+                        if (!item.HasAttribute(WebControllerAttributeFullName))
+                        {
+                            continue;
+                        }
+                        if (CreateCodeFile(item, context, out var file))
+                        {
+                            context.AddSource(file!);
+                        }
                     }
-
-                    INamedTypeSymbol? interfaceSymbol = null;
-                    if (classSymbol.Interfaces.Length == 1)
-                    {
-                        interfaceSymbol = classSymbol.Interfaces.First();
-                    }
-                    else
-                    {
-                        interfaceSymbol = classSymbol.Interfaces.FirstOrDefault(i => i.GetAttribute(WebControllerAttributeFullName, out _));
-                    }
-                    if (interfaceSymbol == null)
-                    {
-                        context.ReportDiagnostic(DiagnosticDefinitions.WAG00002(source.TargetNode.GetLocation()));
-                        return;
-                    }
-                    var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName, classSymbol);
-                    List<Node> members = new List<Node>();
-
-                    var clientFactoryField = BuildField();
-                    var constructor = BuildConstructor(classSymbol);
-                    members.Add(clientFactoryField);
-                    members.Add(constructor);
-
-                    foreach (var method in methods)
-                    {
-                        var methodSyntax = BuildMethod(method, classSymbol);
-                        members.Add(methodSyntax);
-                    }
-                    var file = CodeFile.New($"{classSymbol.MetadataName}ApiInvoker.g.cs")
-                        .AddMembers(NamespaceBuilder.Default.Namespace(source.TargetSymbol.ContainingNamespace.ToDisplayString())
-                            .AddMembers(CreateHttpClassBuilder(classSymbol, interfaceSymbol)
-                                .AddMembers([.. members])))
-                        .AddUsings(source.GetTargetUsings());
-                    context.AddSource(file);
                 }
                 catch (System.Exception ex)
                 {
@@ -97,13 +54,36 @@ namespace AutoWasmApiGenerator
             });
         }
 
-        private static MethodBuilder BuildMethod((IMethodSymbol, AttributeData?) method, INamedTypeSymbol classSymbol)
+        private static bool CreateCodeFile(INamedTypeSymbol interfaceSymbol, SourceProductionContext context, out CodeFile? file)
+        {
+            var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName);
+            List<Node> members = new List<Node>();
+
+            var clientFactoryField = BuildField();
+            var constructor = BuildConstructor(interfaceSymbol);
+            members.Add(clientFactoryField);
+            members.Add(constructor);
+
+            foreach (var method in methods)
+            {
+                var methodSyntax = BuildMethod(method, interfaceSymbol);
+                members.Add(methodSyntax);
+            }
+            file = CodeFile.New($"{interfaceSymbol.FormatFileName()}ApiInvoker.g.cs")
+               .AddMembers(NamespaceBuilder.Default.Namespace(interfaceSymbol.ContainingNamespace.ToDisplayString())
+                   .AddMembers(CreateHttpClassBuilder(interfaceSymbol, interfaceSymbol)
+                       .AddMembers([.. members])));
+
+            return true;
+        }
+
+        private static MethodBuilder BuildMethod((IMethodSymbol, AttributeData?) method, INamedTypeSymbol interfaceSymbol)
         {
             //methodSymbol.GetAttribute<WebMethodAttribute>(out var m);
             //classSymbol.GetAttribute<WebControllerAttribute>(out var c);
             var methodSymbol = method.Item1;
             var methodAttribute = method.Item2;
-            classSymbol.GetAttribute(WebControllerAttributeFullName, out var classAttribute);
+            interfaceSymbol.GetAttribute(WebControllerAttributeFullName, out var webController);
             string webMethod;
             if (!methodAttribute.GetNamedValue("Method", out var v))
             {
@@ -113,13 +93,14 @@ namespace AutoWasmApiGenerator
             {
                 webMethod = WebMethod[(int)v!];
             }
-            var url = $"api/{classAttribute.GetNamedValue("Route") ?? classSymbol.MetadataName}/{methodAttribute?.GetNamedValue("Route") ?? methodSymbol.Name.Replace("Async", "")}";
+            var scopeName = interfaceSymbol.FormatClassName();
+            var url = $"api/{webController.GetNamedValue("Route") ?? scopeName}/{methodAttribute?.GetNamedValue("Route") ?? methodSymbol.Name.Replace("Async", "")}";
             List<Statement> statements =
             [
                 // var url = "";
                 $"var url = \"{url}\"",
                 // var client = clientFactory.CreateClient(nameof(<TYPE>));
-                $"var client = clientFactory.CreateClient(nameof({classSymbol.Name}))",
+                $"var client = clientFactory.CreateClient(\"{scopeName}\")",
                 // var request = new HttpRequestMessage();
                 "var request = new global::System.Net.Http.HttpRequestMessage()",
                 // request.Method = HttpMethod.<Method>

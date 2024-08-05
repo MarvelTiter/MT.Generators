@@ -1,4 +1,6 @@
-﻿namespace InjectTest
+﻿using AutoWasmApiGenerator;
+
+namespace InjectTest
 {
     [AutoInjectGenerator.AutoInject]
     public class Class1
@@ -11,14 +13,19 @@
 
     }
 
+    [WebController]
+    [ApiInvokerGenerate]
     public interface IB
     {
-
+        void Hello();
     }
 
     [AutoInjectGenerator.AutoInject]
     public class Class2 : Base, IB
     {
-
+        public void Hello()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
