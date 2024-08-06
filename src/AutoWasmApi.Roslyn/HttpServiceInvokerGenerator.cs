@@ -61,6 +61,7 @@ namespace AutoWasmApiGenerator
 
             var clientFactoryField = BuildField();
             var constructor = BuildConstructor(interfaceSymbol);
+            members.Add(FieldBuilder.Default.MemberType("global::System.Text.Json.JsonSerializerOptions").FieldName("jsonOptions"));
             members.Add(clientFactoryField);
             members.Add(constructor);
 
@@ -143,8 +144,8 @@ request.RequestUri = new Uri($"{url}?{string.Join("&", queries)}", UriKind.Relat
                     // request.RequestUri = new Uri(url, UriKind.Relative)
                     statements.Add($"var jsonContent = global::System.Text.Json.JsonSerializer.Serialize({p.Name})");
                     statements.Add("""request.Content = new StringContent(jsonContent, global::System.Text.Encoding.Default, "application/json")""");
-                    statements.Add("request.RequestUri = new Uri(url, UriKind.Relative)");
                 }
+                statements.Add("request.RequestUri = new Uri(url, UriKind.Relative)");
             }
             var returnType = methodSymbol.ReturnType.GetGenericTypes().FirstOrDefault() ?? methodSymbol.ReturnType;
             if (methodSymbol.ReturnsVoid || returnType.ToDisplayString() == "System.Threading.Tasks.Task")
@@ -157,7 +158,7 @@ request.RequestUri = new Uri($"{url}?{string.Join("&", queries)}", UriKind.Relat
                 statements.Add("response.EnsureSuccessStatusCode()");
                 statements.Add("var jsonStream = await response.Content.ReadAsStreamAsync()");
                 //return System.Text.Json.JsonSerializer.Deserialize<RETURN_TYPE>(jsonStream, jsonOptions);
-                statements.Add($"return global::System.Text.Json.JsonSerializer.Deserialize<{returnType.ToDisplayString()}>(jsonStream);");
+                statements.Add($"return global::System.Text.Json.JsonSerializer.Deserialize<{returnType.ToDisplayString()}>(jsonStream, jsonOptions);");
             }
 
             return MethodBuilder.Default
@@ -184,7 +185,8 @@ request.RequestUri = new Uri($"{url}?{string.Join("&", queries)}", UriKind.Relat
             return ConstructorBuilder.Default
                 .MethodName($"{FormatClassName(classSymbol.MetadataName)}ApiInvoker")
                 .AddParameter("global::System.Net.Http.IHttpClientFactory factory")
-                .AddBody("clientFactory = factory;");
+                .AddBody("clientFactory = factory;")
+                .AddBody("jsonOptions = new global::System.Text.Json.JsonSerializerOptions() { PropertyNameCaseInsensitive = true };");
         }
 
         private static ClassBuilder CreateHttpClassBuilder(INamedTypeSymbol classSymbol, INamedTypeSymbol interfaceSymbol)
