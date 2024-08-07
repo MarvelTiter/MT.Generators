@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
@@ -108,30 +109,47 @@ namespace Generators.Shared
         //    typeSymbol.ContainingNamespace.NamespaceKind
         //}
 
-        public static IEnumerable<TSymbol> GetAllSymbols<TSymbol>(this Compilation compilation, string fullName)
-            where TSymbol : ISymbol
+        public static IEnumerable<INamedTypeSymbol> GetAllSymbols(this Compilation compilation, string fullName)
         {
+            //var mainAsm = compilation.SourceModule.ContainingAssembly;
+            //var refAsmSymbols = compilation.SourceModule.ReferencedAssemblySymbols;
 
-            return GetAllSymbols(compilation.GlobalNamespace);
+            //foreach (var asm in refAsmSymbols.Concat([mainAsm]))
+            //{
+            //    if (IsSystemType(asm))
+            //    {
+            //        continue;
+            //    }
+            //    foreach (var item in GetAllSymbols(asm.GlobalNamespace))
+            //    {
+            //        yield return item;
+            //    }
+            //}
+            return InternalGetAllSymbols(compilation.GlobalNamespace);
 
-            IEnumerable<TSymbol> GetAllSymbols(INamespaceSymbol global)
+            IEnumerable<INamedTypeSymbol> InternalGetAllSymbols(INamespaceSymbol global)
             {
                 foreach (var symbol in global.GetMembers())
                 {
-                    if (symbol is INamespaceSymbol s)
+                    if (symbol is INamespaceSymbol n)
                     {
-                        foreach (var item in GetAllSymbols(s))
+                        foreach (var item in InternalGetAllSymbols(n))
                         {
                             //if (item.HasAttribute(AutoInject))
                             yield return item;
                         }
                     }
-                    else if (symbol is TSymbol target && !target.IsImplicitlyDeclared)
+                    else if (symbol is INamedTypeSymbol target)
                     {
                         if (target.HasAttribute(fullName))
                             yield return target;
                     }
                 }
+            }
+
+            bool IsSystemType(ISymbol symbol)
+            {
+                return symbol.Name == "System" || symbol.Name.Contains("System.") || symbol.Name.Contains("Microsoft.");
             }
 
         }

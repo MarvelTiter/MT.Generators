@@ -1,26 +1,29 @@
-﻿using AutoWasmApiGenerator;
+﻿using AutoInjectGenerator;
+using AutoWasmApiGenerator;
 
 namespace InjectTest
 {
-    [AutoInjectGenerator.AutoInject]
+    [AutoInject(Group = "SERVER")]
     public class Class1
     {
 
     }
 
+    [AutoInject]
     public class Base
     {
 
     }
 
     [WebController]
-    [ApiInvokerGenerate]
+    [ApiInvokerGenerate(typeof(AutoInjectAttribute))]
+    [MT.Generators.Abstraction.AttachAttributeArgument(typeof(ApiInvokerGenerateAttribute), typeof(AutoInjectAttribute), "Group","WASM")]
     public interface IB
     {
         void Hello();
     }
 
-    [AutoInjectGenerator.AutoInject]
+    [AutoInject(Group = "SERVER")]
     public class Class2 : Base, IB
     {
         public void Hello()

@@ -27,7 +27,7 @@ namespace AutoWasmApiGenerator
                 {
                     return;
                 }
-                var all = compilation.GetAllSymbols<INamedTypeSymbol>(WebControllerAttributeFullName);
+                var all = compilation.GetAllSymbols(WebControllerAttributeFullName);
                 foreach (var item in all)
                 {
                     if (CreateCodeFile(item, context, out var file))

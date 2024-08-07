@@ -26,7 +26,7 @@ namespace AutoWasmApiGenerator
                     {
                         return;
                     }
-                    var all = compilation.GetAllSymbols<INamedTypeSymbol>(ApiInvokerAttributeFullName);
+                    var all = compilation.GetAllSymbols(ApiInvokerAttributeFullName);
                     foreach (var item in all)
                     {
                         if (!item.HasAttribute(WebControllerAttributeFullName))
