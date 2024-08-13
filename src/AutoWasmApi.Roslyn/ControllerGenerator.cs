@@ -53,22 +53,24 @@ namespace AutoWasmApiGenerator
 
         private static bool CreateCodeFile(INamedTypeSymbol interfaceSymbol, SourceProductionContext context, out CodeFile? file)
         {
-            var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName);
+            var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName).ToArray();
             if (methods.Any(a => a.Symbol.IsGenericMethod) || interfaceSymbol.IsGenericType)
             {
                 file = null;
                 context.ReportDiagnostic(DiagnosticDefinitions.WAG00004(Location.None));
                 return false;
             }
-            List<Node> members = new List<Node>();
+            List<Node> members = [];
             var localField = BuildLocalField(interfaceSymbol);
             var constructor = BuildConstructor(interfaceSymbol);
             members.Add(localField);
             members.Add(constructor);
+            _ = interfaceSymbol.GetAttribute(WebControllerAttributeFullName, out var attributeData);
+            var needAuth = attributeData.GetNamedValue("Authorize") ?? false;
             foreach (var methodSymbol in methods)
             {
                 var httpMethod = TryGetHttpMethod(methodSymbol);
-                var methodSyntax = BuildMethod(methodSymbol, httpMethod);
+                var methodSyntax = BuildMethod(methodSymbol, httpMethod, (bool)needAuth);
                 if (methodSyntax != null)
                     members.Add(methodSyntax);
             }
@@ -80,7 +82,7 @@ namespace AutoWasmApiGenerator
             return true;
         }
 
-        private static MethodBuilder? BuildMethod((IMethodSymbol, AttributeData?) data, string httpMethod)
+        private static MethodBuilder? BuildMethod((IMethodSymbol, AttributeData?) data, string httpMethod, bool needAuth)
         {
             /*
              * [global::Microsoft.AspNetCore.Mvc.{httpMethod}("...")]
@@ -91,11 +93,14 @@ namespace AutoWasmApiGenerator
             var methodSymbol = data.Item1;
 
             var methodRouteAttribute = $"global::Microsoft.AspNetCore.Mvc.Http{httpMethod}(\"{a?.GetNamedValue("Route")?.ToString() ?? methodSymbol.Name.Replace("Async", "")}\")";
-
+            var allowAnonymous = (bool)(a?.GetNamedValue("AllowAnonymous") ?? false);
+            var methodAuth = (bool)(a?.GetNamedValue("Authorize") ?? false);
             return MethodBuilder.Default
                   .MethodName(methodSymbol.Name)
                   .ReturnType(methodSymbol.ReturnType.ToDisplayString())
                   .Attribute(methodRouteAttribute)
+                  .AttributeIf(allowAnonymous, "global::Microsoft.AspNetCore.Authorization.AllowAnonymous")
+                  .AttributeIf((methodAuth||needAuth)&& !allowAnonymous, "global::Microsoft.AspNetCore.Authorization.Authorize")
                   .AddGeneratedCodeAttribute(typeof(ControllerGenerator))
                   .AddParameter([.. methodSymbol.Parameters.Select(p => $"{CreateMethodParameterOriginAttribute(httpMethod)}{p.Type.ToDisplayString()} {p.Name}")])
                   .Lambda($"proxyService.{methodSymbol.Name}({string.Join(", ", methodSymbol.Parameters.Select(p => p.Name))});");
@@ -143,7 +148,7 @@ namespace AutoWasmApiGenerator
 
             _ = interfaceSymbol.GetAttribute(WebControllerAttributeFullName, out var controllerAttribute);
             var route = controllerAttribute.GetNamedValue("Route") ?? "[controller]";
-
+            var needAuth = controllerAttribute.GetNamedValue("Authorize") ?? false;
             //var additionalAttribute = source.TargetSymbol.GetAttributeInitInfo<ControllerGenerator>();
 
             return ClassBuilder.Default
@@ -152,6 +157,7 @@ namespace AutoWasmApiGenerator
                         .BaseType("global::Microsoft.AspNetCore.Mvc.ControllerBase")
                         .Attribute("global::Microsoft.AspNetCore.Mvc.ApiController")
                         .Attribute($"global::Microsoft.AspNetCore.Mvc.Route(\"api/{route}\")")
+                        .AttributeIf((bool)needAuth,"global::Microsoft.AspNetCore.Authorization.Authorize")
                         //.Attribute([..additionalAttribute.Select(i => i.ToString())])
                         .AddGeneratedCodeAttribute(typeof(ControllerGenerator));
         }

@@ -8,6 +8,8 @@ namespace AutoWasmApiGenerator
         public string? Route { get; set; }
         public Type[] Attributes { get; set; } = [];
 
+        public bool Authorize { get; set; }
+        
         public WebControllerAttribute(params Type[] attributes)
         {
             Attributes = attributes;
