@@ -3,7 +3,7 @@ using System.Text;
 
 namespace MT.Generators.Abstraction
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
     public class AttachAttributeArgumentAttribute : Attribute
     {
         public string Name { get; set; }

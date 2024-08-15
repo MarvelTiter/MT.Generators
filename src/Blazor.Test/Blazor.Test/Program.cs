@@ -1,6 +1,8 @@
 using Blazor.Test.Client.Pages;
 using Blazor.Test.Components;
 
+[assembly:AutoWasmApiGenerator.WebControllerAssembly]
+[assembly:AutoWasmApiGenerator.ApiInvokerAssembly]
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

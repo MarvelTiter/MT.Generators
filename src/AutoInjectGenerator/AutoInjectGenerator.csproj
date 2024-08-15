@@ -12,6 +12,7 @@
 		<Version>0.0.1</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<RootNamespace>AutoInjectGenerator</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

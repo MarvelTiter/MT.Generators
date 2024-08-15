@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
@@ -85,7 +86,6 @@ namespace Generators.Shared
         {
             if (source.TargetNode is
                 {
-
                     Parent: NamespaceDeclarationSyntax
                     {
                         Usings: var nu,
@@ -102,6 +102,81 @@ namespace Generators.Shared
             }
 
             return [];
+        }
+
+        //public static string[] GetTargetUsings(this INamedTypeSymbol typeSymbol)
+        //{
+        //    typeSymbol.ContainingNamespace.NamespaceKind
+        //}
+
+        public static IEnumerable<INamedTypeSymbol> GetAllSymbols(this Compilation compilation, string fullName)
+        {
+            //var mainAsm = compilation.SourceModule.ContainingAssembly;
+            //var refAsmSymbols = compilation.SourceModule.ReferencedAssemblySymbols;
+
+            //foreach (var asm in refAsmSymbols.Concat([mainAsm]))
+            //{
+            //    if (IsSystemType(asm))
+            //    {
+            //        continue;
+            //    }
+            //    foreach (var item in GetAllSymbols(asm.GlobalNamespace))
+            //    {
+            //        yield return item;
+            //    }
+            //}
+            return InternalGetAllSymbols(compilation.GlobalNamespace);
+
+            IEnumerable<INamedTypeSymbol> InternalGetAllSymbols(INamespaceSymbol global)
+            {
+                foreach (var symbol in global.GetMembers())
+                {
+                    if (symbol is INamespaceSymbol n)
+                    {
+                        foreach (var item in InternalGetAllSymbols(n))
+                        {
+                            //if (item.HasAttribute(AutoInject))
+                            yield return item;
+                        }
+                    }
+                    else if (symbol is INamedTypeSymbol target)
+                    {
+                        if (target.HasAttribute(fullName))
+                            yield return target;
+                    }
+                }
+            }
+
+            bool IsSystemType(ISymbol symbol)
+            {
+                return symbol.Name == "System" || symbol.Name.Contains("System.") || symbol.Name.Contains("Microsoft.");
+            }
+
+        }
+
+
+        public static string FormatClassName(this INamedTypeSymbol interfaceSymbol)
+        {
+            var meta = interfaceSymbol.MetadataName;
+            if (meta.IndexOf('`') > -1)
+            {
+                meta = meta.Substring(0, meta.IndexOf('`'));
+            }
+            if (interfaceSymbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
+            {
+                meta = meta.Substring(1);
+            }
+            return meta;
+        }
+
+        public static string FormatFileName(this INamedTypeSymbol interfaceSymbol)
+        {
+            var meta = interfaceSymbol.MetadataName;
+            if (interfaceSymbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
+            {
+                meta = meta.Substring(1);
+            }
+            return meta;
         }
 
         public static IEnumerable<(IMethodSymbol Symbol, AttributeData? AttrData)> GetAllMethodWithAttribute(this INamedTypeSymbol interfaceSymbol, string fullName, INamedTypeSymbol? classSymbol = null)
@@ -130,6 +205,8 @@ namespace Generators.Shared
                 }
             }
         }
+
+
 
         public static IEnumerable<ITypeSymbol> GetGenericTypes(this ITypeSymbol symbol)
         {

@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using static AutoWasmApiGenerator.GeneratorHepers;
 namespace AutoWasmApiGenerator
@@ -13,67 +14,75 @@ namespace AutoWasmApiGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            var list = context.SyntaxProvider.ForAttributeWithMetadataName(
-                WebControllerAttributeFullName,
-                static (node, token) => node is ClassDeclarationSyntax,
-                static (c, t) => c);
+            //var list = context.CompilationProvider.ForAttributeWithMetadataName(
+            //    WebControllerAssemblyAttributeFullName,
+            //    static (node, token) => true,
+            //    static (c, t) => c);
 
-            context.RegisterSourceOutput(list.Combine(context.AnalyzerConfigOptionsProvider), static (context, p) =>
+            context.RegisterSourceOutput(context.CompilationProvider, static (context, compilation) =>
             {
-                var (source, options) = p;
-                if (options.CheckDisableGenerator(DisableWebApiGenerator))
+                //try
+                //{
+                if (!compilation.Assembly.HasAttribute(WebControllerAssemblyAttributeFullName))
                 {
                     return;
                 }
-
-                var classSymbol = (INamedTypeSymbol)source.TargetSymbol;
-                INamedTypeSymbol? interfaceSymbol = null;
-                if (classSymbol.Interfaces.Length == 0)
+                var all = compilation.GetAllSymbols(WebControllerAttributeFullName);
+                foreach (var item in all)
                 {
-                    interfaceSymbol = classSymbol;
+                    if (CreateCodeFile(item, context, out var file))
+                    {
+                        context.AddSource(file!);
+                    }
                 }
-                else if (classSymbol.Interfaces.Length == 1)
-                {
-                    interfaceSymbol = classSymbol.Interfaces.First();
-                }
-                else
-                {
-                    interfaceSymbol = classSymbol.Interfaces.FirstOrDefault(i => i.GetAttribute(WebControllerAttributeFullName, out _));
-                }
-                if (interfaceSymbol == null)
-                {
-                    context.ReportDiagnostic(DiagnosticDefinitions.WAG00001(source.TargetNode.GetLocation()));
-                    return;
-                }
-                var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName, classSymbol);
-                if (methods.Any(a => a.Symbol.IsGenericMethod) || classSymbol.IsGenericType)
-                {
-                    context.ReportDiagnostic(DiagnosticDefinitions.WAG00004(source.TargetNode.GetLocation()));
-                    return;
-                }
-                List<Node> members = new List<Node>();
-                var localField = BuildLocalField(interfaceSymbol);
-                var constructor = BuildConstructor(classSymbol, interfaceSymbol);
-                members.Add(localField);
-                members.Add(constructor);
-                foreach (var methodSymbol in methods)
-                {
-                    var httpMethod = TryGetHttpMethod(methodSymbol);
-                    var methodSyntax = BuildMethod(methodSymbol, httpMethod);
-                    if (methodSyntax != null)
-                        members.Add(methodSyntax);
-                }
-
-                var file = CodeFile.New($"{classSymbol.MetadataName}Controller.g.cs")
-                .AddMembers(NamespaceBuilder.Default.Namespace(source.TargetSymbol.ContainingNamespace.ToDisplayString()).AddMembers(CreateControllerClass(source).AddMembers([.. members])))
-                .AddUsings(source.GetTargetUsings());
-                var code = file.ToString();
-                context.AddSource(file);
+                //}
+                //catch (Exception ex)
+                //{
+                //    context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
+                //        id: "ControllerGenerator_ERROR00001",
+                //        title: "生成错误",
+                //        messageFormat: ex.Message,
+                //        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                //        defaultSeverity: DiagnosticSeverity.Warning,
+                //        isEnabledByDefault: true
+                //        ), Location.None));
+                //}
 
             });
         }
 
-        private static MethodBuilder? BuildMethod((IMethodSymbol, AttributeData?) data, string httpMethod)
+        private static bool CreateCodeFile(INamedTypeSymbol interfaceSymbol, SourceProductionContext context, out CodeFile? file)
+        {
+            var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName).ToArray();
+            if (methods.Any(a => a.Symbol.IsGenericMethod) || interfaceSymbol.IsGenericType)
+            {
+                file = null;
+                context.ReportDiagnostic(DiagnosticDefinitions.WAG00004(Location.None));
+                return false;
+            }
+            List<Node> members = [];
+            var localField = BuildLocalField(interfaceSymbol);
+            var constructor = BuildConstructor(interfaceSymbol);
+            members.Add(localField);
+            members.Add(constructor);
+            _ = interfaceSymbol.GetAttribute(WebControllerAttributeFullName, out var attributeData);
+            var needAuth = attributeData.GetNamedValue("Authorize") ?? false;
+            foreach (var methodSymbol in methods)
+            {
+                var httpMethod = TryGetHttpMethod(methodSymbol);
+                var methodSyntax = BuildMethod(methodSymbol, httpMethod, (bool)needAuth);
+                if (methodSyntax != null)
+                    members.Add(methodSyntax);
+            }
+
+            file = CodeFile.New($"{interfaceSymbol.FormatFileName()}Controller.g.cs")
+           .AddMembers(NamespaceBuilder.Default.Namespace(interfaceSymbol.ContainingNamespace.ToDisplayString()).AddMembers(CreateControllerClass(interfaceSymbol).AddMembers([.. members])));
+            //.AddUsings(source.GetTargetUsings());
+
+            return true;
+        }
+
+        private static MethodBuilder? BuildMethod((IMethodSymbol, AttributeData?) data, string httpMethod, bool needAuth)
         {
             /*
              * [global::Microsoft.AspNetCore.Mvc.{httpMethod}("...")]
@@ -84,11 +93,14 @@ namespace AutoWasmApiGenerator
             var methodSymbol = data.Item1;
 
             var methodRouteAttribute = $"global::Microsoft.AspNetCore.Mvc.Http{httpMethod}(\"{a?.GetNamedValue("Route")?.ToString() ?? methodSymbol.Name.Replace("Async", "")}\")";
-
+            var allowAnonymous = (bool)(a?.GetNamedValue("AllowAnonymous") ?? false);
+            var methodAuth = (bool)(a?.GetNamedValue("Authorize") ?? false);
             return MethodBuilder.Default
                   .MethodName(methodSymbol.Name)
                   .ReturnType(methodSymbol.ReturnType.ToDisplayString())
                   .Attribute(methodRouteAttribute)
+                  .AttributeIf(allowAnonymous, "global::Microsoft.AspNetCore.Authorization.AllowAnonymous")
+                  .AttributeIf((methodAuth||needAuth)&& !allowAnonymous, "global::Microsoft.AspNetCore.Authorization.Authorize")
                   .AddGeneratedCodeAttribute(typeof(ControllerGenerator))
                   .AddParameter([.. methodSymbol.Parameters.Select(p => $"{CreateMethodParameterOriginAttribute(httpMethod)}{p.Type.ToDisplayString()} {p.Name}")])
                   .Lambda($"proxyService.{methodSymbol.Name}({string.Join(", ", methodSymbol.Parameters.Select(p => p.Name))});");
@@ -115,7 +127,7 @@ namespace AutoWasmApiGenerator
                 .FieldName("proxyService");
         }
 
-        private static ConstructorBuilder BuildConstructor(INamedTypeSymbol classSymbol, INamedTypeSymbol interfaceSymbol)
+        private static ConstructorBuilder BuildConstructor(INamedTypeSymbol interfaceSymbol)
         {
             /*
              * public <SERVICE_TYPE>Controller(<SERVICE_TYPE> service)
@@ -125,26 +137,27 @@ namespace AutoWasmApiGenerator
              */
 
             return ConstructorBuilder.Default
-                    .MethodName($"{FormatClassName(classSymbol.MetadataName)}Controller")
+                    .MethodName($"{FormatClassName(interfaceSymbol.FormatClassName())}Controller")
                     .AddGeneratedCodeAttribute(typeof(ControllerGenerator))
                     .AddBody("proxyService = service;")
                     .AddParameter($"{interfaceSymbol.ToDisplayString()} service");
         }
 
-        private static ClassBuilder CreateControllerClass(GeneratorAttributeSyntaxContext source)
+        private static ClassBuilder CreateControllerClass(INamedTypeSymbol interfaceSymbol)
         {
 
-            var controllerAttribute = source.TargetSymbol.GetAttributes().First(a => a.AttributeClass?.ToDisplayString() == WebControllerAttributeFullName);
+            _ = interfaceSymbol.GetAttribute(WebControllerAttributeFullName, out var controllerAttribute);
             var route = controllerAttribute.GetNamedValue("Route") ?? "[controller]";
-
+            var needAuth = controllerAttribute.GetNamedValue("Authorize") ?? false;
             //var additionalAttribute = source.TargetSymbol.GetAttributeInitInfo<ControllerGenerator>();
 
             return ClassBuilder.Default
-                        .ClassName($"{FormatClassName(source.TargetSymbol.MetadataName)}Controller")
+                        .ClassName($"{FormatClassName(interfaceSymbol.FormatClassName())}Controller")
                         .Modifiers("public")
                         .BaseType("global::Microsoft.AspNetCore.Mvc.ControllerBase")
                         .Attribute("global::Microsoft.AspNetCore.Mvc.ApiController")
                         .Attribute($"global::Microsoft.AspNetCore.Mvc.Route(\"api/{route}\")")
+                        .AttributeIf((bool)needAuth,"global::Microsoft.AspNetCore.Authorization.Authorize")
                         //.Attribute([..additionalAttribute.Select(i => i.ToString())])
                         .AddGeneratedCodeAttribute(typeof(ControllerGenerator));
         }

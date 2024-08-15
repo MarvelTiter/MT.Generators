@@ -32,6 +32,16 @@ namespace Generators.Shared.Builder
             return builder;
         }
 
+        public static T AttributeIf<T>(this T builder, bool condition, params string[] attributes)
+            where T : MemberBuilder
+        {
+            if (condition)
+            {
+                builder.Attribute(attributes);
+            }
+            return builder;
+        }
+
         public static T AddGeneratedCodeAttribute<T>(this T builder, Type generatorType) where T : MemberBuilder
         {
             return builder.Attribute($"""global::System.CodeDom.Compiler.GeneratedCode("{generatorType.FullName}", "{generatorType.Assembly.GetName().Version}")""");

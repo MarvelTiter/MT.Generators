@@ -13,7 +13,9 @@ namespace AutoWasmApiGenerator
     public static class GeneratorHepers
     {
         public const string WebControllerAttributeFullName = "AutoWasmApiGenerator.WebControllerAttribute";
-        public const string ApiInvokerAttributeFullName = "AutoWasmApiGenerator.ApiInvokerGeneraAttribute";
+        public const string WebControllerAssemblyAttributeFullName = "AutoWasmApiGenerator.WebControllerAssemblyAttribute";
+        public const string ApiInvokerAttributeFullName = "AutoWasmApiGenerator.ApiInvokerGenerateAttribute";
+        public const string ApiInvokerAssemblyAttributeFullName = "AutoWasmApiGenerator.ApiInvokerAssemblyAttribute";
         public const string WebMethodAttributeFullName = "AutoWasmApiGenerator.WebMethodAttribute";
         public const string DisableWebApiGenerator = "DisableWebApiGenerator";
         public const string DisableApiInvokerGenerator = "DisableApiInvokerGenerator";

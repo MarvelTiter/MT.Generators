@@ -6,12 +6,12 @@ namespace AutoWasmApiGenerator
     /// <summary>
     /// For <see cref="HttpServiceInvokerGenerator"/> Generator
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false)]
-    public class ApiInvokerGeneraAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Interface, AllowMultiple = false)]
+    public class ApiInvokerGenerateAttribute : Attribute
     {
         public Type[] Attributes { get; set; }
 
-        public ApiInvokerGeneraAttribute(params Type[] attributes)
+        public ApiInvokerGenerateAttribute(params Type[] attributes)
         {
             Attributes = attributes;
         }
