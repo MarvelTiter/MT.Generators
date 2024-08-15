@@ -91,8 +91,6 @@ namespace AutoInjectGenerator
 
                 foreach (var item in allContext)
                 {
-                    Debugger.Launch();
-
                     if (!EqualityComparer<IAssemblySymbol>.Default.Equals(item.ContainingAssembly, source.SourceModule.ContainingAssembly))
                     {
                         continue;
