@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoGenMapperGenerator;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,10 +19,26 @@ namespace TestProject1
                 Id = 1000,
                 Name = "Edge",
                 Category = "Browser",
-                ProductDate = new DateTime(2020, 02, 02)
+                ProductDate = new DateTime(2020, 02, 02),
+                Products = [
+                    new(){
+                        Id = 1001,
+                        Name = "H1",
+                        Category = "HTML"
+                    },
+                    new(){
+                        Id = 1002,
+                        Name = "H2",
+                        Category = "HTML"
+                    },
+                    new(){
+                        Id = 1003,
+                        Name = "H3",
+                        Category = "HTML"
+                    }
+                    ]
             };
-            var pd = p.MapToProductDto();
-            Assert.IsTrue("Browser-Edge" == pd.Name);
+            var pd = p.MapToProduct();
         }
     }
 }

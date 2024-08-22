@@ -42,7 +42,6 @@ public static class BuildAutoMapClass
         {
             $"var result = new {context.TargetType.ToDisplayString()}({string.Join(", ", context.ConstructorParameters)})"
         };
-        //Debugger.Launch();
         List<string> solved = [];
         foreach (var mapTo in context.Tos)
         {
@@ -68,10 +67,13 @@ public static class BuildAutoMapClass
             {
                 continue;
             }
-            if (prop.IsReadOnly)
+            //var mdis = prop.mod
+            if (prop.IsReadOnly || prop.DeclaredAccessibility != Accessibility.Public)
             {
                 continue;
             }
+
+
             if (GetPropertyValue(context, prop, out var value))
             {
                 statements.Add($"result.{prop.Name} = {value}");
@@ -111,7 +113,32 @@ public static class BuildAutoMapClass
             }
             else if (!customTrans.From.IsNullOrEmpty())
             {
-                value = $"this.{customTrans.From}";
+                if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
+                {
+                    Debugger.Launch();
+                    var et = prop.Type.GetGenericTypes().First();
+                    if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
+                    {
+                        var fin = "";
+                        if (prop.Type.Name.Contains("Array"))
+                        {
+                            fin = "ToArray()";
+                        }
+                        else
+                        {
+                            fin = "ToList()";
+                        }
+                        value = ($"""this.{customTrans.From}.Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
+                    }
+                    else
+                    {
+                        value = $"this.{customTrans.From}";
+                    }
+                }
+                else
+                {
+                    value = $"this.{customTrans.From}";
+                }
                 return true;
             }
         }
@@ -119,7 +146,32 @@ public static class BuildAutoMapClass
         var p = context.SourceProperties.FirstOrDefault(p => p.Name == prop.Name);
         if (p != null)
         {
-            value = $"this.{p.Name}";
+            if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
+            {
+                Debugger.Launch();
+                var et = prop.Type.GetGenericTypes().First();
+                if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
+                {
+                    var fin = "";
+                    if (prop.Type.Name.Contains("Array"))
+                    {
+                        fin = "ToArray()";
+                    }
+                    else
+                    {
+                        fin = "ToList()";
+                    }
+                    value = ($"""this.{p.Name}.Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
+                }
+                else
+                {
+                    value = $"this.{p.Name}";
+                }
+            }
+            else
+            {
+                value = $"this.{p.Name}";
+            }
             return true;
         }
         value = null;

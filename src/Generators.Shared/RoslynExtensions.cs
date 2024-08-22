@@ -77,9 +77,14 @@ namespace Generators.Shared
             return symbol?.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == fullName) == true;
         }
 
-        public static bool HasInterface(this INamedTypeSymbol? symbol, string fullName)
+        public static bool HasInterface(this ITypeSymbol? symbol, string fullName)
         {
             return symbol?.Interfaces.Any(i => i.ToDisplayString() == fullName) == true;
+        }
+
+        public static bool HasInterfaceAll(this ITypeSymbol? symbol, string fullName)
+        {
+            return symbol?.AllInterfaces.Any(i => i.ToDisplayString() == fullName) == true;
         }
 
         public static bool CheckDisableGenerator(this AnalyzerConfigOptionsProvider options, string key)

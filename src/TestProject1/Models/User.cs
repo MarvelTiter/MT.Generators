@@ -1,12 +1,47 @@
 ﻿using AutoGenMapperGenerator;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace TestProject1.Models
 {
+    public interface IPower
+    {
+        [NotNull] string? PowerId { get; set; }
+        [NotNull] string? PowerName { get; set; }
+        string? ParentId { get; set; }
+        int PowerLevel { get; set; }
+        string? Icon { get; set; }
+        string? Path { get; set; }
+        int Sort { get; set; }
+        bool GenerateCRUDButton { get; set; }
+        IEnumerable<IPower>? Children { get; set; }
+    }
+
+    [GenMapper]
+    public partial class Power : IPower, IAutoMap
+    {
+        public string? PowerId { get; set; }
+        public string? PowerName { get; set; }
+        public string? ParentId { get; set; }
+        public int PowerLevel { get; set; }
+        public string? Icon { get; set; }
+        public string? Path { get; set; }
+        public int Sort { get; set; }
+
+        [NotMapped]
+        public IEnumerable<Power>? Children { get; set; }
+        IEnumerable<IPower>? IPower.Children { get => Children; set => Children = value?.Cast<Power>(); }
+
+        [NotMapped]
+        public bool GenerateCRUDButton { get; set; }
+    }
+
     [GenMapper]
     [GenMapper(typeof(ProductDto))]
     internal partial class Product : IAutoMap
@@ -16,6 +51,8 @@ namespace TestProject1.Models
         public string? Category { get; set; }
         [MapTo(Target = typeof(ProductDto), Name = nameof(ProductDto.Date))]
         public DateTime? ProductDate { get; set; }
+        public IEnumerable<Product> Products { get; set; } = [];
+        
     }
 
     internal class ProductDto

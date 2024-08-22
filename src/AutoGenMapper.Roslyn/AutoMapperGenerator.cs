@@ -12,11 +12,11 @@ namespace AutoGenMapperGenerator
     [Generator(LanguageNames.CSharp)]
     public class AutoMapperGenerator : IIncrementalGenerator
     {
-        const string GenMapperAttributeFullName = "AutoGenMapperGenerator.GenMapperAttribute";
-        const string GenMapFromAttributeFullName = "AutoGenMapperGenerator.MapFromAttribute";
-        const string GenMapToAttributeFullName = "AutoGenMapperGenerator.MapToAttribute";
-        const string GenMapableInterface = "AutoGenMapperGenerator.IAutoMap";
-        const string GenMapIgnoreAttribute = "AutoGenMapperGenerator.MapIgnore";
+        internal const string GenMapperAttributeFullName = "AutoGenMapperGenerator.GenMapperAttribute";
+        internal const string GenMapFromAttributeFullName = "AutoGenMapperGenerator.MapFromAttribute";
+        internal const string GenMapToAttributeFullName = "AutoGenMapperGenerator.MapToAttribute";
+        internal const string GenMapableInterface = "AutoGenMapperGenerator.IAutoMap";
+        internal const string GenMapIgnoreAttribute = "AutoGenMapperGenerator.MapIgnore";
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
@@ -53,8 +53,12 @@ namespace AutoGenMapperGenerator
             methods.Add(im);
             cb.AddMembers([.. methods]);
 
-            var cla = cb.ToString();
+            
+
             return CodeFile.New($"{origin.FormatFileName()}.AutoMap.g.cs")
+                //.AddUsings("using System.Linq;")
+                //.AddUsings("using AutoGenMapperGenerator;")
+                .AddUsings(source.GetTargetUsings())
                 .AddMembers(NamespaceBuilder.Default.Namespace(origin.ContainingNamespace.ToDisplayString())
                     .AddMembers(cb));
         }
