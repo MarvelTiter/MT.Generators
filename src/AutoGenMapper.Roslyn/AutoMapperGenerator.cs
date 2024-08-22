@@ -16,6 +16,7 @@ namespace AutoGenMapperGenerator
         const string GenMapFromAttributeFullName = "AutoGenMapperGenerator.MapFromAttribute";
         const string GenMapToAttributeFullName = "AutoGenMapperGenerator.MapToAttribute";
         const string GenMapableInterface = "AutoGenMapperGenerator.IAutoMap";
+        const string GenMapIgnoreAttribute = "AutoGenMapperGenerator.MapIgnore";
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {

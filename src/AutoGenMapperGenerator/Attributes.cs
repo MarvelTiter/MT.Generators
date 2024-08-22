@@ -10,7 +10,7 @@ public class GenMapperAttribute : Attribute
 
     public GenMapperAttribute()
     {
-        
+
     }
 
     public GenMapperAttribute(Type targetType)
@@ -24,7 +24,11 @@ public class GenMapperAttribute : Attribute
         TargetType = targetType;
     }
 }
+[AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+public class MapIgnore : Attribute
+{
 
+}
 [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
 public class MapToAttribute : Attribute
 {

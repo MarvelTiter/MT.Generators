@@ -68,6 +68,10 @@ public static class BuildAutoMapClass
             {
                 continue;
             }
+            if (prop.IsReadOnly)
+            {
+                continue;
+            }
             if (GetPropertyValue(context, prop, out var value))
             {
                 statements.Add($"result.{prop.Name} = {value}");
