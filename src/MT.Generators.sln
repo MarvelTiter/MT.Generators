@@ -14,6 +14,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MT.Generators.Abstraction", "MT.Generators.Abstraction\MT.Generators.Abstraction.csproj", "{B37BF9C7-9A20-46D3-9854-A11121B83D2E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoInject", "AutoInject", "{FD7A81EE-6E54-461B-8766-BB36EB5F31D8}"
+	ProjectSection(SolutionItems) = preProject
+		User.cs = User.cs
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoInject.Roslyn", "AutoInject.Roslyn\AutoInject.Roslyn.csproj", "{E48C1C4F-8111-4513-86EC-0C968E5437CD}"
 EndProject
@@ -33,7 +36,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoAopProxy.Roslyn", "Auto
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{47FB0C42-25F4-49C1-A98C-D6536116B894}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InjectTest", "InjectTest\InjectTest.csproj", "{3E0A2B9F-6165-43B3-8C0F-2A9524C03E5D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InjectTest", "InjectTest\InjectTest.csproj", "{3E0A2B9F-6165-43B3-8C0F-2A9524C03E5D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoGenMapper", "AutoGenMapper", "{B1852D0E-A185-491C-B81D-03D1AC5EF97C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoGenMapper.Roslyn", "AutoGenMapper.Roslyn\AutoGenMapper.Roslyn.csproj", "{26DD2068-DD76-4FF9-8FB6-8E354188F7F7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoGenMapperGenerator", "AutoGenMapperGenerator\AutoGenMapperGenerator.csproj", "{6FFF3104-CCD7-4916-A911-AEB9A5D35536}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,6 +94,14 @@ Global
 		{3E0A2B9F-6165-43B3-8C0F-2A9524C03E5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E0A2B9F-6165-43B3-8C0F-2A9524C03E5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E0A2B9F-6165-43B3-8C0F-2A9524C03E5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26DD2068-DD76-4FF9-8FB6-8E354188F7F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26DD2068-DD76-4FF9-8FB6-8E354188F7F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26DD2068-DD76-4FF9-8FB6-8E354188F7F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26DD2068-DD76-4FF9-8FB6-8E354188F7F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FFF3104-CCD7-4916-A911-AEB9A5D35536}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FFF3104-CCD7-4916-A911-AEB9A5D35536}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FFF3104-CCD7-4916-A911-AEB9A5D35536}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FFF3104-CCD7-4916-A911-AEB9A5D35536}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -100,11 +117,14 @@ Global
 		{8638056F-E36D-4EBC-A4EA-A7AE22DDC161} = {FCEAEFA9-132B-4945-9E97-53612B8A5CBF}
 		{BA595E23-BD3A-4B36-A094-06E5814FE5E9} = {FCEAEFA9-132B-4945-9E97-53612B8A5CBF}
 		{3E0A2B9F-6165-43B3-8C0F-2A9524C03E5D} = {47FB0C42-25F4-49C1-A98C-D6536116B894}
+		{26DD2068-DD76-4FF9-8FB6-8E354188F7F7} = {B1852D0E-A185-491C-B81D-03D1AC5EF97C}
+		{6FFF3104-CCD7-4916-A911-AEB9A5D35536} = {B1852D0E-A185-491C-B81D-03D1AC5EF97C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E16846FC-C2B2-43ED-A534-5726B5C9DDEE}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Generators.Shared\Generators.Shared.projitems*{26dd2068-dd76-4ff9-8fb6-8e354188f7f7}*SharedItemsImports = 5
 		Generators.Shared\Generators.Shared.projitems*{625157ff-90bb-4950-9643-7baef5cef6a8}*SharedItemsImports = 5
 		Generators.Shared\Generators.Shared.projitems*{ba595e23-bd3a-4b36-a094-06e5814fe5e9}*SharedItemsImports = 5
 		Generators.Shared\Generators.Shared.projitems*{bd984bda-e2b5-4695-9b5a-53b46d8e6725}*SharedItemsImports = 13

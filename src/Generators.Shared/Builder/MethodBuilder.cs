@@ -71,11 +71,25 @@ $$"""
 
         public override string ToString()
         {
-            if (!Content.Trim().EndsWith(";"))
-            {
-                return $"{Indent}{Content};";
-            }
-            return $"{Indent}{Content}";
+            //if (!Content.Trim().EndsWith(";"))
+            //{
+            //    return $"{Indent}{Content};";
+            //}
+            return $"{Indent}{Content}{AttachSemicolon()}";
+        }
+
+        private string AttachSemicolon()
+        {
+            if (Content.Trim().EndsWith(";"))
+                return string.Empty;
+            if (Content.StartsWith("if"))
+                return string.Empty;
+            if (Content.StartsWith("{"))
+                return string.Empty;
+            if (Content.EndsWith("}"))
+                return string.Empty;
+            return ";";
+
         }
     }
 }

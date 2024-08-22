@@ -21,22 +21,33 @@ jobs:
     - name: Build
       run: |
         dotnet build ./src -c Release
+    # AutoInjectGenerator
     - name: Pack
       run: |
         dotnet pack ./src/AutoInjectGenerator/AutoInjectGenerator.csproj -c Release -o publish/autoinject
     - name: Push
       run: |
         dotnet nuget push 'publish/autoinject/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.AUTOINJECT}} --skip-duplicate
+    # AutoWasmApiGenerator
     - name: Pack
       run: |
         dotnet pack ./src/AutoWasmApiGenerator/AutoWasmApiGenerator.csproj -c Release -o publish/autowasmapi
     - name: Push
       run: |
         dotnet nuget push 'publish/autowasmapi/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.AUTOWASMAPI}} --skip-duplicate
+    # MT.Generators.Abstraction
     - name: Pack
       run: |
         dotnet pack ./src/MT.Generators.Abstraction/MT.Generators.Abstraction.csproj -c Release -o publish/genabs
     - name: Push
       run: |
         dotnet nuget push 'publish/genabs/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_ABSTRACTION}} --skip-duplicate
+    # AutoGenMapperGenerator
+    - name: Pack
+      run: |
+        dotnet pack ./src/AutoGenMapperGenerator/AutoGenMapperGenerator.csproj -c Release -o publish/genmapper
+    - name: Push
+      run: |
+        dotnet nuget push 'publish/genmapper/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_MAPPER}} --skip-duplicate
+
         

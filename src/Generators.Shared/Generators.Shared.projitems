@@ -23,6 +23,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\NameSpaceBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\TypeParameterInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StringExtensions.cs" />
     <Compile Include="..\Generators.Shared\RoslynExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

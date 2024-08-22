@@ -12,4 +12,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\AutoGenMapper.Roslyn\AutoGenMapper.Roslyn.csproj" OutputItemType="Analyzer"/>
+    <ProjectReference Include="..\..\AutoGenMapperGenerator\AutoGenMapperGenerator.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <RootNamespace>AutoGenMapperGenerator</RootNamespace>
+    </PropertyGroup>
+    <Import Project="..\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
+    <Import Project="..\Generators.Shared\MT.Generators.props" />
+</Project>

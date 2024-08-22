@@ -5,8 +5,9 @@ namespace Generators.Shared.Builder
 {
     internal static class TypeBuilderExtensions
     {
-        public static void AddSource(this SourceProductionContext context, CodeFile codeFile)
+        public static void AddSource(this SourceProductionContext context, CodeFile? codeFile)
         {
+            if (codeFile is null) return;
             context.AddSource(codeFile.FileName, codeFile.ToString());
         }
         public static T AddMembers<T>(this T builder, params Node[] members) where T : TypeBuilder
