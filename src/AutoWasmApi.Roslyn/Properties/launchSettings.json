@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "autowasm": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\Blazor.Test\\Blazor.Test\\Blazor.Test.csproj"
+    }
+  }
+}

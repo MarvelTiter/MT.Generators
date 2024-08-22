@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "mapper": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\TestProject1\\TestProject1.csproj"
+    }
+  }
+}

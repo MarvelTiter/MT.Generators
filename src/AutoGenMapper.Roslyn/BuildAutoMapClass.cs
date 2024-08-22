@@ -115,7 +115,6 @@ public static class BuildAutoMapClass
             {
                 if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
                 {
-                    Debugger.Launch();
                     var et = prop.Type.GetGenericTypes().First();
                     if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
                     {
@@ -148,7 +147,6 @@ public static class BuildAutoMapClass
         {
             if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
             {
-                Debugger.Launch();
                 var et = prop.Type.GetGenericTypes().First();
                 if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
                 {
