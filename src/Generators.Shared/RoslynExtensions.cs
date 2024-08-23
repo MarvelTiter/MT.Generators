@@ -1,4 +1,4 @@
-﻿using Generators.Shared.Models;
+﻿using Generators.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -8,265 +8,298 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace Generators.Shared
+namespace Generators.Shared;
+
+internal static class RoslynExtensions
 {
-    internal static class RoslynExtensions
+    /// <summary>
+    /// 获取指定了名称的参数的值
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public static object? GetNamedValue(this AttributeData? a, string key)
     {
-        /// <summary>
-        /// 获取指定了名称的参数的值
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static object? GetNamedValue(this AttributeData? a, string key)
+        if (a == null) return null;
+        var named = a.NamedArguments.FirstOrDefault(t => t.Key == key);
+        return named.Value.Value;
+    }
+    /// <summary>
+    /// 获取指定了名称的参数的值
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public static bool GetNamedValue(this AttributeData? a, string key, out object? value)
+    {
+        var t = a.GetNamedValue(key);
+        value = t;
+        return t != null;
+    }
+
+    public static bool GetConstructorValue(this AttributeData a, int index, out object? value)
+    {
+        if (a.ConstructorArguments.Length <= index)
         {
-            if (a == null) return null;
-            var named = a.NamedArguments.FirstOrDefault(t => t.Key == key);
-            return named.Value.Value;
+            value = null;
+            return false;
         }
-        /// <summary>
-        /// 获取指定了名称的参数的值
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool GetNamedValue(this AttributeData? a, string key, out object? value)
+        value = a.ConstructorArguments[index].Value;
+        return true;
+    }
+
+    public static bool GetConstructorValues(this AttributeData a, int index, out object?[] values)
+    {
+        if (a.ConstructorArguments.Length <= index)
         {
-            var t = GetNamedValue(a, key);
-            value = t;
-            return t != null;
+            values = [];
+            return false;
         }
-        /// <summary>
-        /// 根据名称获取attribute的值
-        /// </summary>
-        /// <param name="symbol"></param>
-        /// <param name="fullName"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public static bool GetAttribute(this ISymbol? symbol, string fullName, out AttributeData? data)
+        values = a.ConstructorArguments[index].Values.Select(v => v.Value).ToArray();
+        return true;
+    }
+
+    /// <summary>
+    /// 根据名称获取attribute的值
+    /// </summary>
+    /// <param name="symbol"></param>
+    /// <param name="fullName"></param>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    public static bool GetAttribute(this ISymbol? symbol, string fullName, out AttributeData? data)
+    {
+        data = symbol?.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == fullName);
+        return data != null;
+    }
+    /// <summary>
+    /// 根据名称获取attribute的值
+    /// </summary>
+    /// <param name="symbol"></param>
+    /// <param name="fullName"></param>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    public static IEnumerable<AttributeData> GetAttributes(this ISymbol? symbol, string fullName)
+    {
+        foreach (var item in symbol?.GetAttributes() ?? [])
         {
-            data = symbol?.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == fullName);
-            return data != null;
-        }
-        /// <summary>
-        /// 根据名称获取attribute的值
-        /// </summary>
-        /// <param name="symbol"></param>
-        /// <param name="fullName"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public static IEnumerable<AttributeData> GetAttributes(this ISymbol? symbol, string fullName)
-        {
-            foreach (var item in symbol?.GetAttributes() ?? [])
+            if (item.AttributeClass?.ToDisplayString() == fullName)
             {
-                if (item.AttributeClass?.ToDisplayString() == fullName)
-                {
-                    yield return item;
-                }
+                yield return item;
             }
         }
-        /// <summary>
-        /// 根据名称判定是否拥有某个attribute
-        /// </summary>
-        /// <param name="symbol"></param>
-        /// <param name="fullName"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public static bool HasAttribute(this ISymbol? symbol, string fullName)
-        {
-            return symbol?.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == fullName) == true;
-        }
+    }
+    /// <summary>
+    /// 根据名称判定是否拥有某个attribute
+    /// </summary>
+    /// <param name="symbol"></param>
+    /// <param name="fullName"></param>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    public static bool HasAttribute(this ISymbol? symbol, string fullName)
+    {
+        return symbol?.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == fullName) == true;
+    }
 
-        public static bool HasInterface(this ITypeSymbol? symbol, string fullName)
-        {
-            return symbol?.Interfaces.Any(i => i.ToDisplayString() == fullName) == true;
-        }
+    public static bool HasInterface(this ITypeSymbol? symbol, string fullName)
+    {
+        return symbol?.Interfaces.Any(i => i.ToDisplayString() == fullName) == true;
+    }
 
-        public static bool HasInterfaceAll(this ITypeSymbol? symbol, string fullName)
-        {
-            return symbol?.AllInterfaces.Any(i => i.ToDisplayString() == fullName) == true;
-        }
+    public static bool HasInterfaceAll(this ITypeSymbol? symbol, string fullName)
+    {
+        return symbol?.AllInterfaces.Any(i => i.ToDisplayString() == fullName) == true;
+    }
 
-        public static bool CheckDisableGenerator(this AnalyzerConfigOptionsProvider options, string key)
-        {
-            return options.GlobalOptions.TryGetValue($"build_property.{key}", out var value) && !string.IsNullOrEmpty(value);
-        }
+    public static bool CheckDisableGenerator(this AnalyzerConfigOptionsProvider options, string key)
+    {
+        return options.GlobalOptions.TryGetValue($"build_property.{key}", out var value) && !string.IsNullOrEmpty(value);
+    }
 
-        public static string[] GetTargetUsings(this GeneratorAttributeSyntaxContext source)
-        {
-            if (source.TargetNode is
+    public static string[] GetTargetUsings(this GeneratorAttributeSyntaxContext source)
+    {
+        if (source.TargetNode is
+            {
+                Parent: NamespaceDeclarationSyntax
                 {
-                    Parent: NamespaceDeclarationSyntax
+                    Usings: var nu,
+                    Parent: CompilationUnitSyntax
                     {
-                        Usings: var nu,
-                        Parent: CompilationUnitSyntax
-                        {
-                            Usings: var cnu
-                        }
+                        Usings: var cnu
                     }
                 }
-                )
-            {
-                UsingDirectiveSyntax[] arr = [.. nu, .. cnu];
-                return arr.Select(a => a.ToFullString().Replace("\n", "")).ToArray();
             }
-
-            return [];
+            )
+        {
+            UsingDirectiveSyntax[] arr = [.. nu, .. cnu];
+            return arr.Select(a => a.ToFullString().Replace("\n", "")).ToArray();
         }
 
-        //public static string[] GetTargetUsings(this INamedTypeSymbol typeSymbol)
+        return [];
+    }
+
+    //public static string[] GetTargetUsings(this INamedTypeSymbol typeSymbol)
+    //{
+    //    typeSymbol.ContainingNamespace.NamespaceKind
+    //}
+
+    public static IEnumerable<INamedTypeSymbol> GetAllSymbols(this Compilation compilation, string fullName)
+    {
+        //var mainAsm = compilation.SourceModule.ContainingAssembly;
+        //var refAsmSymbols = compilation.SourceModule.ReferencedAssemblySymbols;
+
+        //foreach (var asm in refAsmSymbols.Concat([mainAsm]))
         //{
-        //    typeSymbol.ContainingNamespace.NamespaceKind
+        //    if (IsSystemType(asm))
+        //    {
+        //        continue;
+        //    }
+        //    foreach (var item in GetAllSymbols(asm.GlobalNamespace))
+        //    {
+        //        yield return item;
+        //    }
         //}
+        return InternalGetAllSymbols(compilation.GlobalNamespace);
 
-        public static IEnumerable<INamedTypeSymbol> GetAllSymbols(this Compilation compilation, string fullName)
+        IEnumerable<INamedTypeSymbol> InternalGetAllSymbols(INamespaceSymbol global)
         {
-            //var mainAsm = compilation.SourceModule.ContainingAssembly;
-            //var refAsmSymbols = compilation.SourceModule.ReferencedAssemblySymbols;
-
-            //foreach (var asm in refAsmSymbols.Concat([mainAsm]))
-            //{
-            //    if (IsSystemType(asm))
-            //    {
-            //        continue;
-            //    }
-            //    foreach (var item in GetAllSymbols(asm.GlobalNamespace))
-            //    {
-            //        yield return item;
-            //    }
-            //}
-            return InternalGetAllSymbols(compilation.GlobalNamespace);
-
-            IEnumerable<INamedTypeSymbol> InternalGetAllSymbols(INamespaceSymbol global)
+            foreach (var symbol in global.GetMembers())
             {
-                foreach (var symbol in global.GetMembers())
+                if (symbol is INamespaceSymbol n)
                 {
-                    if (symbol is INamespaceSymbol n)
+                    foreach (var item in InternalGetAllSymbols(n))
                     {
-                        foreach (var item in InternalGetAllSymbols(n))
-                        {
-                            //if (item.HasAttribute(AutoInject))
-                            yield return item;
-                        }
-                    }
-                    else if (symbol is INamedTypeSymbol target)
-                    {
-                        if (target.HasAttribute(fullName))
-                            yield return target;
+                        //if (item.HasAttribute(AutoInject))
+                        yield return item;
                     }
                 }
-            }
-
-            bool IsSystemType(ISymbol symbol)
-            {
-                return symbol.Name == "System" || symbol.Name.Contains("System.") || symbol.Name.Contains("Microsoft.");
-            }
-
-        }
-
-
-        public static string FormatClassName(this INamedTypeSymbol interfaceSymbol)
-        {
-            var meta = interfaceSymbol.MetadataName;
-            if (meta.IndexOf('`') > -1)
-            {
-                meta = meta.Substring(0, meta.IndexOf('`'));
-            }
-            if (interfaceSymbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
-            {
-                meta = meta.Substring(1);
-            }
-            return meta;
-        }
-
-        public static string FormatFileName(this INamedTypeSymbol interfaceSymbol)
-        {
-            var meta = interfaceSymbol.MetadataName;
-            if (interfaceSymbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
-            {
-                meta = meta.Substring(1);
-            }
-            return meta;
-        }
-
-        public static IEnumerable<(IMethodSymbol Symbol, AttributeData? AttrData)> GetAllMethodWithAttribute(this INamedTypeSymbol interfaceSymbol, string fullName, INamedTypeSymbol? classSymbol = null)
-        {
-            var all = interfaceSymbol.Interfaces.Insert(0, interfaceSymbol);
-            foreach (var m in all)
-            {
-                foreach (var item in m.GetMembers().Where(m => m is IMethodSymbol).Cast<IMethodSymbol>())
+                else if (symbol is INamedTypeSymbol target)
                 {
-                    if (item.MethodKind == MethodKind.Constructor)
-                    {
-                        continue;
-                    }
-
-                    var classMethod = classSymbol?.GetMembers().FirstOrDefault(m => m.Name == item.Name);
-
-                    if (!item.GetAttribute(fullName, out var a))
-                    {
-                        if (!classMethod.GetAttribute(fullName, out a))
-                        {
-                            a = null;
-                        }
-                    }
-                    var method = m.IsGenericType ? item.ConstructedFrom : item;
-                    yield return (method, a);
+                    if (target.HasAttribute(fullName))
+                        yield return target;
                 }
             }
         }
 
-
-
-        public static IEnumerable<ITypeSymbol> GetGenericTypes(this ITypeSymbol symbol)
+        bool IsSystemType(ISymbol symbol)
         {
-            if (symbol is INamedTypeSymbol { IsGenericType: true, TypeArguments: var types })
+            return symbol.Name == "System" || symbol.Name.Contains("System.") || symbol.Name.Contains("Microsoft.");
+        }
+
+    }
+
+
+    public static string FormatClassName(this INamedTypeSymbol interfaceSymbol)
+    {
+        var meta = interfaceSymbol.MetadataName;
+        if (meta.IndexOf('`') > -1)
+        {
+            meta = meta.Substring(0, meta.IndexOf('`'));
+        }
+        if (interfaceSymbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
+        {
+            meta = meta.Substring(1);
+        }
+        return meta;
+    }
+
+    public static string FormatFileName(this INamedTypeSymbol interfaceSymbol)
+    {
+        var meta = interfaceSymbol.MetadataName;
+        if (interfaceSymbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
+        {
+            meta = meta.Substring(1);
+        }
+        return meta;
+    }
+
+    public static IEnumerable<(IMethodSymbol Symbol, AttributeData? AttrData)> GetAllMethodWithAttribute(this INamedTypeSymbol interfaceSymbol, string fullName, INamedTypeSymbol? classSymbol = null)
+    {
+        var all = interfaceSymbol.Interfaces.Insert(0, interfaceSymbol);
+        foreach (var m in all)
+        {
+            foreach (var item in m.GetMembers().Where(m => m is IMethodSymbol).Cast<IMethodSymbol>())
             {
-                foreach (var t in types)
+                if (item.MethodKind == MethodKind.Constructor)
                 {
-                    yield return t;
+                    continue;
                 }
-            }
-            //else
-            //{
-            //    yield return symbol;
-            //}
-        }
 
-        public static IEnumerable<TypeParameterInfo> GetTypeParameters(this ISymbol symbol)
-        {
-            IEnumerable<ITypeParameterSymbol> tpc = [];
-            if (symbol is IMethodSymbol method)
-            {
-                tpc = method.TypeParameters;
-            }
-            else if (symbol is INamedTypeSymbol typeSymbol)
-            {
-                tpc = typeSymbol.TypeParameters;
-            }
-            else
-            {
-                yield break;
-            }
+                var classMethod = classSymbol?.GetMembers().FirstOrDefault(m => m.Name == item.Name);
 
-            foreach (var tp in tpc)
-            {
-                List<string> cs = tp.ConstraintTypes.Select(t => t.Name).ToList();
-                tp.HasNotNullConstraint.IsTrueThen(() => cs.Add("notnull"));
-                tp.HasReferenceTypeConstraint.IsTrueThen(() => cs.Add("class"));
-                tp.HasUnmanagedTypeConstraint.IsTrueThen(() => cs.Add("unmanaged "));
-                tp.HasValueTypeConstraint.IsTrueThen(() => cs.Add("struct"));
-                tp.HasConstructorConstraint.IsTrueThen(() => cs.Add("new()"));
-                yield return new(tp.Name, [.. cs]);
+                if (!item.GetAttribute(fullName, out var a))
+                {
+                    if (!classMethod.GetAttribute(fullName, out a))
+                    {
+                        a = null;
+                    }
+                }
+                var method = m.IsGenericType ? item.ConstructedFrom : item;
+                yield return (method, a);
             }
         }
+    }
 
-        private static void IsTrueThen(this bool value, Action action)
+    public static ITypeSymbol GetElementType(this ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol.HasInterfaceAll("System.Collections.IEnumerable") && typeSymbol.SpecialType == SpecialType.None)
         {
-            if (value)
+            if (typeSymbol is IArrayTypeSymbol a)
             {
-                action();
+                return a.ElementType;
             }
+            return typeSymbol.GetGenericTypes().First();
+        }
+        return typeSymbol;
+    }
+
+    public static IEnumerable<ITypeSymbol> GetGenericTypes(this ITypeSymbol symbol)
+    {
+        if (symbol is INamedTypeSymbol { IsGenericType: true, TypeArguments: var types })
+        {
+            foreach (var t in types)
+            {
+                yield return t;
+            }
+        }
+        //else
+        //{
+        //    yield return symbol;
+        //}
+    }
+
+    public static IEnumerable<TypeParameterInfo> GetTypeParameters(this ISymbol symbol)
+    {
+        IEnumerable<ITypeParameterSymbol> tpc = [];
+        if (symbol is IMethodSymbol method)
+        {
+            tpc = method.TypeParameters;
+        }
+        else if (symbol is INamedTypeSymbol typeSymbol)
+        {
+            tpc = typeSymbol.TypeParameters;
+        }
+        else
+        {
+            yield break;
+        }
+
+        foreach (var tp in tpc)
+        {
+            List<string> cs = tp.ConstraintTypes.Select(t => t.Name).ToList();
+            tp.HasNotNullConstraint.IsTrueThen(() => cs.Add("notnull"));
+            tp.HasReferenceTypeConstraint.IsTrueThen(() => cs.Add("class"));
+            tp.HasUnmanagedTypeConstraint.IsTrueThen(() => cs.Add("unmanaged "));
+            tp.HasValueTypeConstraint.IsTrueThen(() => cs.Add("struct"));
+            tp.HasConstructorConstraint.IsTrueThen(() => cs.Add("new()"));
+            yield return new(tp.Name, [.. cs]);
+        }
+    }
+
+    private static void IsTrueThen(this bool value, Action action)
+    {
+        if (value)
+        {
+            action();
         }
     }
 }

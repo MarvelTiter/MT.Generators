@@ -1,9 +1,9 @@
-﻿namespace Generators.Shared.Builder
+﻿
+namespace Generators.Shared.Builder;
+
+internal abstract class Node
 {
-    internal abstract class Node
-    {
-        public abstract NodeType Type { get; }
-        public virtual string Indent => "";
-        //public abstract new string ToString();
-    }
+    public abstract NodeType Type { get; }
+    public virtual string Indent => "";
+    //public abstract new string ToString();
 }

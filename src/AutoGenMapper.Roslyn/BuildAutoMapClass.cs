@@ -115,18 +115,20 @@ public static class BuildAutoMapClass
             {
                 if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
                 {
-                    var et = prop.Type.GetGenericTypes().First();
+                    ITypeSymbol? et = null;
+                    var fin = "";
+                    if (prop.Type is IArrayTypeSymbol at)
+                    {
+                        et = at.ElementType;
+                        fin = "ToArray()";
+                    }
+                    else
+                    {
+                        et = prop.Type.GetGenericTypes().First();
+                        fin = "ToList()";
+                    }
                     if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
                     {
-                        var fin = "";
-                        if (prop.Type.Name.Contains("Array"))
-                        {
-                            fin = "ToArray()";
-                        }
-                        else
-                        {
-                            fin = "ToList()";
-                        }
                         value = ($"""this.{customTrans.From}.Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
                     }
                     else
@@ -147,18 +149,20 @@ public static class BuildAutoMapClass
         {
             if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
             {
-                var et = prop.Type.GetGenericTypes().First();
+                ITypeSymbol? et = null;
+                var fin = "";
+                if (prop.Type is IArrayTypeSymbol at)
+                {
+                    et = at.ElementType;
+                    fin = "ToArray()";
+                }
+                else
+                {
+                    et = prop.Type.GetGenericTypes().First();
+                    fin = "ToList()";
+                }
                 if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
                 {
-                    var fin = "";
-                    if (prop.Type.Name.Contains("Array"))
-                    {
-                        fin = "ToArray()";
-                    }
-                    else
-                    {
-                        fin = "ToList()";
-                    }
                     value = ($"""this.{p.Name}.Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
                 }
                 else

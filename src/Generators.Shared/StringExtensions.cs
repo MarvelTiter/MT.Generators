@@ -1,10 +1,9 @@
-namespace Generators.Shared
+namespace Generators.Shared;
+
+internal static class StringExtensions
 {
-    internal static class StringExtensions
+    public static bool IsNullOrEmpty(this string? value)
     {
-        public static bool IsNullOrEmpty(this string? value)
-        {
-            return string.IsNullOrEmpty(value);
-        }
+        return string.IsNullOrEmpty(value);
     }
 }
