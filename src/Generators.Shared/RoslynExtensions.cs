@@ -36,7 +36,13 @@ internal static class RoslynExtensions
         value = t;
         return t != null;
     }
-
+    /// <summary>
+    /// 获取指定索引的构造函数参数
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="index"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
     public static bool GetConstructorValue(this AttributeData a, int index, out object? value)
     {
         if (a.ConstructorArguments.Length <= index)
@@ -47,7 +53,13 @@ internal static class RoslynExtensions
         value = a.ConstructorArguments[index].Value;
         return true;
     }
-
+    /// <summary>
+    /// 获取指定索引的构造函数参数
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="index"></param>
+    /// <param name="values"></param>
+    /// <returns></returns>
     public static bool GetConstructorValues(this AttributeData a, int index, out object?[] values)
     {
         if (a.ConstructorArguments.Length <= index)
@@ -58,7 +70,6 @@ internal static class RoslynExtensions
         values = a.ConstructorArguments[index].Values.Select(v => v.Value).ToArray();
         return true;
     }
-
     /// <summary>
     /// 根据名称获取attribute的值
     /// </summary>
@@ -109,6 +120,21 @@ internal static class RoslynExtensions
     {
         return symbol?.AllInterfaces.Any(i => i.ToDisplayString() == fullName) == true;
     }
+    /// <summary>
+    /// 获取方法符号
+    /// </summary>
+    /// <param name="symbol"></param>
+    /// <returns></returns>
+    public static IEnumerable<IMethodSymbol> GetMethods(this INamedTypeSymbol? symbol)
+    {
+        foreach(var item in symbol?.GetMembers() ?? [])
+        {
+            if (item.Kind == SymbolKind.Method && item is IMethodSymbol method)
+            {
+                yield return method;
+            }
+        }
+    } 
 
     public static bool CheckDisableGenerator(this AnalyzerConfigOptionsProvider options, string key)
     {

@@ -126,4 +126,43 @@ internal static class MethodBuilderExtensions
         return ifStatement;
     }
     #endregion
+
+    #region LocalFunction
+
+    public static T AddLocalFunction<T>(this T builder, Action<LocalFunction> action) where T : MethodBase
+    {
+        var lf = LocalFunction.Default;
+        action.Invoke(lf);
+        builder.AddBody(lf);
+        return builder;
+    }
+
+    public static LocalFunction MethodName(this LocalFunction localFunction, string name)
+    {
+        localFunction.Name = name;
+        return localFunction;
+    }
+
+    public static LocalFunction Return(this LocalFunction localFunction, string returnType)
+    {
+        localFunction.ReturnType = returnType;
+        return localFunction;
+    }
+
+    public static LocalFunction AddParameters(this LocalFunction localFunction, params string[] parameters)
+    {
+        foreach(var parameter in parameters)
+        {
+            localFunction.Parameters.Add(parameter);
+        }
+        return localFunction;
+    }
+
+    public static LocalFunction AddBody(this  LocalFunction localFunction, params Statement[] body)
+    {
+        localFunction.Body.AddRange(body);
+        return localFunction;
+    }
+
+    #endregion
 }

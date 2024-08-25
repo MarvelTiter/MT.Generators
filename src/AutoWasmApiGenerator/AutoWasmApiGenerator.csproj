@@ -15,7 +15,7 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
-		<ProjectReference Include="..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" ReferenceOutputAssembly="false"/>
+		<ProjectReference Include="..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -24,7 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include=".\readme.md" Pack="true" PackagePath="\"/>
+		<None Include=".\readme.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 	
 </Project>

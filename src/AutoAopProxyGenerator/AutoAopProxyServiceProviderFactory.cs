@@ -18,6 +18,7 @@ namespace AutoAopProxyGenerator
             foreach (var service in containerBuilder)
             {
                 //ServiceDescriptor.
+                //serviceCollection.AddKeyedScoped
             }
             return serviceCollection.BuildServiceProvider();
         }

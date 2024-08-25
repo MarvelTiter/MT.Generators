@@ -57,13 +57,13 @@ namespace AutoWasmApiGenerator
         }
 
 
-        public static CompilationUnitSyntax CreateCompilationUnit(this GeneratorAttributeSyntaxContext source)
-        {
+        //public static CompilationUnitSyntax CreateCompilationUnit(this GeneratorAttributeSyntaxContext source)
+        //{
 
             //CompilationUnit()
             //    .AddMembers(NamespaceDeclaration())
-            return CompilationUnit();
-        }
+            //return CompilationUnit();
+        //}
 
         //public static NamespaceDeclarationSyntax CreateNamespaceDeclaration(this GeneratorAttributeSyntaxContext source, out UsingDirectiveSyntax[] usings)
         //{
