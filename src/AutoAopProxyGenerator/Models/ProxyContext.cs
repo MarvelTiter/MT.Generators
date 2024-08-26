@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AutoAopProxyGenerator
 {
-    public class ProxyContext
+    public record ProxyContext
     {
         public ProxyContext(IServiceProvider services)
         {

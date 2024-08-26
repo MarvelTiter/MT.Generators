@@ -61,7 +61,6 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             }
             #endregion
 
-
             #region 获取所有的AspectHandler
             var allHandlers = allInterfaces.SelectMany(x =>
             {
@@ -84,38 +83,139 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
                 return handlers.Where(i => i != null).Cast<INamedTypeSymbol>();
             }).Distinct(EqualityComparer<INamedTypeSymbol>.Default).ToArray();
             #endregion
+
             var file = CreateGeneratedProxyClassFile(targetSymbol, allInterfaces, allHandlers);
-            context.AddSource(file);
+            if (file != null)
+            {
+                //var ss = file.ToString();
+                context.AddSource(file);
+            }
         });
     }
 
     private static CodeFile? CreateGeneratedProxyClassFile(INamedTypeSymbol classSymbol, INamedTypeSymbol[] interfaces, INamedTypeSymbol[] allHandlers)
     {
-        List<MethodBuilder> methods = [];
+        // 代理字段和aspect handler 字段
+        List<Node> members = [
+            FieldBuilder.Default.MemberType(classSymbol.ToDisplayString()).FieldName("proxy")
+            , .. allHandlers.Select(n =>FieldBuilder.Default.MemberType(n.ToDisplayString()).FieldName(n.MetadataName))
+            ];
         // 构造函数
-
+        List<Statement> ctorbody = [
+            "this.proxy = proxy"
+            , ..allHandlers.Select(n => $"this.{n.MetadataName} = {n.MetadataName}")
+            ];
+        var ctor = ConstructorBuilder.Default.MethodName($"{classSymbol.FormatClassName()}GeneratedProxy")
+            .AddParameter([$"{classSymbol.ToDisplayString()} proxy", .. allHandlers.Select(n => $"{n.ToDisplayString()} {n.MetadataName}")]).AddBody([.. ctorbody]);
+        members.Add(ctor);
         // 接口方法
         foreach (var iface in interfaces)
         {
-            methods.AddRange(CreateProxyMethod(iface));
+            members.AddRange(CreateProxyMethod(iface, classSymbol));
         }
 
-        var ctor = ConstructorBuilder.Default.MethodName($"{classSymbol.FormatClassName()}GeneratedProxy");
-
-        var proxyClass = ClassBuilder.Default.ClassName($"{classSymbol.FormatClassName()}GeneratedProxy");
+        var proxyClass = ClassBuilder.Default
+            .ClassName($"{classSymbol.FormatClassName()}GeneratedProxy")
+            .AddMembers([.. members])
+            .Interface([.. interfaces.Select(i => i.ToDisplayString())])
+            .AddGeneratedCodeAttribute(typeof(AutoAopProxyClassGenerator));
 
         return CodeFile.New($"{classSymbol.FormatFileName()}GeneratedProxyClass.g.cs")
+            .AddUsings("using AutoAopProxyGenerator;")
             .AddMembers(NamespaceBuilder.Default.Namespace(classSymbol.ContainingNamespace.ToDisplayString()).AddMembers(proxyClass));
     }
 
-    private static IEnumerable<MethodBuilder> CreateProxyMethod(INamedTypeSymbol iface)
+    private static IEnumerable<MethodBuilder> CreateProxyMethod(INamedTypeSymbol iface, INamedTypeSymbol classSymbol)
     {
-        var handlers = iface.GetAttributes(AspectHandler);
+        var handlers = iface.GetAttributes(AspectHandler).Select(a => a.GetNamedValue("AspectType")).OfType<INamedTypeSymbol>().ToArray();
 
         foreach (var m in iface.GetMethods())
         {
+            var method = m.IsGenericMethod ? m.ConstructedFrom : m;
+            var returnType = method.ReturnType.GetGenericTypes().FirstOrDefault() ?? method.ReturnType;
+            var isAsync = method.IsAsync || method.ReturnType.ToDisplayString().StartsWith("System.Threading.Tasks.Task");
+            var builder = MethodBuilder.Default
+                .MethodName(method.Name)
+                .Async(isAsync)
+                .Generic([.. method.GetTypeParameters()])
+                .AddParameter([.. method.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}")])
+                .ReturnType(method.ReturnType.ToDisplayString())
+                .AddGeneratedCodeAttribute(typeof(AutoAopProxyClassGenerator));
+            List<Statement> statements = [];
+            var hasReturn = !method.ReturnsVoid && returnType.ToDisplayString() != "System.Threading.Tasks.Task";
+            if (hasReturn)
+            {
+                statements.Add($"{returnType.ToDisplayString()} returnValue = default;");
+            }
+            var done = LocalFunction.Default
+                .MethodName("Done")
+                .AddParameters("ProxyContext ctx")
+                .Async(isAsync)
+                .Return("System.Threading.Tasks.Task")
+                .AddBody([.. CreateLocalFunctionBody(method, builder.ConstructedMethodName, isAsync, hasReturn)]);
 
+            statements.Add(done);
+            statements.Add("var builder = AsyncPipelineBuilder<ProxyContext>.Create(Done)");
+            foreach (var handler in handlers)
+            {
+                statements.Add($"builder.Use({handler.MetadataName}.Invoke)");
+            }
+            statements.Add("var job = builder.Build()");
+            var ptypes = method.Parameters.Length > 0 ? $"[{string.Join(", ", method.Parameters.Select(p => $"typeof({p.Type.ToDisplayString()})"))}]" : "Type.EmptyTypes";
+            statements.Add($"var context = ContextHelper.GetOrCreate(typeof({iface.ToDisplayString()}), typeof({classSymbol.ToDisplayString()}), nameof({method.Name}), {ptypes})");
+            if (hasReturn)
+            {
+                statements.Add("context.HasReturnValue = true");
+            }
+            statements.Add($"context.Parameters = new object?[] {{{string.Join(", ", method.Parameters.Select(p => p.Name))}}};");
+            if (isAsync)
+            {
+                statements.Add("await job.Invoke(context)");
+            }
+            else
+            {
+                statements.Add("job.Invoke(context).GetAwaiter().GetResult()");
+            }
+            if (hasReturn)
+                statements.Add("return returnValue");
+
+            builder.AddBody([.. statements]);
+
+            yield return builder;
         }
-        yield break;
+    }
+
+    private static IEnumerable<Statement> CreateLocalFunctionBody(IMethodSymbol method, string proxyName, bool isAsync, bool hasReturn)
+    {
+        if (isAsync)
+        {
+            if (hasReturn)
+            {
+                yield return $"returnValue = await proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
+                yield return "ctx.Executed = true";
+                yield return "ctx.ReturnValue = returnValue";
+            }
+            else
+            {
+                yield return $"await proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
+                yield return "ctx.Executed = true";
+            }
+        }
+        else
+        {
+            if (hasReturn)
+            {
+                yield return $"returnValue = proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
+                yield return "ctx.Executed = true";
+                yield return "ctx.ReturnValue = returnValue";
+                yield return "return global::System.Threading.Tasks.Task.CompletedTask";
+            }
+            else
+            {
+                yield return $"proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
+                yield return "ctx.Executed = true";
+                yield return "return global::System.Threading.Tasks.Task.CompletedTask";
+            }
+        }
     }
 }

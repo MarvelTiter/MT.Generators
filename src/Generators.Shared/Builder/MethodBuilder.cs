@@ -16,7 +16,7 @@ internal class MethodBuilder : MethodBase<MethodBuilder>
     public bool IsAsync { get; set; }
     string Async => IsAsync ? " async " : " ";
     public string? ReturnType { get; set; } = "void";
-
+    public string ConstructedMethodName => $"{Name}{Types}";
     public override string ToString()
     {
         if (IsLambdaBody)
@@ -209,10 +209,10 @@ internal class LocalFunction : Statement
     {
         return
 $$"""
-{{Indent}}{{Async}}{{Name}}({{string.Join(", ", Parameters)}})
-{
+{{Indent}}{{Async}}{{ReturnType}} {{Name}}({{string.Join(", ", Parameters)}})
+{{Indent}}{
 {{string.Join("\n", Body.Select(s => $"    {s}"))}}
-}
+{{Indent}}}
 """;
     }
 }

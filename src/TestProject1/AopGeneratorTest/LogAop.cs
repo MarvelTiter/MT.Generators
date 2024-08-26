@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace TestProject1.AopGeneratorTest
 {
-    internal class LogAop : IAspectHandler
+    public class LogAop : IAspectHandler
     {
         public Task Invoke(ProxyContext context, Func<Task> process)
         {
-            throw new NotImplementedException();
+            return process.Invoke();
         }
     }
 }

@@ -36,7 +36,7 @@ internal abstract class MemberBuilder : TypeBuilder
         get
         {
             if (TypeArguments.Count == 0) return "";
-            return $"\n{string.Join("\n", TypeArguments.Select(ta => $"{Indent}    where {ta.Name} : {string.Join(", ", ta.Constraints)}"))}";
+            return $"\n{string.Join("\n", TypeArguments.Where(ta => ta.Constraints.Length > 0).Select(ta => $"{Indent}    where {ta.Name} : {string.Join(", ", ta.Constraints)}"))}";
         }
     }
 }

@@ -30,9 +30,9 @@ internal static class MethodBuilderExtensions
         builder.ReturnType = returnType;
         return builder;
     }
-    public static MethodBuilder Async(this MethodBuilder builder)
+    public static MethodBuilder Async(this MethodBuilder builder, bool isAsync = true)
     {
-        builder.IsAsync = true;
+        builder.IsAsync = isAsync;
         return builder;
     }
 
@@ -140,6 +140,12 @@ internal static class MethodBuilderExtensions
     public static LocalFunction MethodName(this LocalFunction localFunction, string name)
     {
         localFunction.Name = name;
+        return localFunction;
+    }
+
+    public static LocalFunction Async(this LocalFunction localFunction, bool isAsync = true)
+    {
+        localFunction.IsAsync = isAsync;
         return localFunction;
     }
 
