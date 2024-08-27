@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "aop": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\TestProject1\\TestProject1.csproj"
+    }
+  }
+}

@@ -49,5 +49,12 @@ jobs:
     - name: Push
       run: |
         dotnet nuget push 'publish/genmapper/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_MAPPER}} --skip-duplicate
+    # AutoAopProxyGenerator
+    - name: Pack
+      run: |
+        dotnet pack ./src/AutoAopProxyGenerator/AutoAopProxyGenerator.csproj -c Release -o publish/genaopproxy
+    - name: Push
+      run: |
+        dotnet nuget push 'publish/genaopproxy/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_AOPPROXY}} --skip-duplicate
 
         

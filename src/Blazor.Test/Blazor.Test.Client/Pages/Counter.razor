@@ -1,4 +1,6 @@
 ﻿@page "/counter"
+@using Blazor.Test.Client.Services
+
 
 <PageTitle>Counter</PageTitle>
 
@@ -7,12 +9,15 @@
 <p role="status">Current count: @currentCount</p>
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
-
+SayHello Response: @response
 @code {
     private int currentCount = 0;
+    string? response;
+    [Inject, NotNull] IHelloService? Service { get; set; }
 
-    private void IncrementCount()
+    private async Task IncrementCount()
     {
         currentCount++;
+        response = await Service.SayHelloAsync($"Marvel{currentCount}");
     }
 }

@@ -17,7 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AutoGenMapper.Roslyn\AutoGenMapper.Roslyn.csproj" OutputItemType="Analyzer"/>
+    <ProjectReference Include="..\AutoAopProxy.Roslyn\AutoAopProxy.Roslyn.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\AutoAopProxyGenerator\AutoAopProxyGenerator.csproj" />
+    <ProjectReference Include="..\AutoGenMapper.Roslyn\AutoGenMapper.Roslyn.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="..\AutoGenMapperGenerator\AutoGenMapperGenerator.csproj" />
   </ItemGroup>
 

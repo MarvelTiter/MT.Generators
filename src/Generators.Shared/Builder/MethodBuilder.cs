@@ -12,11 +12,11 @@ internal class MethodBuilder : MethodBase<MethodBuilder>
         Modifiers = "public";
     }
     public override NodeType Type => NodeType.Method;
-    public bool IsAsync { get; set; }
     public bool IsLambdaBody { get; set; }
+    public bool IsAsync { get; set; }
     string Async => IsAsync ? " async " : " ";
     public string? ReturnType { get; set; } = "void";
-
+    public string ConstructedMethodName => $"{Name}{Types}";
     public override string ToString()
     {
         if (IsLambdaBody)
@@ -187,6 +187,31 @@ $$"""
 {{Indent}}if ({{Condition}})
 {{Indent}}{
 {{string.Join("\n", IfContents.Select(s => $"    {s}"))}}
+{{Indent}}}
+""";
+    }
+}
+
+internal class LocalFunction : Statement
+{
+    public LocalFunction() : base("")
+    {
+
+    }
+    public static LocalFunction Default => new LocalFunction();
+    public string? ReturnType { get; set; }
+    public string? Name { get; set; }
+    public bool IsAsync { get; set; }
+    string Async => IsAsync ? "async " : "";
+    public List<string> Parameters { get; set; } = [];
+    public List<Statement> Body { get; set; } = [];
+    public override string ToString()
+    {
+        return
+$$"""
+{{Indent}}{{Async}}{{ReturnType}} {{Name}}({{string.Join(", ", Parameters)}})
+{{Indent}}{
+{{string.Join("\n", Body.Select(s => $"    {s}"))}}
 {{Indent}}}
 """;
     }
