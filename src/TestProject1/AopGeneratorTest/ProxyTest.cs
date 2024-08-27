@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,13 +13,21 @@ namespace TestProject1.AopGeneratorTest
         [TestMethod]
         public void TestReturn()
         {
-            
+
         }
 
         [TestMethod]
-        public Task TestReturnAsync()
+        public async Task TestReturnAsync()
         {
-            return Task.FromResult(0);
+            var services = new ServiceCollection();
+            services.AddScoped<IHello, User>();
+            services.AddScoped<LogAop>();
+            //services.AddScoped<IHello, UserGeneratedProxy>();
+
+            var provider = services.BuildServiceProvider();
+            var hello = provider.GetService<IHello>()!;
+            var i = await hello.CountAsync();
+            Assert.IsTrue(3 == i);
         }
     }
 }

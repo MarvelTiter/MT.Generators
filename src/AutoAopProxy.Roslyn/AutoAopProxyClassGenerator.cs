@@ -14,6 +14,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
 {
     public const string Aspectable = "AutoAopProxyGenerator.GenAspectProxyAttribute";
     public const string AspectHandler = "AutoAopProxyGenerator.AddAspectHandlerAttribute";
+    public const string IgnoreAspect = "AutoAopProxyGenerator.IgnoreAspectAttribute";
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var source = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -131,57 +132,86 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
 
         foreach (var m in iface.GetMethods())
         {
-            var method = m.IsGenericMethod ? m.ConstructedFrom : m;
-            var returnType = method.ReturnType.GetGenericTypes().FirstOrDefault() ?? method.ReturnType;
-            var isAsync = method.IsAsync || method.ReturnType.ToDisplayString().StartsWith("System.Threading.Tasks.Task");
-            var builder = MethodBuilder.Default
-                .MethodName(method.Name)
-                .Async(isAsync)
-                .Generic([.. method.GetTypeParameters()])
-                .AddParameter([.. method.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}")])
-                .ReturnType(method.ReturnType.ToDisplayString())
-                .AddGeneratedCodeAttribute(typeof(AutoAopProxyClassGenerator));
-            List<Statement> statements = [];
-            var hasReturn = !method.ReturnsVoid && returnType.ToDisplayString() != "System.Threading.Tasks.Task";
-            if (hasReturn)
+            MethodBuilder methodBuilder;
+            if (m.HasAttribute(IgnoreAspect))
             {
-                statements.Add($"{returnType.ToDisplayString()} returnValue = default;");
-            }
-            var done = LocalFunction.Default
-                .MethodName("Done")
-                .AddParameters("ProxyContext ctx")
-                .Async(isAsync)
-                .Return("System.Threading.Tasks.Task")
-                .AddBody([.. CreateLocalFunctionBody(method, builder.ConstructedMethodName, isAsync, hasReturn)]);
-
-            statements.Add(done);
-            statements.Add("var builder = AsyncPipelineBuilder<ProxyContext>.Create(Done)");
-            foreach (var handler in handlers)
-            {
-                statements.Add($"builder.Use({handler.MetadataName}.Invoke)");
-            }
-            statements.Add("var job = builder.Build()");
-            var ptypes = method.Parameters.Length > 0 ? $"[{string.Join(", ", method.Parameters.Select(p => $"typeof({p.Type.ToDisplayString()})"))}]" : "Type.EmptyTypes";
-            statements.Add($"var context = ContextHelper.GetOrCreate(typeof({iface.ToDisplayString()}), typeof({classSymbol.ToDisplayString()}), nameof({method.Name}), {ptypes})");
-            if (hasReturn)
-            {
-                statements.Add("context.HasReturnValue = true");
-            }
-            statements.Add($"context.Parameters = new object?[] {{{string.Join(", ", method.Parameters.Select(p => p.Name))}}};");
-            if (isAsync)
-            {
-                statements.Add("await job.Invoke(context)");
+                methodBuilder = CreateDirectInvokeMethod();
             }
             else
             {
-                statements.Add("job.Invoke(context).GetAwaiter().GetResult()");
+                methodBuilder = CreateProxyMethod();
             }
-            if (hasReturn)
-                statements.Add("return returnValue");
 
-            builder.AddBody([.. statements]);
+            yield return methodBuilder;
 
-            yield return builder;
+            MethodBuilder CreateDirectInvokeMethod()
+            {
+                var builder = MethodBuilder.Default
+                    .MethodName(m.Name)
+                    .Generic([.. m.GetTypeParameters()])
+                    .AddParameter([.. m.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}")])
+                    .ReturnType(m.ReturnType.ToDisplayString())
+                    .AddGeneratedCodeAttribute(typeof(AutoAopProxyClassGenerator));
+                builder = builder
+                    .Lambda($"proxy.{builder.ConstructedMethodName}({string.Join(", ", m.Parameters.Select(p => p.Name))})");
+
+                return builder;
+            }
+
+            MethodBuilder CreateProxyMethod()
+            {
+                var method = m.IsGenericMethod ? m.ConstructedFrom : m;
+                var returnType = method.ReturnType.GetGenericTypes().FirstOrDefault() ?? method.ReturnType;
+                var isAsync = method.IsAsync || method.ReturnType.ToDisplayString().StartsWith("System.Threading.Tasks.Task");
+                var builder = MethodBuilder.Default
+                     .MethodName(method.Name)
+                     .Async(isAsync)
+                     .Generic([.. method.GetTypeParameters()])
+                     .AddParameter([.. method.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}")])
+                     .ReturnType(method.ReturnType.ToDisplayString())
+                     .AddGeneratedCodeAttribute(typeof(AutoAopProxyClassGenerator));
+                List<Statement> statements = [];
+                var hasReturn = !method.ReturnsVoid && returnType.ToDisplayString() != "System.Threading.Tasks.Task";
+                if (hasReturn)
+                {
+                    statements.Add($"{returnType.ToDisplayString()} returnValue = default;");
+                }
+                var done = LocalFunction.Default
+                    .MethodName("Done")
+                    .AddParameters("ProxyContext ctx")
+                    .Async(isAsync)
+                    .Return("System.Threading.Tasks.Task")
+                    .AddBody([.. CreateLocalFunctionBody(method, builder.ConstructedMethodName, isAsync, hasReturn)]);
+
+                statements.Add(done);
+                statements.Add("var builder = AsyncPipelineBuilder<ProxyContext>.Create(Done)");
+                foreach (var handler in handlers)
+                {
+                    statements.Add($"builder.Use({handler.MetadataName}.Invoke)");
+                }
+                statements.Add("var job = builder.Build()");
+                var ptypes = method.Parameters.Length > 0 ? $"[{string.Join(", ", method.Parameters.Select(p => $"typeof({p.Type.ToDisplayString()})"))}]" : "Type.EmptyTypes";
+                statements.Add($"var context = ContextHelper<{iface.ToDisplayString()}, {classSymbol.ToDisplayString()}>.GetOrCreate(nameof({method.Name}), {ptypes})");
+                if (hasReturn)
+                {
+                    statements.Add("context.HasReturnValue = true");
+                }
+                statements.Add($"context.Parameters = new object?[] {{{string.Join(", ", method.Parameters.Select(p => p.Name))}}};");
+                if (isAsync)
+                {
+                    statements.Add("await job.Invoke(context)");
+                }
+                else
+                {
+                    statements.Add("job.Invoke(context).GetAwaiter().GetResult()");
+                }
+                if (hasReturn)
+                    statements.Add("return returnValue");
+
+                builder.AddBody([.. statements]);
+
+                return builder;
+            }
         }
     }
 

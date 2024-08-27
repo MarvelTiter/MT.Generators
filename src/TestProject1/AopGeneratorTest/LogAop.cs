@@ -9,9 +9,11 @@ namespace TestProject1.AopGeneratorTest
 {
     public class LogAop : IAspectHandler
     {
-        public Task Invoke(ProxyContext context, Func<Task> process)
+        public async Task Invoke(ProxyContext context, Func<Task> process)
         {
-            return process.Invoke();
+            Console.WriteLine("Before");
+            await process.Invoke();
+            Console.WriteLine("After");
         }
     }
 }

@@ -10,6 +10,7 @@ namespace TestProject1.AopGeneratorTest
     [AddAspectHandler(AspectType = typeof(LogAop))]
     public interface IHello
     {
+        [IgnoreAspect]
         void Hello();
         void Hello(string message);
         Task HelloAsync();
@@ -17,8 +18,11 @@ namespace TestProject1.AopGeneratorTest
         int Count();
         int Count(string message);
         Task<int> CountAsync();
+        [IgnoreAspect]
         Task<int> CountAsync(string message);
+        [IgnoreAspect]
         Task<bool> RunJobAsync<T>();
+        [IgnoreAspect]
         Task RunJobAsync<T>(string message);
 
     }
