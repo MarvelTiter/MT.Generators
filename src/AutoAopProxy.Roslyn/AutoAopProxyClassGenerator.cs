@@ -85,7 +85,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             }).Distinct(EqualityComparer<INamedTypeSymbol>.Default).ToArray();
             #endregion
 
-            var file = CreateGeneratedProxyClassFile(targetSymbol, allInterfaces, allHandlers);
+            var file = CreateGeneratedProxyClassFile(targetSymbol, allHandlers);
             if (file != null)
             {
                 //var ss = file.ToString();
@@ -94,7 +94,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         });
     }
 
-    private static CodeFile? CreateGeneratedProxyClassFile(INamedTypeSymbol classSymbol, INamedTypeSymbol[] interfaces, INamedTypeSymbol[] allHandlers)
+    private static CodeFile? CreateGeneratedProxyClassFile(INamedTypeSymbol classSymbol, INamedTypeSymbol[] allHandlers)
     {
         // 代理字段和aspect handler 字段
         List<Node> members = [
@@ -110,7 +110,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             .AddParameter([$"{classSymbol.ToDisplayString()} proxy", .. allHandlers.Select(n => $"{n.ToDisplayString()} {n.MetadataName}")]).AddBody([.. ctorbody]);
         members.Add(ctor);
         // 接口方法
-        foreach (var iface in interfaces)
+        foreach (var iface in classSymbol.AllInterfaces)
         {
             members.AddRange(CreateProxyMethod(iface, classSymbol));
         }
@@ -118,7 +118,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         var proxyClass = ClassBuilder.Default
             .ClassName($"{classSymbol.FormatClassName()}GeneratedProxy")
             .AddMembers([.. members])
-            .Interface([.. interfaces.Select(i => i.ToDisplayString())])
+            .Interface([.. classSymbol.Interfaces.Select(i => i.ToDisplayString())])
             .AddGeneratedCodeAttribute(typeof(AutoAopProxyClassGenerator));
 
         return CodeFile.New($"{classSymbol.FormatFileName()}GeneratedProxyClass.g.cs")
@@ -133,7 +133,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         foreach (var m in iface.GetMethods())
         {
             MethodBuilder methodBuilder;
-            if (m.HasAttribute(IgnoreAspect))
+            if (m.HasAttribute(IgnoreAspect) || !iface.HasAttribute(AspectHandler))
             {
                 methodBuilder = CreateDirectInvokeMethod();
             }
@@ -172,10 +172,10 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
                      .AddGeneratedCodeAttribute(typeof(AutoAopProxyClassGenerator));
                 List<Statement> statements = [];
                 var hasReturn = !method.ReturnsVoid && returnType.ToDisplayString() != "System.Threading.Tasks.Task";
-                if (hasReturn)
-                {
-                    statements.Add($"{returnType.ToDisplayString()} returnValue = default;");
-                }
+                //if (hasReturn)
+                //{
+                //    statements.Add($"{returnType.ToDisplayString()} returnValue = default;");
+                //}
                 var done = LocalFunction.Default
                     .MethodName("Done")
                     .AddParameters("ProxyContext ctx")
@@ -206,7 +206,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
                     statements.Add("job.Invoke(context).GetAwaiter().GetResult()");
                 }
                 if (hasReturn)
-                    statements.Add("return returnValue");
+                    statements.Add($"return ({returnType.ToDisplayString()})context.ReturnValue");
 
                 builder.AddBody([.. statements]);
 
@@ -221,9 +221,9 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         {
             if (hasReturn)
             {
-                yield return $"returnValue = await proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
+                yield return $"ctx.ReturnValue = await proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
                 yield return "ctx.Executed = true";
-                yield return "ctx.ReturnValue = returnValue";
+                //yield return "ctx.ReturnValue = returnValue";
             }
             else
             {
@@ -235,9 +235,9 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         {
             if (hasReturn)
             {
-                yield return $"returnValue = proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
+                yield return $"ctx.ReturnValue = proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
                 yield return "ctx.Executed = true";
-                yield return "ctx.ReturnValue = returnValue";
+                //yield return "ctx.ReturnValue = returnValue";
                 yield return "return global::System.Threading.Tasks.Task.CompletedTask";
             }
             else
