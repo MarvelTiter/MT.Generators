@@ -266,7 +266,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             return builder;
         }
     }
-
+    // TODO修改返回值为string
     private static object SelectParameterType(IParameterSymbol p)
     {
         if (p.Type.NullableAnnotation == NullableAnnotation.Annotated)
@@ -282,9 +282,9 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         {
             if (hasReturn)
             {
-                yield return $"ctx.ReturnValue = await proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
+                yield return $"var val = await proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
                 yield return "ctx.Executed = true";
-                //yield return "ctx.ReturnValue = returnValue";
+                yield return "ctx.SetReturnValue(val)";
             }
             else
             {
@@ -296,9 +296,9 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         {
             if (hasReturn)
             {
-                yield return $"ctx.ReturnValue = proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
+                yield return $"var val = proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
                 yield return "ctx.Executed = true";
-                //yield return "ctx.ReturnValue = returnValue";
+                yield return "ctx.SetReturnValue(val)";
                 yield return "return global::System.Threading.Tasks.Task.CompletedTask";
             }
             else

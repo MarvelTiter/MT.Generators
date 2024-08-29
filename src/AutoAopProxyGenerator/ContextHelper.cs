@@ -23,7 +23,8 @@ public static class ContextHelper<TService, TImpl>
                   ServiceMethod = serviceMethod,
                   ImplementMethod = implMethod
               };
-          });
+          }) with
+        { };
 
     }
 }
