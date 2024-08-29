@@ -35,6 +35,9 @@ namespace AutoWasmApiGenerator
                         }
                         if (CreateCodeFile(item, context, out var file))
                         {
+#if DEBUG
+                            var ss = file!.ToString();
+#endif
                             context.AddSource(file!);
                         }
                     }
@@ -50,7 +53,6 @@ namespace AutoWasmApiGenerator
                         isEnabledByDefault: true
                         ), Location.None));
                 }
-
             });
         }
 
@@ -110,17 +112,17 @@ namespace AutoWasmApiGenerator
             List<Statement> statements =
             [
                 // var url = "";
-                $"var url = \"{url}\"",
+                $"var _url_gen = \"{url}\"",
                 // var client = clientFactory.CreateClient(nameof(<TYPE>));
-                $"var client = clientFactory.CreateClient(\"{scopeName}\")",
+                $"var _client_gen = this.clientFactory.CreateClient(\"{scopeName}\")",
                 // var request = new HttpRequestMessage();
-                "var request = new global::System.Net.Http.HttpRequestMessage()",
+                "var _request_gen = new global::System.Net.Http.HttpRequestMessage()",
                 // request.Method = HttpMethod.<Method>
-                $"request.Method = global::System.Net.Http.HttpMethod.{webMethod}",
+                $"_request_gen.Method = global::System.Net.Http.HttpMethod.{webMethod}",
             ];
             if (needAuth)
             {
-                statements.Add("headerHandler.SetRequestHeader(request)");
+                statements.Add("headerHandler.SetRequestHeader(_request_gen)");
             }
             if (webMethod == "Get")
             {
@@ -144,7 +146,7 @@ namespace AutoWasmApiGenerator
                 }
                 // request.RequestUri = new Uri($"{url}?{string.Join("&", queries)}", UriKind.Relative);
                 var setUrl = """
-request.RequestUri = new Uri($"{url}?{string.Join("&", queries)}", UriKind.Relative)
+_request_gen.RequestUri = new Uri($"{_url_gen}?{string.Join("&", queries)}", UriKind.Relative)
 """;
                 statements.Add(setUrl);
             }
@@ -156,23 +158,23 @@ request.RequestUri = new Uri($"{url}?{string.Join("&", queries)}", UriKind.Relat
                     // var jsonContent = JsonSerializer.Serialize(value);
                     // request.Content = new StringContent(jsonContent, Encoding.Default, "application/json");
                     // request.RequestUri = new Uri(url, UriKind.Relative)
-                    statements.Add($"var jsonContent = global::System.Text.Json.JsonSerializer.Serialize({p.Name})");
-                    statements.Add("""request.Content = new StringContent(jsonContent, global::System.Text.Encoding.Default, "application/json")""");
+                    statements.Add($"var _json_gen = global::System.Text.Json.JsonSerializer.Serialize({p.Name})");
+                    statements.Add("""_request_gen.Content = new StringContent(_json_gen, global::System.Text.Encoding.Default, "application/json")""");
                 }
-                statements.Add("request.RequestUri = new Uri(url, UriKind.Relative)");
+                statements.Add("_request_gen.RequestUri = new Uri(_url_gen, UriKind.Relative)");
             }
             var returnType = methodSymbol.ReturnType.GetGenericTypes().FirstOrDefault() ?? methodSymbol.ReturnType;
             if (methodSymbol.ReturnsVoid || returnType.ToDisplayString() == "System.Threading.Tasks.Task")
             {
-                statements.Add("_ = await client.SendAsync(request)");
+                statements.Add("_ = await _client_gen.SendAsync(_request_gen)");
             }
             else
             {
-                statements.Add("var response = await client.SendAsync(request)");
-                statements.Add("response.EnsureSuccessStatusCode()");
-                statements.Add("var jsonStream = await response.Content.ReadAsStreamAsync()");
+                statements.Add("var _response_gen = await _client_gen.SendAsync(_request_gen)");
+                statements.Add("_response_gen.EnsureSuccessStatusCode()");
+                statements.Add("var _stream_gen = await _response_gen.Content.ReadAsStreamAsync()");
                 //return System.Text.Json.JsonSerializer.Deserialize<RETURN_TYPE>(jsonStream, jsonOptions);
-                statements.Add($"return global::System.Text.Json.JsonSerializer.Deserialize<{returnType.ToDisplayString()}>(jsonStream, jsonOptions);");
+                statements.Add($"return global::System.Text.Json.JsonSerializer.Deserialize<{returnType.ToDisplayString()}>(_stream_gen, _JSON_OPTIONS_gen);");
             }
 
             return MethodBuilder.Default
@@ -190,7 +192,7 @@ request.RequestUri = new Uri($"{url}?{string.Join("&", queries)}", UriKind.Relat
         {
             // private readonly JsonSerializerOptions jsonOptions;
             yield return FieldBuilder.Default.MemberType("global::System.Text.Json.JsonSerializerOptions")
-                .FieldName("jsonOptions");
+                .FieldName("_JSON_OPTIONS_gen");
             // private readonly IHttpClientFactory clientFactory;
             yield return FieldBuilder.Default
                 .MemberType("global::System.Net.Http.IHttpClientFactory")
@@ -217,7 +219,7 @@ request.RequestUri = new Uri($"{url}?{string.Join("&", queries)}", UriKind.Relat
                 .MethodName($"{FormatClassName(classSymbol.MetadataName)}ApiInvoker")
                 .AddParameter([..parameters])
                 .AddBody([..body])
-                .AddBody("jsonOptions = new global::System.Text.Json.JsonSerializerOptions() { PropertyNameCaseInsensitive = true };");
+                .AddBody("_JSON_OPTIONS_gen = new global::System.Text.Json.JsonSerializerOptions() { PropertyNameCaseInsensitive = true };");
         }
 
         private static ClassBuilder CreateHttpClassBuilder(INamedTypeSymbol interfaceSymbol)

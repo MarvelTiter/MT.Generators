@@ -231,35 +231,35 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             //}
             var done = LocalFunction.Default
                 .MethodName("Done")
-                .AddParameters("ProxyContext ctx")
+                .AddParameters("ProxyContext _ctx_gen")
                 .Async(isAsync)
                 .Return("System.Threading.Tasks.Task")
                 .AddBody([.. CreateLocalFunctionBody(method, builder.ConstructedMethodName, isAsync, hasReturn)]);
 
             statements.Add(done);
-            statements.Add("var builder = AsyncPipelineBuilder<ProxyContext>.Create(Done)");
+            statements.Add("var _builder_gen = AsyncPipelineBuilder<ProxyContext>.Create(Done)");
             foreach (var handler in methodHandlers)
             {
-                statements.Add($"builder.Use({handler.MetadataName}.Invoke)");
+                statements.Add($"_builder_gen.Use(this.{handler.MetadataName}.Invoke)");
             }
-            statements.Add("var job = builder.Build()");
+            statements.Add("var _job_gen = _builder_gen.Build()");
             var ptypes = method.Parameters.Length > 0 ? $"[{string.Join(", ", method.Parameters.Select(SelectParameterType))}]" : "Type.EmptyTypes";
-            statements.Add($"var context = ContextHelper<{iface.ToDisplayString()}, {classSymbol.ToDisplayString()}>.GetOrCreate(nameof({method.Name}), {ptypes})");
+            statements.Add($"var _context_gen = ContextHelper<{iface.ToDisplayString()}, {classSymbol.ToDisplayString()}>.GetOrCreate(nameof({method.Name}), {ptypes})");
             if (hasReturn)
             {
-                statements.Add("context.HasReturnValue = true");
+                statements.Add("_context_gen.HasReturnValue = true");
             }
-            statements.Add($"context.Parameters = new object?[] {{{string.Join(", ", method.Parameters.Select(p => p.Name))}}};");
+            statements.Add($"_context_gen.Parameters = new object?[] {{{string.Join(", ", method.Parameters.Select(p => p.Name))}}};");
             if (isAsync)
             {
-                statements.Add("await job.Invoke(context)");
+                statements.Add("await _job_gen.Invoke(_context_gen)");
             }
             else
             {
-                statements.Add("job.Invoke(context).GetAwaiter().GetResult()");
+                statements.Add("_job_gen.Invoke(_context_gen).GetAwaiter().GetResult()");
             }
             if (hasReturn)
-                statements.Add($"return ({returnType.ToDisplayString()})context.ReturnValue");
+                statements.Add($"return ({returnType.ToDisplayString()})_context_gen.ReturnValue");
 
             builder.AddBody([.. statements]);
 
@@ -282,29 +282,29 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         {
             if (hasReturn)
             {
-                yield return $"var val = await proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
-                yield return "ctx.Executed = true";
-                yield return "ctx.SetReturnValue(val)";
+                yield return $"var _val_gen = await proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
+                yield return "_ctx_gen.Executed = true";
+                yield return "_ctx_gen.SetReturnValue(_val_gen)";
             }
             else
             {
                 yield return $"await proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
-                yield return "ctx.Executed = true";
+                yield return "_ctx_gen.Executed = true";
             }
         }
         else
         {
             if (hasReturn)
             {
-                yield return $"var val = proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
-                yield return "ctx.Executed = true";
-                yield return "ctx.SetReturnValue(val)";
+                yield return $"var _val_gen = proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
+                yield return "_ctx_gen.Executed = true";
+                yield return "_ctx_gen.SetReturnValue(_val_gen)";
                 yield return "return global::System.Threading.Tasks.Task.CompletedTask";
             }
             else
             {
                 yield return $"proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
-                yield return "ctx.Executed = true";
+                yield return "_ctx_gen.Executed = true";
                 yield return "return global::System.Threading.Tasks.Task.CompletedTask";
             }
         }

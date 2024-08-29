@@ -40,7 +40,7 @@ public static class BuildAutoMapClass
     {
         var statements = new List<Statement>()
         {
-            $"var result = new {context.TargetType.ToDisplayString()}({string.Join(", ", context.ConstructorParameters)})"
+            $"var _result_gen = new {context.TargetType.ToDisplayString()}({string.Join(", ", context.ConstructorParameters)})"
         };
         List<string> solved = [];
         foreach (var mapTo in context.Tos)
@@ -52,11 +52,11 @@ public static class BuildAutoMapClass
 
             if (mapTo.By != null)
             {
-                statements.Add($"this.{mapTo.By.Name}(result)");
+                statements.Add($"this.{mapTo.By.Name}(_result_gen)");
             }
             else if (!mapTo.To.IsNullOrEmpty())
             {
-                statements.Add($"result.{mapTo.To} = this.{mapTo.From}");
+                statements.Add($"_result_gen.{mapTo.To} = this.{mapTo.From}");
                 solved.Add(mapTo.To!);
             }
         }
@@ -76,11 +76,11 @@ public static class BuildAutoMapClass
 
             if (GetPropertyValue(context, prop, out var value))
             {
-                statements.Add($"result.{prop.Name} = {value}");
+                statements.Add($"_result_gen.{prop.Name} = {value}");
             }
         }
 
-        statements.Add($"return result;");
+        statements.Add($"return _result_gen;");
 
         var builder = MethodBuilder.Default
             .MethodName($"MapTo{context.TargetType.Name}")
@@ -107,7 +107,7 @@ public static class BuildAutoMapClass
                 }
                 else
                 {
-                    value = $"result.{tranMethod.Name}(this)";
+                    value = $"_result_gen.{tranMethod.Name}(this)";
                 }
                 return true;
             }
