@@ -27,71 +27,118 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             //INamedTypeSymbol[] needToCheckSymbol = [targetSymbol, .. targetSymbol.AllInterfaces];
 
 
-            var allInterfaces = targetSymbol.AllInterfaces.Where(a => a.HasAttribute(AspectHandler)).ToArray();
-
-            #region 检查Attribute标注是否合法
-            bool pass = true;
-            foreach (var i in allInterfaces)
+            var allInterfaces = targetSymbol.AllInterfaces.Where(a =>
             {
-                if (!pass)
-                {
-                    break;
-                }
-                var all = i.GetAttributes(AspectHandler);
-                foreach (var a in all)
-                {
-                    var at = a.GetNamedValue("AspectType");
-                    if (at == null)
-                    {
-                        context.ReportDiagnostic(DiagnosticDefinitions.AAPG00001(source.TargetNode.GetLocation()));
-                        pass = false;
-                        break;
-                    }
-                    var att = (INamedTypeSymbol)at;
-                    if (!att.HasInterface("AutoAopProxyGenerator.IAspectHandler"))
-                    {
-                        context.ReportDiagnostic(DiagnosticDefinitions.AAPG00002(source.TargetNode.GetLocation()));
-                        pass = false;
-                        break;
-                    }
-                }
-            }
-            if (!pass)
+                // 接口上标注了AddAspectHandlerAttribute，或者接口中有方法标注了AddAspectHandlerAttribute
+                return a.HasAttribute(AspectHandler) || a.GetMethods().Where(m => m.MethodKind != MethodKind.Constructor).Any(m => m.HasAttribute(AspectHandler));
+            }).ToArray();
+
+            //#region 检查Attribute标注是否合法
+            //bool pass = true;
+            //foreach (var i in allInterfaces)
+            //{
+            //    if (!pass)
+            //    {
+            //        break;
+            //    }
+            //    var allAttribute = i.GetAttributes(AspectHandler).Concat(i.GetMethods().Where(m => m.MethodKind != MethodKind.Constructor).SelectMany(m => m.GetAttributes(AspectHandler)));
+            //    pass = allAttribute.All(a =>
+            //     {
+            //         var at = a.GetNamedValue("AspectType");
+            //         if (at == null)
+            //         {
+            //             context.ReportDiagnostic(DiagnosticDefinitions.AAPG00001(source.TargetNode.GetLocation()));
+            //             return false;
+            //         }
+            //         var att = (INamedTypeSymbol)at;
+            //         if (!att.HasInterface("AutoAopProxyGenerator.IAspectHandler"))
+            //         {
+            //             context.ReportDiagnostic(DiagnosticDefinitions.AAPG00002(source.TargetNode.GetLocation()));
+            //             return false;
+            //         }
+            //         return true;
+            //     });
+
+
+            //}
+            //if (!pass)
+            //{
+            //    return;
+            //}
+            //#endregion
+
+            //#region 获取所有的AspectHandler
+            //var allHandlers = allInterfaces.SelectMany(x =>
+            //{
+            //    var handlers = x.GetAttributes(AspectHandler).Select(a =>
+            //     {
+            //         var at = a.GetNamedValue("AspectType");
+            //         if (at == null)
+            //         {
+            //             context.ReportDiagnostic(DiagnosticDefinitions.AAPG00001(source.TargetNode.GetLocation()));
+            //             return null;
+            //         }
+            //         var att = (INamedTypeSymbol)at;
+            //         if (!att.HasInterface("AutoAopProxyGenerator.IAspectHandler"))
+            //         {
+            //             context.ReportDiagnostic(DiagnosticDefinitions.AAPG00002(source.TargetNode.GetLocation()));
+            //             return null;
+            //         }
+            //         return att;
+            //     });
+            //    return handlers.Where(i => i != null).Cast<INamedTypeSymbol>();
+            //}).Distinct(EqualityComparer<INamedTypeSymbol>.Default).ToArray();
+            //#endregion
+
+            if (!CheckAttributeEnable(context, source, allInterfaces, out var handlers))
             {
                 return;
             }
-            #endregion
-
-            #region 获取所有的AspectHandler
-            var allHandlers = allInterfaces.SelectMany(x =>
-            {
-                var handlers = x.GetAttributes(AspectHandler).Select(a =>
-                 {
-                     var at = a.GetNamedValue("AspectType");
-                     if (at == null)
-                     {
-                         context.ReportDiagnostic(DiagnosticDefinitions.AAPG00001(source.TargetNode.GetLocation()));
-                         return null;
-                     }
-                     var att = (INamedTypeSymbol)at;
-                     if (!att.HasInterface("AutoAopProxyGenerator.IAspectHandler"))
-                     {
-                         context.ReportDiagnostic(DiagnosticDefinitions.AAPG00002(source.TargetNode.GetLocation()));
-                         return null;
-                     }
-                     return att;
-                 });
-                return handlers.Where(i => i != null).Cast<INamedTypeSymbol>();
-            }).Distinct(EqualityComparer<INamedTypeSymbol>.Default).ToArray();
-            #endregion
-
-            var file = CreateGeneratedProxyClassFile(targetSymbol, allHandlers);
+            var file = CreateGeneratedProxyClassFile(targetSymbol, handlers);
             if (file != null)
             {
                 //var ss = file.ToString();
                 context.AddSource(file);
             }
         });
+    }
+
+    private static bool CheckAttributeEnable(SourceProductionContext context
+        , GeneratorAttributeSyntaxContext source
+        , INamedTypeSymbol[] all
+        , out INamedTypeSymbol[] handlers)
+    {
+        List<INamedTypeSymbol> h = [];
+        bool pass = true;
+        foreach (var a in all)
+        {
+            // 获取接口和接口方法上标注的AddAspectHandlerAttribute
+            var allAttribute = a.GetAttributes(AspectHandler).Concat(a.GetMethods().Where(m => m.MethodKind != MethodKind.Constructor).SelectMany(m => m.GetAttributes(AspectHandler)));
+            foreach (var item in allAttribute)
+            {
+                var at = item.GetNamedValue("AspectType");
+                if (at == null)
+                {
+                    context.ReportDiagnostic(DiagnosticDefinitions.AAPG00001(source.TargetNode.GetLocation()));
+                    pass = false;
+                    break;
+                }
+                var att = (INamedTypeSymbol)at;
+                if (!att.HasInterface("AutoAopProxyGenerator.IAspectHandler"))
+                {
+                    context.ReportDiagnostic(DiagnosticDefinitions.AAPG00002(source.TargetNode.GetLocation()));
+                    pass = false;
+                    break;
+                }
+                h.Add(att);
+            }
+            if (!pass)
+            {
+                break;
+            }
+        }
+        handlers = [.. h];
+        return pass;
     }
 
     private static CodeFile? CreateGeneratedProxyClassFile(INamedTypeSymbol classSymbol, INamedTypeSymbol[] allHandlers)
@@ -133,13 +180,18 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         foreach (var m in iface.GetMethods())
         {
             MethodBuilder methodBuilder;
-            if (m.HasAttribute(IgnoreAspect) || !iface.HasAttribute(AspectHandler))
+            var methodHandlers = m.GetAttributes(AspectHandler).Select(a => a.GetNamedValue("AspectType")).OfType<INamedTypeSymbol>();
+            INamedTypeSymbol[] usedHandlers = [.. handlers, .. methodHandlers];
+            if (usedHandlers.Length == 0 || m.HasAttribute(IgnoreAspect)
+                //|| (!iface.HasAttribute(AspectHandler) && !m.HasAttribute(AspectHandler))
+                )
             {
                 methodBuilder = CreateDirectInvokeMethod();
             }
             else
             {
-                methodBuilder = CreateProxyMethod();
+
+                methodBuilder = CreateProxyMethod(usedHandlers);
             }
 
             yield return methodBuilder;
@@ -158,7 +210,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
                 return builder;
             }
 
-            MethodBuilder CreateProxyMethod()
+            MethodBuilder CreateProxyMethod(INamedTypeSymbol[] methodHandlers)
             {
                 var method = m.IsGenericMethod ? m.ConstructedFrom : m;
                 var returnType = method.ReturnType.GetGenericTypes().FirstOrDefault() ?? method.ReturnType;
@@ -185,7 +237,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
 
                 statements.Add(done);
                 statements.Add("var builder = AsyncPipelineBuilder<ProxyContext>.Create(Done)");
-                foreach (var handler in handlers)
+                foreach (var handler in methodHandlers)
                 {
                     statements.Add($"builder.Use({handler.MetadataName}.Invoke)");
                 }

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace AutoAopProxyGenerator;
 
 /// <summary>
-/// 在类或者接口上配置切面处理
+/// 在接口/方法上配置切面处理
 /// </summary>
-[AttributeUsage(AttributeTargets.Interface, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Interface | AttributeTargets.Method, AllowMultiple = true)]
 public sealed class AddAspectHandlerAttribute : Attribute
 {
     public Type? AspectType { get; set; }

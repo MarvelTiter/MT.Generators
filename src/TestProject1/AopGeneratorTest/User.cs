@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TestProject1.AopGeneratorTest
 {
-    [AddAspectHandler(AspectType = typeof(LogAop))]
+    //[AddAspectHandler(AspectType = typeof(LogAop))]
     public interface IHello
     {
         [IgnoreAspect]
@@ -18,7 +18,7 @@ namespace TestProject1.AopGeneratorTest
         int Count();
         int Count(string message);
         Task<int> CountAsync();
-        [IgnoreAspect]
+        [AddAspectHandler(AspectType = typeof(ExceptionAop))]
         Task<int> CountAsync(string message);
         [IgnoreAspect]
         Task<bool> RunJobAsync<T>();
@@ -66,12 +66,12 @@ namespace TestProject1.AopGeneratorTest
 
         public int Count(string message)
         {
-            throw new NotImplementedException();
+            return message.Length;
         }
 
         public Task<int> CountAsync(string message)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(message.Length);
         }
 
         public Task RunJobAsync<T>(string message)
