@@ -29,7 +29,7 @@ namespace TestProject1.AopGeneratorTest
             var hello = provider.GetService<IHello>()!;
             var i = await hello.CountAsync("Hello");
             Assert.IsTrue(5 == i);
-            i = hello.Count("Hello");
+            i = hello.Count(hello);
         }
     }
 }

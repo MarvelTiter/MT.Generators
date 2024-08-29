@@ -7,18 +7,17 @@ using System.Threading.Tasks;
 
 namespace TestProject1.AopGeneratorTest
 {
-    //[AddAspectHandler(AspectType = typeof(LogAop))]
+    [AddAspectHandler(AspectType = typeof(LogAop))]
     public interface IHello
     {
-        [IgnoreAspect]
-        void Hello();
-        void Hello(string message);
+        void Hello(int? i);
+        void Hello(string? message);
         Task HelloAsync();
         Task HelloAsync(string message);
-        int Count();
+        [AddAspectHandler(AspectType = typeof(ExceptionAop))]
+        int Count(IHello? other);
         int Count(string message);
         Task<int> CountAsync();
-        [AddAspectHandler(AspectType = typeof(ExceptionAop))]
         Task<int> CountAsync(string message);
         [IgnoreAspect]
         Task<bool> RunJobAsync<T>();
@@ -30,7 +29,7 @@ namespace TestProject1.AopGeneratorTest
     [GenAspectProxy]
     public class User : IHello
     {
-        public void Hello()
+        public void Hello(int? i)
         {
             Console.WriteLine("Hello world");
         }
@@ -44,7 +43,7 @@ namespace TestProject1.AopGeneratorTest
             return Task.FromResult(3);
         }
 
-        public int Count()
+        public int Count(IHello? other)
         {
             return 2;
         }
@@ -54,7 +53,7 @@ namespace TestProject1.AopGeneratorTest
             throw new NotImplementedException();
         }
 
-        public void Hello(string message)
+        public void Hello(string? message)
         {
             throw new NotImplementedException();
         }
