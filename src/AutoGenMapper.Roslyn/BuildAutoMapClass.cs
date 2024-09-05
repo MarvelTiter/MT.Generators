@@ -63,7 +63,7 @@ public static class BuildAutoMapClass
 
         foreach (var prop in context.TargetProperties)
         {
-            if (solved.Contains(prop.Name))
+            if (solved.Contains(prop.Name) || context.ConstructorParameters.Contains(prop.Name))
             {
                 continue;
             }
@@ -113,33 +113,39 @@ public static class BuildAutoMapClass
             }
             else if (!customTrans.From.IsNullOrEmpty())
             {
-                if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
-                {
-                    ITypeSymbol? et = null;
-                    var fin = "";
-                    if (prop.Type is IArrayTypeSymbol at)
-                    {
-                        et = at.ElementType;
-                        fin = "ToArray()";
-                    }
-                    else
-                    {
-                        et = prop.Type.GetGenericTypes().First();
-                        fin = "ToList()";
-                    }
-                    if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
-                    {
-                        value = ($"""this.{customTrans.From}.Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
-                    }
-                    else
-                    {
-                        value = $"this.{customTrans.From}";
-                    }
-                }
-                else
-                {
-                    value = $"this.{customTrans.From}";
-                }
+                //if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
+                //{
+                //    ITypeSymbol? et = null;
+                //    var fin = "";
+                //    if (prop.Type is IArrayTypeSymbol at)
+                //    {
+                //        et = at.ElementType;
+                //        fin = "ToArray()";
+                //    }
+                //    else
+                //    {
+                //        et = prop.Type.GetGenericTypes().First();
+                //        fin = "ToList()";
+                //    }
+                //    if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
+                //    {
+                //        var na = prop.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
+                //        value = ($"""this.{customTrans.From}{na}.Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
+                //    }
+                //    else
+                //    {
+                //        value = $"this.{customTrans.From}";
+                //    }
+                //}
+                //else if (IsFromMapableObject(customTrans.Target, customTrans.From))
+                //{
+                //    value = $"""this.{customTrans.From}.MapTo<{prop.Type.ToDisplayString()}>("{prop.Type.MetadataName}")""";
+                //}
+                //else
+                //{
+                //    value = $"this.{customTrans.From}";
+                //}
+                value = HandleComplexProperty(prop, customTrans.Target, customTrans.From!);
                 return true;
             }
         }
@@ -147,36 +153,84 @@ public static class BuildAutoMapClass
         var p = context.SourceProperties.FirstOrDefault(p => p.Name == prop.Name);
         if (p != null)
         {
-            if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
-            {
-                ITypeSymbol? et = null;
-                var fin = "";
-                if (prop.Type is IArrayTypeSymbol at)
-                {
-                    et = at.ElementType;
-                    fin = "ToArray()";
-                }
-                else
-                {
-                    et = prop.Type.GetGenericTypes().First();
-                    fin = "ToList()";
-                }
-                if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
-                {
-                    value = ($"""this.{p.Name}.Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
-                }
-                else
-                {
-                    value = $"this.{p.Name}";
-                }
-            }
-            else
-            {
-                value = $"this.{p.Name}";
-            }
+            //if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
+            //{
+            //    ITypeSymbol? et = null;
+            //    var fin = "";
+            //    if (prop.Type is IArrayTypeSymbol at)
+            //    {
+            //        et = at.ElementType;
+            //        fin = "ToArray()";
+            //    }
+            //    else
+            //    {
+            //        et = prop.Type.GetGenericTypes().First();
+            //        fin = "ToList()";
+            //    }
+            //    if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
+            //    {
+            //        var na = prop.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
+            //        value = ($"""this.{p.Name}{na}.Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
+            //    }
+            //    else if (IsFromMapableObject(prop.Type, prop.Name))
+            //    {
+            //        value = $"""this.{prop.Name}.MapTo<{prop.Type.ToDisplayString()}>("{prop.Type.MetadataName}")""";
+            //    }
+            //    else
+            //    {
+            //        value = $"this.{p.Name}";
+            //    }
+            //}
+            //else
+            //{
+            //    value = $"this.{p.Name}";
+            //}
+            value = HandleComplexProperty(prop, prop.Type, prop.Name);
             return true;
         }
         value = null;
         return false;
+    }
+
+    private static bool IsFromMapableObject(ITypeSymbol target)
+    {
+        return target.HasInterface(AutoMapperGenerator.GenMapableInterface);
+    }
+
+    private static string HandleComplexProperty(IPropertySymbol prop, ITypeSymbol fromTarget, string fromName)
+    {
+        if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
+        {
+            ITypeSymbol? et = null;
+            var fin = "";
+            if (prop.Type is IArrayTypeSymbol at)
+            {
+                et = at.ElementType;
+                fin = "ToArray()";
+            }
+            else
+            {
+                et = prop.Type.GetGenericTypes().First();
+                fin = "ToList()";
+            }
+            if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
+            {
+                var na = prop.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
+                return ($"""this.{fromName}{na}.Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
+            }
+            else
+            {
+                return $"this.{fromName}";
+            }
+        }
+        else if (IsFromMapableObject(fromTarget))
+        {
+            var na = prop.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
+            return $"""this.{fromName}{na}.MapTo<{prop.Type.ToDisplayString()}>("{prop.Type.MetadataName}")""";
+        }
+        else
+        {
+            return $"this.{fromName}";
+        }
     }
 }

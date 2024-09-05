@@ -14,31 +14,32 @@ namespace TestProject1
         [TestMethod]
         public void AutoMode()
         {
-            var p = new Product()
+            var p = new Product(1000)
             {
-                Id = 1000,
                 Name = "Edge",
                 Category = "Browser",
                 ProductDate = new DateTime(2020, 02, 02),
                 Products = [
-                    new(){
-                        Id = 1001,
+                    new(1001){
                         Name = "H1",
                         Category = "HTML"
                     },
-                    new(){
-                        Id = 1002,
+                    new(1002){
                         Name = "H2",
                         Category = "HTML"
                     },
-                    new(){
-                        Id = 1003,
+                    new(1003){
                         Name = "H3",
                         Category = "HTML"
                     }
-                    ]
+                    ],
+                SubProduct = new Product(1004)
+                {
+                    Name = "span"
+                }
             };
             var pd = p.MapToProduct();
+            p.SubProduct.Id = 1005;
         }
     }
 }

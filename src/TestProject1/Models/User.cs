@@ -46,18 +46,27 @@ namespace TestProject1.Models
     [GenMapper(typeof(ProductDto))]
     internal partial class Product : IAutoMap
     {
+        public Product(int id)
+        {
+            Id = id;
+        }
         public int Id { get; set; }
         public string? Name { get; set; }
         public string? Category { get; set; }
         [MapTo(Target = typeof(ProductDto), Name = nameof(ProductDto.Date))]
         public DateTime? ProductDate { get; set; }
+        public Product? SubProduct { get; set; }
         public IEnumerable<Product> Products { get; set; } = [];
-        
+
     }
 
     internal class ProductDto
     {
-        public static string NameMapFrom(Product p)
+        public ProductDto(int id)
+        {
+            Id = id;
+        }
+        public string NameMapFrom(Product p)
         {
             return $"{p.Category}-{p.Name}";
         }

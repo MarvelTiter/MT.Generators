@@ -53,7 +53,7 @@ namespace AutoGenMapperGenerator
             methods.Add(im);
             cb.AddMembers([.. methods]);
 
-            
+
 
             return CodeFile.New($"{origin.FormatFileName()}.AutoMap.g.cs")
                 //.AddUsings("using System.Linq;")
@@ -72,14 +72,19 @@ namespace AutoGenMapperGenerator
             {
                 target = (a.ConstructorArguments.FirstOrDefault().Value as INamedTypeSymbol) ?? source;
             }
+            context.TargetType = target;
 
             if (a.ConstructorArguments.Length > 1)
-            {
+            {// 指定了构造函数参数
                 context.ConstructorParameters =
                     a.ConstructorArguments[1].Values.Where(c => c.Value != null).Select(c => c.Value!.ToString()).ToArray();
             }
+            else
+            {// 尝试自动获取构造函数参数
+                var ctorSymbol = context.TargetType.GetMethods().FirstOrDefault(m => m.MethodKind == MethodKind.Constructor);
+                context.ConstructorParameters = ctorSymbol.Parameters.Select(p => context.SourceProperties.First(s => string.Equals(p.Name, s.Name, StringComparison.OrdinalIgnoreCase)).Name).ToArray();
+            }
 
-            context.TargetType = target;
 
             context.TargetProperties = target.GetMembers().Where(i => i.Kind == SymbolKind.Property)
                 .Cast<IPropertySymbol>().ToArray();
