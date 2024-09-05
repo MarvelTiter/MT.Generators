@@ -9,12 +9,12 @@ using AutoInjectGenerator;
 namespace Blazor.Test
 {
     [WebController]
-    [ApiInvokerGenerate(typeof(AutoInjectAttribute))]
-    [MT.Generators.Abstraction.AttachAttributeArgument(typeof(ApiInvokerGenerateAttribute), typeof(AutoInjectAttribute),"Group","WASM")]
+    [ApiInvokerGenerate]
     public interface ITest
     {
-        [WebMethod(Method = WebMethod.Get)]
+        [ApiInvokeNotSupported]
         void Log(string message);
+        [WebMethod(Method = WebMethod.Get)]
         Task<bool> LogAsync(string message);
     }
     

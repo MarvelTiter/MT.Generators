@@ -69,6 +69,10 @@ namespace AutoWasmApiGenerator
             var needAuth = attributeData.GetNamedValue("Authorize") ?? false;
             foreach (var methodSymbol in methods)
             {
+                if (methodSymbol.Symbol.HasAttribute(NotSupported))
+                {
+                    continue;
+                }
                 var httpMethod = TryGetHttpMethod(methodSymbol);
                 var methodSyntax = BuildMethod(methodSymbol, httpMethod, (bool)needAuth);
                 if (methodSyntax != null)

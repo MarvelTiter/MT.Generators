@@ -19,6 +19,7 @@ namespace AutoWasmApiGenerator
         public const string WebMethodAttributeFullName = "AutoWasmApiGenerator.WebMethodAttribute";
         public const string DisableWebApiGenerator = "DisableWebApiGenerator";
         public const string DisableApiInvokerGenerator = "DisableApiInvokerGenerator";
+        public const string NotSupported = "AutoWasmApiGenerator.ApiInvokeNotSupportedAttribute";
         public static Dictionary<int, string> WebMethod { get; } = new()
         {
             [0] = "Get",

@@ -99,6 +99,18 @@ namespace AutoWasmApiGenerator
             var allowsAnonymous = (bool)(methodAttribute.GetNamedValue("AllowAnonymous") ?? false);
             var authorize = (bool)(methodAttribute.GetNamedValue("Authorize") ?? false);
             needAuth = !allowsAnonymous && (authorize || controllerAuth);
+
+            if (methodSymbol.HasAttribute(NotSupported))
+            {
+                return MethodBuilder.Default
+                        .MethodName(methodSymbol.Name)
+                        .Generic([.. methodSymbol.GetTypeParameters()])
+                        .ReturnType(methodSymbol.ReturnType.ToDisplayString())
+                        .AddParameter([.. methodSymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}")])
+                        .AddGeneratedCodeAttribute(typeof(HttpServiceInvokerGenerator))
+                        .Lambda("throw new global::System.NotSupportedException()");
+            }
+            
             string webMethod;
             if (!methodAttribute.GetNamedValue("Method", out var v))
             {
