@@ -113,6 +113,7 @@ public static class BuildAutoMapClass
             }
             else if (!customTrans.From.IsNullOrEmpty())
             {
+                #region
                 //if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
                 //{
                 //    ITypeSymbol? et = null;
@@ -145,6 +146,7 @@ public static class BuildAutoMapClass
                 //{
                 //    value = $"this.{customTrans.From}";
                 //}
+                #endregion
                 value = HandleComplexProperty(prop, customTrans.Target, customTrans.From!);
                 return true;
             }
@@ -153,6 +155,7 @@ public static class BuildAutoMapClass
         var p = context.SourceProperties.FirstOrDefault(p => p.Name == prop.Name);
         if (p != null)
         {
+            #region
             //if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
             //{
             //    ITypeSymbol? et = null;
@@ -185,16 +188,18 @@ public static class BuildAutoMapClass
             //{
             //    value = $"this.{p.Name}";
             //}
-            value = HandleComplexProperty(prop, prop.Type, prop.Name);
+            #endregion
+            value = HandleComplexProperty(prop, prop.ContainingType, prop.Name);
             return true;
         }
         value = null;
         return false;
     }
 
-    private static bool IsFromMapableObject(ITypeSymbol target)
+    private static bool IsFromMapableObject(ITypeSymbol target, string name)
     {
-        return target.HasInterface(AutoMapperGenerator.GenMapableInterface);
+        var prop = target.GetMembers().FirstOrDefault(m => m.Name == name) as IPropertySymbol;
+        return prop?.Type.HasInterface(AutoMapperGenerator.GenMapableInterface) == true;
     }
 
     private static string HandleComplexProperty(IPropertySymbol prop, ITypeSymbol fromTarget, string fromName)
@@ -223,7 +228,7 @@ public static class BuildAutoMapClass
                 return $"this.{fromName}";
             }
         }
-        else if (IsFromMapableObject(fromTarget))
+        else if (IsFromMapableObject(fromTarget, fromName))
         {
             var na = prop.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
             return $"""this.{fromName}{na}.MapTo<{prop.Type.ToDisplayString()}>("{prop.Type.MetadataName}")""";
