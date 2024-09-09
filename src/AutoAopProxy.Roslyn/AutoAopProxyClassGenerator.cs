@@ -165,6 +165,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         var proxyClass = ClassBuilder.Default
             .ClassName($"{classSymbol.FormatClassName()}GeneratedProxy")
             .AddMembers([.. members])
+            .Generic([.. classSymbol.GetTypeParameters()])
             .Interface([.. classSymbol.Interfaces.Select(i => i.ToDisplayString())])
             .AddGeneratedCodeAttribute(typeof(AutoAopProxyClassGenerator));
 

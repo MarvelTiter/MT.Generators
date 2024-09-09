@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -311,7 +312,7 @@ internal static class RoslynExtensions
 
         foreach (var tp in tpc)
         {
-            List<string> cs = tp.ConstraintTypes.Select(t => t.Name).ToList();
+            List<string> cs = tp.ConstraintTypes.Select(t => t.ToDisplayString()).ToList();
             tp.HasNotNullConstraint.IsTrueThen(() => cs.Add("notnull"));
             tp.HasReferenceTypeConstraint.IsTrueThen(() => cs.Add("class"));
             tp.HasUnmanagedTypeConstraint.IsTrueThen(() => cs.Add("unmanaged "));

@@ -73,7 +73,7 @@ internal class ClassBuilder : MemberBuilder<ClassBuilder>
 $$"""
 {{AttributeList}}
 {{Indent}}/// <inheritdoc/>
-{{Indent}}{{Modifiers}} {{ClassType}} {{Name}} {{BaseTypeList}}
+{{Indent}}{{Modifiers}} {{ClassType}} {{Name}}{{Types}} {{BaseTypeList}}{{TypeConstraints}}
 {{Indent}}{
 {{string.Join("\n\n", RenderMembers())}}
 {{Indent}}}

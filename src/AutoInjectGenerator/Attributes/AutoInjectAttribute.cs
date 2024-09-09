@@ -12,9 +12,8 @@ public class AutoInjectAttribute : Attribute
     public string? Group { get; set; }
 }
 
-#if NET7_0_OR_GREATER
-public class AutoInjectAttribute<T> : AutoInjectAttribute
+[AttributeUsage(AttributeTargets.Class)]
+public class AutoInjectHostedAttribute : Attribute
 {
-   
+
 }
-#endif

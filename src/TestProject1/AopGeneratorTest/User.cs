@@ -20,14 +20,14 @@ namespace TestProject1.AopGeneratorTest
         Task<int> CountAsync();
         Task<int> CountAsync(string message);
         [IgnoreAspect]
-        Task<bool> RunJobAsync<T>();
+        Task<bool> RunJobAsync<T>() where T : LogAop;
         [IgnoreAspect]
         Task RunJobAsync<T>(string message);
 
     }
 
     [GenAspectProxy]
-    public class User : IHello
+    public class User: IHello 
     {
         public void Hello(int? i)
         {
@@ -48,7 +48,7 @@ namespace TestProject1.AopGeneratorTest
             return 2;
         }
 
-        public Task<bool> RunJobAsync<T>()
+        public Task<bool> RunJobAsync<T>() where T : LogAop
         {
             throw new NotImplementedException();
         }
