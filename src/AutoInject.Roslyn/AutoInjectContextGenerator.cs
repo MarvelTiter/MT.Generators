@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using Generators.Shared.Builder;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Threading;
 
 namespace AutoInjectGenerator
 {
@@ -151,6 +152,7 @@ namespace AutoInjectGenerator
                 .AddMembers(gclass);
 
             var file = CodeFile.New($"{className}.AutoInject.g.cs")
+                .AddUsings("using Microsoft.Extensions.DependencyInjection.Extensions;")
                 .AddMembers(gn);
 
             context.AddSource(file);
@@ -204,16 +206,27 @@ namespace AutoInjectGenerator
                         injectType = 1;
                     }
 
+                    _ = a.GetNamedValue<string>("ServiceKey", out var serviceKey);
+
+                    _ = a.GetNamedValue<bool>("IsTry", out var tryAdd);
+                    var method = AddMethodName(serviceKey, tryAdd, injectType, out var key);
                     if (serviceType == implType)
                     {
-                        yield return $"{serviceName}.Add{FormatInjectType(injectType)}<{implType}>()";
+                        yield return $"{serviceName}.{method}<{implType}>({key})";
                     }
                     else
                     {
-                        yield return $"{serviceName}.Add{FormatInjectType(injectType)}<{serviceType}, {implType}>()";
+                        yield return $"{serviceName}.{method}<{serviceType}, {implType}>({key})";
                     }
                 }
             }
+        }
+
+        private static string AddMethodName(string? serviceKey, bool tryAdd, object? injectType, out string key)
+        {
+            key = string.IsNullOrEmpty(serviceKey) ? string.Empty : $"\"{serviceKey}\"";
+            var lifetime = FormatInjectType(injectType);
+            return $"{(tryAdd ? "Try" : "")}Add{(string.IsNullOrEmpty(serviceKey) ? string.Empty : "Keyed")}{lifetime}";
         }
 
         private static string FormatInjectType(object? t)

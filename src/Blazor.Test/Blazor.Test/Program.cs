@@ -3,6 +3,7 @@ using Blazor.Test.Client.Pages;
 using Blazor.Test.Client.Services;
 using Blazor.Test.Components;
 
+
 [assembly:AutoWasmApiGenerator.WebControllerAssembly]
 [assembly:AutoWasmApiGenerator.ApiInvokerAssembly]
 var builder = WebApplication.CreateBuilder(args);
@@ -19,8 +20,6 @@ builder.Host.UseServiceProviderFactory(new AutoAopProxyGenerator.AutoAopProxySer
 
 
 var app = builder.Build();
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -37,6 +37,19 @@ internal static class RoslynExtensions
         value = t;
         return t != null;
     }
+    public static bool GetNamedValue<T>(this AttributeData? a, string key, out T? value)
+    {
+        var b = GetNamedValue(a, key, out var obj);
+        if (b)
+        {
+            value = (T)obj!;
+        }
+        else
+        {
+            value = default;
+        }
+        return b;
+    }
     /// <summary>
     /// 获取指定索引的构造函数参数
     /// </summary>

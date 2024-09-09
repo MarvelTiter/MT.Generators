@@ -17,13 +17,13 @@ namespace InjectTest
 
     [WebController]
     [ApiInvokerGenerate(typeof(AutoInjectAttribute))]
-    [MT.Generators.Abstraction.AttachAttributeArgument(typeof(ApiInvokerGenerateAttribute), typeof(AutoInjectAttribute), "Group","WASM")]
+    [MT.Generators.Abstraction.AttachAttributeArgument(typeof(ApiInvokerGenerateAttribute), typeof(AutoInjectAttribute), "Group", "WASM")]
     public interface IB
     {
         void Hello();
     }
 
-    [AutoInject(Group = "SERVER")]
+    [AutoInject(Group = "SERVER", ServiceKey = "Test", IsTry = true)]
     public class Class2 : Base, IB
     {
         public void Hello()

@@ -10,6 +10,8 @@ public class AutoInjectAttribute : Attribute
     public InjectLifeTime LifeTime { get; set; } = InjectLifeTime.Scoped;
     public Type? ServiceType { get; set; }
     public string? Group { get; set; }
+    public string? ServiceKey { get; set; }
+    public bool IsTry { get; set; }
 }
 
 [AttributeUsage(AttributeTargets.Class)]
