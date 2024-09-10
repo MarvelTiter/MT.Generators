@@ -228,28 +228,34 @@ internal static class RoslynExtensions
     }
 
 
-    public static string FormatClassName(this INamedTypeSymbol interfaceSymbol)
+    public static string FormatClassName(this INamedTypeSymbol symbol, bool full = false)
     {
-        var meta = interfaceSymbol.MetadataName;
+        var meta = symbol.MetadataName;
         if (meta.IndexOf('`') > -1)
         {
             meta = meta.Substring(0, meta.IndexOf('`'));
         }
-        if (interfaceSymbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
+        if (symbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
         {
             meta = meta.Substring(1);
+        }
+        if (full)
+        {
+            var np = symbol.ContainingNamespace.ToDisplayString().Replace(".", "_");
+            return $"{np}_{meta}";
         }
         return meta;
     }
 
-    public static string FormatFileName(this INamedTypeSymbol interfaceSymbol)
+    public static string FormatFileName(this INamedTypeSymbol symbol)
     {
-        var meta = interfaceSymbol.MetadataName;
-        if (interfaceSymbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
+        var meta = symbol.MetadataName;
+        if (symbol.TypeKind == TypeKind.Interface && meta.StartsWith("I"))
         {
             meta = meta.Substring(1);
         }
-        return meta;
+        var np = symbol.ContainingNamespace.ToDisplayString().Replace('.', '_');
+        return $"{np}_{meta}";
     }
 
     public static IEnumerable<(IMethodSymbol Symbol, AttributeData? AttrData)> GetAllMethodWithAttribute(this INamedTypeSymbol interfaceSymbol, string fullName, INamedTypeSymbol? classSymbol = null)
