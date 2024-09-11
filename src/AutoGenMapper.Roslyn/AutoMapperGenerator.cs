@@ -26,6 +26,9 @@ namespace AutoGenMapperGenerator
             context.RegisterSourceOutput(map, static (context, source) =>
             {
                 var file = CreateCodeFile(context, source);
+#if DEBUG
+                var ss = file?.ToString();
+#endif
                 context.AddSource(file);
             });
         }
@@ -33,6 +36,7 @@ namespace AutoGenMapperGenerator
         private static CodeFile? CreateCodeFile(SourceProductionContext context, GeneratorAttributeSyntaxContext source)
         {
             var origin = (INamedTypeSymbol)source.TargetSymbol;
+            var ns = NamespaceBuilder.Default.Namespace(origin.ContainingNamespace.ToDisplayString());
             //if (!origin.HasInterface(GenMapableInterface))
             //{
             //    context.ReportDiagnostic(DiagnosticDefinitions.AGM00001(source.TargetNode.GetLocation()));
@@ -60,8 +64,7 @@ namespace AutoGenMapperGenerator
                 //.AddUsings("using System.Linq;")
                 //.AddUsings("using AutoGenMapperGenerator;")
                 .AddUsings(source.GetTargetUsings())
-                .AddMembers(NamespaceBuilder.Default.Namespace(origin.ContainingNamespace.ToDisplayString())
-                    .AddMembers(cb));
+                .AddMembers(ns.AddMembers(cb));
         }
 
         private static GenMapperContext CollectTypeInfos(INamedTypeSymbol source, AttributeData a)

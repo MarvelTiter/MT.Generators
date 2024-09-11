@@ -11,9 +11,10 @@ internal class FieldBuilder : MemberBuilder<FieldBuilder>
         Modifiers = "private readonly";
     }
     public override NodeType Type => NodeType.Field;
-    public override string Indent => "        ";
+    //public override string Indent => "        ";
     public override string ToString()
     {
+        var l = this.Level;
         return $"""
             {Indent}{Modifiers} {MemberType} {Name};
             """;
@@ -29,7 +30,7 @@ internal class PropertyBuilder : MemberBuilder<PropertyBuilder>
     public bool CanRead { get; set; } = true;
     public bool CanWrite { get; set; } = true;
     public override NodeType Type => NodeType.Property;
-    public override string Indent => "        ";
+    //public override string Indent => "        ";
     string Getter => CanRead ? " get;" : "";
     string Setter => CanWrite ? " set;" : "";
     public bool IsLambdaBody { get; set; }

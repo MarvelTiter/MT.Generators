@@ -10,4 +10,10 @@ internal static class NameSpaceBuilderExtensions
         builder.Namespace = @namespace;
         return builder;
     }
+
+    public static NamespaceBuilder FileScoped(this NamespaceBuilder builder)
+    {
+        builder.IsFileScoped = true;
+        return builder;
+    }
 }

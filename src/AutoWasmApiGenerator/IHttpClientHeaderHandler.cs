@@ -1,8 +1,9 @@
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace AutoWasmApiGenerator;
 
 public interface IHttpClientHeaderHandler
 {
-    void SetRequestHeader(HttpRequestMessage request);
+    Task SetRequestHeaderAsync(HttpRequestMessage request);
 }

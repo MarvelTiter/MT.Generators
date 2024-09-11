@@ -26,7 +26,6 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             var targetSymbol = (INamedTypeSymbol)source.TargetSymbol;
             //INamedTypeSymbol[] needToCheckSymbol = [targetSymbol, .. targetSymbol.AllInterfaces];
 
-
             var allInterfaces = targetSymbol.AllInterfaces.Where(a =>
             {
                 // 接口上标注了AddAspectHandlerAttribute，或者接口中有方法标注了AddAspectHandlerAttribute
@@ -97,7 +96,9 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             var file = CreateGeneratedProxyClassFile(targetSymbol, handlers);
             if (file != null)
             {
-                //var ss = file.ToString();
+#if DEBUG
+                var ss = file.ToString();
+#endif
                 context.AddSource(file);
             }
         });
@@ -143,6 +144,8 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
 
     private static CodeFile? CreateGeneratedProxyClassFile(INamedTypeSymbol classSymbol, INamedTypeSymbol[] allHandlers)
     {
+        var np = NamespaceBuilder.Default.Namespace(classSymbol.ContainingNamespace.ToDisplayString()).FileScoped();
+        var proxyClass = ClassBuilder.Default;
         // 代理字段和aspect handler 字段
         List<Node> members = [
             FieldBuilder.Default.MemberType(classSymbol.ToDisplayString()).FieldName("proxy")
@@ -159,11 +162,10 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         // 接口方法
         foreach (var iface in classSymbol.AllInterfaces)
         {
-            members.AddRange(CreateProxyMethod(iface, classSymbol));
+            members.AddRange(CreateProxyMethod(iface, classSymbol, proxyClass));
         }
 
-        var proxyClass = ClassBuilder.Default
-            .ClassName($"{classSymbol.FormatClassName()}GeneratedProxy")
+        proxyClass.ClassName($"{classSymbol.FormatClassName()}GeneratedProxy")
             .AddMembers([.. members])
             .Generic([.. classSymbol.GetTypeParameters()])
             .Interface([.. classSymbol.Interfaces.Select(i => i.ToDisplayString())])
@@ -171,10 +173,10 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
 
         return CodeFile.New($"{classSymbol.FormatFileName()}GeneratedProxyClass.g.cs")
             .AddUsings("using AutoAopProxyGenerator;")
-            .AddMembers(NamespaceBuilder.Default.Namespace(classSymbol.ContainingNamespace.ToDisplayString()).AddMembers(proxyClass));
+            .AddMembers(np.AddMembers(proxyClass));
     }
 
-    private static IEnumerable<MethodBuilder> CreateProxyMethod(INamedTypeSymbol iface, INamedTypeSymbol classSymbol)
+    private static IEnumerable<MethodBuilder> CreateProxyMethod(INamedTypeSymbol iface, INamedTypeSymbol classSymbol, Node parent)
     {
         var handlers = iface.GetAttributes(AspectHandler).Select(a => a.GetNamedValue("AspectType")).OfType<INamedTypeSymbol>().ToArray();
 

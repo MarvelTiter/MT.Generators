@@ -32,6 +32,9 @@ namespace AutoWasmApiGenerator
                 {
                     if (CreateCodeFile(item, context, out var file))
                     {
+#if DEBUG
+                        var ss = file?.ToString();
+#endif
                         context.AddSource(file!);
                     }
                 }
@@ -60,6 +63,8 @@ namespace AutoWasmApiGenerator
                 context.ReportDiagnostic(DiagnosticDefinitions.WAG00004(Location.None));
                 return false;
             }
+            var ns = NamespaceBuilder.Default.Namespace(interfaceSymbol.ContainingNamespace.ToDisplayString());
+            var controllerClass = CreateControllerClass(interfaceSymbol);
             List<Node> members = [];
             var localField = BuildLocalField(interfaceSymbol);
             var constructor = BuildConstructor(interfaceSymbol);
@@ -78,9 +83,8 @@ namespace AutoWasmApiGenerator
                 if (methodSyntax != null)
                     members.Add(methodSyntax);
             }
-
             file = CodeFile.New($"{interfaceSymbol.FormatFileName()}Controller.g.cs")
-           .AddMembers(NamespaceBuilder.Default.Namespace(interfaceSymbol.ContainingNamespace.ToDisplayString()).AddMembers(CreateControllerClass(interfaceSymbol).AddMembers([.. members])));
+           .AddMembers(ns.AddMembers(controllerClass.AddMembers([.. members])));
             //.AddUsings(source.GetTargetUsings());
 
             return true;
@@ -104,7 +108,7 @@ namespace AutoWasmApiGenerator
                   .ReturnType(methodSymbol.ReturnType.ToDisplayString())
                   .Attribute(methodRouteAttribute)
                   .AttributeIf(allowAnonymous, "global::Microsoft.AspNetCore.Authorization.AllowAnonymous")
-                  .AttributeIf((methodAuth||needAuth)&& !allowAnonymous, "global::Microsoft.AspNetCore.Authorization.Authorize")
+                  .AttributeIf((methodAuth || needAuth) && !allowAnonymous, "global::Microsoft.AspNetCore.Authorization.Authorize")
                   .AddGeneratedCodeAttribute(typeof(ControllerGenerator))
                   .AddParameter([.. methodSymbol.Parameters.Select(p => $"{CreateMethodParameterOriginAttribute(httpMethod)}{p.Type.ToDisplayString()} {p.Name}")])
                   .Lambda($"proxyService.{methodSymbol.Name}({string.Join(", ", methodSymbol.Parameters.Select(p => p.Name))});");
@@ -161,7 +165,7 @@ namespace AutoWasmApiGenerator
                         .BaseType("global::Microsoft.AspNetCore.Mvc.ControllerBase")
                         .Attribute("global::Microsoft.AspNetCore.Mvc.ApiController")
                         .Attribute($"global::Microsoft.AspNetCore.Mvc.Route(\"api/{route}\")")
-                        .AttributeIf((bool)needAuth,"global::Microsoft.AspNetCore.Authorization.Authorize")
+                        .AttributeIf((bool)needAuth, "global::Microsoft.AspNetCore.Authorization.Authorize")
                         //.Attribute([..additionalAttribute.Select(i => i.ToString())])
                         .AddGeneratedCodeAttribute(typeof(ControllerGenerator));
         }

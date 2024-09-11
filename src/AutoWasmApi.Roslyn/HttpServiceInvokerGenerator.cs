@@ -61,35 +61,33 @@ namespace AutoWasmApiGenerator
             var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName);
             List<Node> members = new List<Node>();
             _ = interfaceSymbol.GetAttribute(WebControllerAttributeFullName, out var controllerAttrData);
-
-            
+            var ns = NamespaceBuilder.Default.Namespace(interfaceSymbol.ContainingNamespace.ToDisplayString());
+            var invokeClass = CreateHttpClassBuilder(interfaceSymbol);
             var scopeName = interfaceSymbol.FormatClassName();
             var route = controllerAttrData.GetNamedValue("Route") as string;
             bool needAuth = (bool)(controllerAttrData.GetNamedValue("Authorize") ?? false);
             foreach (var method in methods)
             {
-                var methodSyntax = BuildMethod(method, route, scopeName,needAuth,out var n);
+                var methodSyntax = BuildMethod(method,  route, scopeName, needAuth, out var n);
                 if (n && !needAuth)
                 {
                     needAuth = true;
                 }
                 members.Add(methodSyntax);
             }
-            
-            var fields = BuildField(needAuth);
-            var constructor = BuildConstructor(interfaceSymbol, needAuth);
+
+            var fields = BuildField( needAuth);
+            var constructor = BuildConstructor(interfaceSymbol,  needAuth);
             members.AddRange(fields);
             members.Add(constructor);
-            
+
             file = CodeFile.New($"{interfaceSymbol.FormatFileName()}ApiInvoker.g.cs")
-               .AddMembers(NamespaceBuilder.Default.Namespace(interfaceSymbol.ContainingNamespace.ToDisplayString())
-                   .AddMembers(CreateHttpClassBuilder(interfaceSymbol)
-                       .AddMembers([.. members])));
+               .AddMembers(ns.AddMembers(invokeClass.AddMembers([.. members])));
 
             return true;
         }
 
-        private static MethodBuilder BuildMethod((IMethodSymbol, AttributeData?) method, string? route, string scopeName,bool controllerAuth, out bool needAuth)
+        private static MethodBuilder BuildMethod((IMethodSymbol, AttributeData?) method, string? route, string scopeName, bool controllerAuth, out bool needAuth)
         {
             //methodSymbol.GetAttribute<WebMethodAttribute>(out var m);
             //classSymbol.GetAttribute<WebControllerAttribute>(out var c);
@@ -110,7 +108,7 @@ namespace AutoWasmApiGenerator
                         .AddGeneratedCodeAttribute(typeof(HttpServiceInvokerGenerator))
                         .Lambda("throw new global::System.NotSupportedException()");
             }
-            
+
             string webMethod;
             if (!methodAttribute.GetNamedValue("Method", out var v))
             {
@@ -134,7 +132,7 @@ namespace AutoWasmApiGenerator
             ];
             if (needAuth)
             {
-                statements.Add("headerHandler.SetRequestHeader(_request_gen)");
+                statements.Add("await headerHandler.SetRequestHeaderAsync(_request_gen)");
             }
             if (webMethod == "Get")
             {
@@ -217,7 +215,7 @@ _request_gen.RequestUri = new Uri($"{_url_gen}?{string.Join("&", queries)}", Uri
             }
         }
 
-        private static ConstructorBuilder BuildConstructor(INamedTypeSymbol classSymbol, bool needAuth)
+        private static ConstructorBuilder BuildConstructor(INamedTypeSymbol classSymbol,  bool needAuth)
         {
             List<string> parameters = ["global::System.Net.Http.IHttpClientFactory factory"];
             List<Statement> body = ["clientFactory = factory;"];
@@ -229,8 +227,8 @@ _request_gen.RequestUri = new Uri($"{_url_gen}?{string.Join("&", queries)}", Uri
 
             return ConstructorBuilder.Default
                 .MethodName($"{FormatClassName(classSymbol.MetadataName)}ApiInvoker")
-                .AddParameter([..parameters])
-                .AddBody([..body])
+                .AddParameter([.. parameters])
+                .AddBody([.. body])
                 .AddBody("_JSON_OPTIONS_gen = new global::System.Text.Json.JsonSerializerOptions() { PropertyNameCaseInsensitive = true };");
         }
 

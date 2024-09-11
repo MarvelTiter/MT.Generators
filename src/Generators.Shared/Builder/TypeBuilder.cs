@@ -6,10 +6,11 @@ namespace Generators.Shared.Builder;
 
 internal abstract class TypeBuilder : Node
 {
-    public IList<Node> Members { get; } = [];
+    public List<Node> Members { get; } = [];
 }
 internal abstract class TypeBuilder<T> : TypeBuilder where T : TypeBuilder, new()
 {
+    //public static T Default(Node? parent) => new T() { Parent = parent };
     public static T Default => new T();
 }
 
@@ -35,7 +36,7 @@ internal abstract class MemberBuilder : TypeBuilder
     {
         get
         {
-            if (TypeArguments.Count == 0) return "";
+            if (TypeArguments.Sum(t => t.Constraints.Length) == 0) return "";
             return $"\n{string.Join("\n", TypeArguments.Where(ta => ta.Constraints.Length > 0).Select(ta => $"{Indent}    where {ta.Name} : {string.Join(", ", ta.Constraints)}"))}";
         }
     }
@@ -43,6 +44,7 @@ internal abstract class MemberBuilder : TypeBuilder
 
 internal abstract class MemberBuilder<T> : MemberBuilder where T : MemberBuilder, new()
 {
+    //public static T Default(Node parent) => new T() { Parent = parent };
     public static T Default => new T();
 }
 
@@ -53,6 +55,7 @@ internal abstract class MethodBase : MemberBuilder
 }
 internal abstract class MethodBase<T> : MethodBase where T : MethodBase, new()
 {
+    //public static T Default(Node parent) => new T() { Parent = parent };
     public static T Default => new T();
-    public override string Indent => "        ";
+    //public override string Indent => "        ";
 }

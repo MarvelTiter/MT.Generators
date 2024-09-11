@@ -15,6 +15,7 @@ internal enum NodeType
     Field,
     Property,
     Method,
+    Statement
 }
 internal enum MemberType
 {
@@ -30,7 +31,7 @@ internal class ClassBuilder : MemberBuilder<ClassBuilder>
         Modifiers = "public partial";
     }
     public override NodeType Type => NodeType.Class;
-    public override string Indent => "    ";
+    //public override string Indent => "    ";
     public string? BaseType { get; set; }
     public string ClassType { get; set; } = "class";
     public IList<string> Interfaces { get; } = [];

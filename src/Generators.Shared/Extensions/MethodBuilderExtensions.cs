@@ -43,19 +43,20 @@ internal static class MethodBuilderExtensions
         return builder;
     }
 
-    public static T AddBody<T>(this T builder, params string[] body) where T : MethodBase
-    {
-        foreach (var item in body)
-        {
-            builder.Body.Add(item);
-        }
-        return builder;
-    }
+    //public static T AddBody<T>(this T builder, params string[] body) where T : MethodBase
+    //{
+    //    foreach (var item in body)
+    //    {
+    //        builder.Body.Add(item);
+    //    }
+    //    return builder;
+    //}
 
     public static T AddBody<T>(this T builder, params Statement[] body) where T : MethodBase
     {
         foreach (var item in body)
         {
+            item.Parent = builder;
             builder.Body.Add(item);
         }
         return builder;
@@ -74,6 +75,7 @@ internal static class MethodBuilderExtensions
     public static T AddSwitchStatement<T>(this T builder, string switchValue, Action<SwitchStatement> action) where T : MethodBase
     {
         var switchStatement = SwitchStatement.Default.Switch(switchValue);
+        switchStatement.Parent = builder;
         action.Invoke(switchStatement);
         builder.AddBody(switchStatement);
         return builder;
@@ -87,18 +89,18 @@ internal static class MethodBuilderExtensions
 
     public static SwitchStatement AddReturnCase(this SwitchStatement switchStatement, string condition, string returnItem)
     {
-        switchStatement.SwitchCases.Add(new SwitchCaseStatement { Condition = condition, Action = $"return {returnItem}" });
+        switchStatement.SwitchCases.Add(new SwitchCaseStatement { Condition = condition, Action = $"return {returnItem}", Parent = switchStatement.Parent });
         return switchStatement;
     }
 
     public static SwitchStatement AddBreakCase(this SwitchStatement switchStatement, string condition, string action)
     {
-        switchStatement.SwitchCases.Add(new SwitchCaseStatement { Condition = condition, Action = action, IsBreak = true });
+        switchStatement.SwitchCases.Add(new SwitchCaseStatement { Condition = condition, Action = action, IsBreak = true, Parent = switchStatement.Parent });
         return switchStatement;
     }
     public static SwitchStatement AddDefaultCase(this SwitchStatement switchStatement, string action)
     {
-        switchStatement.DefaultCase = new DefaultCaseStatement { Action = action };
+        switchStatement.DefaultCase = new DefaultCaseStatement { Action = action, Parent = switchStatement.Parent };
         return switchStatement;
     }
     #endregion
@@ -107,6 +109,7 @@ internal static class MethodBuilderExtensions
     public static T AddIfStatement<T>(this T builder, string condition, Action<IfStatement> action) where T : MethodBase
     {
         var ifs = IfStatement.Default.If(condition);
+        ifs.Parent = builder;
         action.Invoke(ifs);
         builder.AddBody(ifs);
         return builder;
@@ -117,10 +120,11 @@ internal static class MethodBuilderExtensions
         return ifStatement;
     }
 
-    public static IfStatement AddStatement(this IfStatement ifStatement, params string[] statements)
+    public static IfStatement AddStatement(this IfStatement ifStatement, params Statement[] statements)
     {
         foreach (var statement in statements)
         {
+            statement.Parent = ifStatement;
             ifStatement.IfContents.Add(statement);
         }
         return ifStatement;
@@ -132,6 +136,7 @@ internal static class MethodBuilderExtensions
     public static T AddLocalFunction<T>(this T builder, Action<LocalFunction> action) where T : MethodBase
     {
         var lf = LocalFunction.Default;
+        lf.Parent = builder;
         action.Invoke(lf);
         builder.AddBody(lf);
         return builder;
@@ -157,16 +162,20 @@ internal static class MethodBuilderExtensions
 
     public static LocalFunction AddParameters(this LocalFunction localFunction, params string[] parameters)
     {
-        foreach(var parameter in parameters)
+        foreach (var parameter in parameters)
         {
             localFunction.Parameters.Add(parameter);
         }
         return localFunction;
     }
 
-    public static LocalFunction AddBody(this  LocalFunction localFunction, params Statement[] body)
+    public static LocalFunction AddBody(this LocalFunction localFunction, params Statement[] body)
     {
-        localFunction.Body.AddRange(body);
+        foreach (var item in body)
+        {
+            item.Parent = localFunction;
+            localFunction.Body.Add(item);
+        }
         return localFunction;
     }
 

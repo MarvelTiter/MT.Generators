@@ -15,6 +15,7 @@ internal static class TypeBuilderExtensions
     {
         foreach (var item in members)
         {
+            item.Parent = builder;
             builder.Members.Add(item);
         }
         return builder;

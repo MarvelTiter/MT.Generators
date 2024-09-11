@@ -116,6 +116,9 @@ namespace AutoInjectGenerator
                 return;
             }
 
+            var gn = NamespaceBuilder.Default.Namespace(classSymbol.ContainingNamespace.ToDisplayString());
+            var gclass = ClassBuilder.Default.ClassName(className).Modifiers("static partial");
+
             // 获取 IServiceCollection 参数的名称
             var serviceName = methodSymbol.Parameters.First(p =>
                 p.Type.ToDisplayString().Contains("Microsoft.Extensions.DependencyInjection.IServiceCollection")).Name;
@@ -145,16 +148,15 @@ namespace AutoInjectGenerator
                 ])
                 .AddBody([.. injectStatements]);
 
-            var gclass = ClassBuilder.Default.ClassName(className)
-                .Modifiers("static partial")
-                .AddMembers(cm);
-            var gn = NamespaceBuilder.Default.Namespace(classSymbol.ContainingNamespace.ToDisplayString())
-                .AddMembers(gclass);
+            gclass.AddMembers(cm);
+
 
             var file = CodeFile.New($"{className}.AutoInject.g.cs")
                 .AddUsings("using Microsoft.Extensions.DependencyInjection.Extensions;")
-                .AddMembers(gn);
-
+                .AddMembers(gn.AddMembers(gclass));
+#if DEBUG
+            var ss = file.ToString();
+#endif
             context.AddSource(file);
         }
 

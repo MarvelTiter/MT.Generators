@@ -8,7 +8,7 @@ using AutoInjectGenerator;
 
 namespace Blazor.Test
 {
-    [WebController]
+    [WebController(Authorize = true)]
     [ApiInvokerGenerate]
     public interface ITest
     {
@@ -17,7 +17,8 @@ namespace Blazor.Test
         [WebMethod(Method = WebMethod.Get)]
         Task<bool> LogAsync(string message);
     }
-    
+
+    [AutoInject]
     public class Class1 : ITest
     {
         public void Log(string message)
@@ -27,7 +28,7 @@ namespace Blazor.Test
 
         public Task<bool> LogAsync(string message)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(message.Length > 5);
         }
     }
 
@@ -38,7 +39,7 @@ namespace Blazor.Test
         [AutoInjectConfiguration(Include = "SERVER")]
         public static partial void Inject(this IServiceCollection services);
     }
-    
+
     [AutoInjectContext]
     public static partial class AutoWasmInjectContext
     {

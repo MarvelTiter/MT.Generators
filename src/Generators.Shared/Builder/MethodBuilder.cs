@@ -57,17 +57,16 @@ $$"""
     }
 }
 
-internal class Statement
+internal class Statement : Node
 {
-    public string Indent => "            ";
+    //public override string Indent => "            ";
 
-    public string Content { get; }
+    public string Content { get; private set; } = string.Empty;
 
-    public Statement(string content)
-    {
-        Content = content;
-    }
-    public static implicit operator Statement(string content) => new Statement(content);
+    public override NodeType Type => NodeType.Statement;
+
+
+    public static implicit operator Statement(string content) => new Statement() { Content = content };
 
     public override string ToString()
     {
@@ -95,14 +94,15 @@ internal class Statement
 
 internal class SwitchStatement : Statement
 {
-    public SwitchStatement(string switchValue) : base("")
+    public SwitchStatement(string switchValue)
     {
         SwitchValue = switchValue;
     }
-    public SwitchStatement() : base("")
+    public SwitchStatement()
     {
 
     }
+    //public static SwitchStatement Default(Node parent) => new SwitchStatement() { Parent = parent };
     public static SwitchStatement Default => new SwitchStatement();
 
     public string? SwitchValue { get; set; }
@@ -123,10 +123,6 @@ $$"""
 
 internal class SwitchCaseStatement : Statement
 {
-    public SwitchCaseStatement() : base("")
-    {
-
-    }
     public string? Condition { get; set; }
     public string? Action { get; set; }
     public bool IsBreak { get; set; }
@@ -154,10 +150,6 @@ $"""
 
 internal class DefaultCaseStatement : Statement
 {
-    public DefaultCaseStatement() : base("")
-    {
-
-    }
     public string? Condition { get; set; }
     public string? Action { get; set; }
     public override string ToString()
@@ -173,10 +165,7 @@ $"""
 
 internal class IfStatement : Statement
 {
-    public IfStatement() : base("")
-    {
-
-    }
+    //internal static IfStatement Default(Node parent) => new IfStatement() { Parent = parent };
     internal static IfStatement Default => new IfStatement();
     public string? Condition { get; set; }
     public List<Statement> IfContents { get; set; } = [];
@@ -186,7 +175,7 @@ internal class IfStatement : Statement
 $$"""
 {{Indent}}if ({{Condition}})
 {{Indent}}{
-{{string.Join("\n", IfContents.Select(s => $"    {s}"))}}
+{{string.Join("\n", IfContents)}}
 {{Indent}}}
 """;
     }
@@ -194,11 +183,8 @@ $$"""
 
 internal class LocalFunction : Statement
 {
-    public LocalFunction() : base("")
-    {
-
-    }
-    public static LocalFunction Default => new LocalFunction();
+    //public static LocalFunction Default(Node parent) => new LocalFunction() { Parent = parent };
+    public static LocalFunction Default => new LocalFunction() ;
     public string? ReturnType { get; set; }
     public string? Name { get; set; }
     public bool IsAsync { get; set; }
@@ -211,7 +197,7 @@ internal class LocalFunction : Statement
 $$"""
 {{Indent}}{{Async}}{{ReturnType}} {{Name}}({{string.Join(", ", Parameters)}})
 {{Indent}}{
-{{string.Join("\n", Body.Select(s => $"    {s}"))}}
+{{string.Join("\n", Body)}}
 {{Indent}}}
 """;
     }
