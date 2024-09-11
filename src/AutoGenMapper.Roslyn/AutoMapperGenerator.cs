@@ -33,14 +33,15 @@ namespace AutoGenMapperGenerator
         private static CodeFile? CreateCodeFile(SourceProductionContext context, GeneratorAttributeSyntaxContext source)
         {
             var origin = (INamedTypeSymbol)source.TargetSymbol;
-            if (!origin.HasInterface(GenMapableInterface))
-            {
-                context.ReportDiagnostic(DiagnosticDefinitions.AGM00001(source.TargetNode.GetLocation()));
-                return null;
-            }
+            //if (!origin.HasInterface(GenMapableInterface))
+            //{
+            //    context.ReportDiagnostic(DiagnosticDefinitions.AGM00001(source.TargetNode.GetLocation()));
+            //    return null;
+            //}
 
             var ctxs = source.TargetSymbol.GetAttributes(GenMapperAttributeFullName).Select(s => CollectTypeInfos(origin, s)).ToArray();
             var cb = ClassBuilder.Default.Modifiers("partial").ClassName(origin.Name)
+                .Interface(GenMapableInterface)
                 .AddGeneratedCodeAttribute(typeof(AutoMapperGenerator));
             List<MethodBuilder> methods = [];
             foreach (var ctx in ctxs)

@@ -24,7 +24,7 @@ namespace TestProject1.Models
     }
 
     [GenMapper]
-    public partial class Power : IPower, IAutoMap
+    public partial class Power : IPower
     {
         public string? PowerId { get; set; }
         public string? PowerName { get; set; }
@@ -44,7 +44,7 @@ namespace TestProject1.Models
 
     [GenMapper]
     [GenMapper(typeof(ProductDto))]
-    internal partial class Product : IAutoMap
+    internal partial class Product
     {
         public Product(int id)
         {
