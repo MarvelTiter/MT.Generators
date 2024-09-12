@@ -4,7 +4,7 @@
 		<RootNamespace>AutoAopProxyGenerator</RootNamespace>
 	</PropertyGroup>
 
-	<Import Project="..\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
-	<Import Project="..\Generators.Shared\MT.Generators.props" />
+	<Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
+	<Import Project="..\Shared\Generators.Shared\MT.Generators.props" />
 
 </Project>
