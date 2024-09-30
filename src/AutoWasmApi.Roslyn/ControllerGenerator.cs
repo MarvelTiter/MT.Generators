@@ -14,10 +14,14 @@ namespace AutoWasmApiGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            //var list = context.CompilationProvider.ForAttributeWithMetadataName(
+            //var ctx = context.SyntaxProvider.ForAttributeWithMetadataName(
             //    WebControllerAssemblyAttributeFullName,
             //    static (node, token) => true,
             //    static (c, t) => c);
+            //var items = context.SyntaxProvider.ForAttributeWithMetadataName(
+            //    WebControllerAttributeFullName
+            //    , static (node, _) => true
+            //    , static (ctx, _) => ctx);
 
             context.RegisterSourceOutput(context.CompilationProvider, static (context, compilation) =>
             {

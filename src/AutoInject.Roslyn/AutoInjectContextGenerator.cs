@@ -21,68 +21,23 @@ namespace AutoInjectGenerator
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            // var source = context.SyntaxProvider.ForAttributeWithMetadataName(
-            //     AutoInjectContext
-            //     , static (node, _) => node is ClassDeclarationSyntax
-            //     , static (ctx, _) => ctx);
+            //只能获取到当前程序集的节点
+            //var ctx = context.SyntaxProvider.ForAttributeWithMetadataName(
+            //    AutoInjectContext
+            //    , static (node, _) => node is ClassDeclarationSyntax
+            //    , static (ctx, _) => ctx);
+            //var services = context.SyntaxProvider.ForAttributeWithMetadataName(
+            //    AutoInject
+            //    , static (node, _) => node is ClassDeclarationSyntax
+            //    , static (ctx, _) => ctx);
+            //context.RegisterSourceOutput(ctx.Combine(services.Collect()), static (context, source) =>
+            //{
+            //    var injectContext = (INamedTypeSymbol)source.Left.TargetSymbol;
+            //    var all = source.Right.Select(s => s.TargetSymbol).Cast<INamedTypeSymbol>();
+            //    CreateContextFile(context, injectContext, all);
+            //});
             context.RegisterSourceOutput(context.CompilationProvider, static (context, source) =>
             {
-                // var compilcation = source.SemanticModel.Compilation;
-                // var used = compilcation.GetUsedAssemblyReferences();
-                // var all = compilcation.GetAllSymbols(AutoInject);
-                // var classSymbol = (INamedTypeSymbol)source.TargetSymbol;
-                // var className = classSymbol.MetadataName;
-                // if (classSymbol.GetMembers().FirstOrDefault(m => m is IMethodSymbol
-                //     {
-                //         IsPartialDefinition: true, IsStatic: true
-                //     }) is not IMethodSymbol methodSymbol)
-                // {
-                //     context.ReportDiagnostic(DiagnosticDefinitions.AIG00001(source.TargetNode.GetLocation()));
-                //     return;
-                // }
-                //
-                // // 获取 IServiceCollection 参数的名称
-                // var serviceName = methodSymbol.Parameters.First(p =>
-                //         p.Type.ToDisplayString()
-                //             .Contains("Microsoft.Extensions.DependencyInjection.IServiceCollection"))
-                //     .Name;
-                //
-                // var allConfig = methodSymbol.GetAttributes(AutoInjectConfiguration).Select(c =>
-                // {
-                //     var i = c.GetNamedValue("Include")?.ToString() ?? "";
-                //     var e = c.GetNamedValue("Exclude")?.ToString() ?? "";
-                //     return (i, e);
-                // }).ToArray();
-                //
-                // var includes = allConfig.Select(t => t.i).Where(s => !string.IsNullOrEmpty(s)).ToArray();
-                // var excludes = allConfig.Select(t => t.e).Where(s => !string.IsNullOrEmpty(s)).ToArray();
-                //
-                // if (includes.Intersect(excludes).Any())
-                // {
-                //     context.ReportDiagnostic(DiagnosticDefinitions.AIG00002(source.TargetNode.GetLocation()));
-                //     return;
-                // }
-                //
-                // var injectStatements = CreateInjectStatements(all, serviceName, includes, excludes);
-                // var cm = MethodBuilder.Default.MethodName(methodSymbol.Name)
-                //     .Modifiers("public static partial")
-                //     .AddParameter([
-                //         .. methodSymbol.Parameters.Select((p, i) =>
-                //             $"{(i == 0 && methodSymbol.IsExtensionMethod ? "this " : "")}{p.Type.ToDisplayString()} {p.Name}")
-                //     ])
-                //     .AddBody([.. injectStatements]);
-                //
-                // var gclass = ClassBuilder.Default.ClassName(className)
-                //     .Modifiers("static partial")
-                //     .AddMembers(cm);
-                // var gn = NamespaceBuilder.Default.Namespace(source.TargetSymbol.ContainingNamespace.ToDisplayString())
-                //     .AddMembers(gclass);
-                //
-                // var file = CodeFile.New($"{className}.AutoInject.g.cs")
-                //     .AddMembers(gn)
-                //     .AddUsings(source.GetTargetUsings());
-                //
-                // context.AddSource(file);
 
                 var allContext = source.GetAllSymbols(AutoInjectContext).ToArray();
                 if (allContext.Length == 0)
