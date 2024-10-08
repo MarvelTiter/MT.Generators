@@ -1,43 +1,70 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AutoGenMapperGenerator;
 
+/// <summary>
+/// 生成MapToXXX方法
+/// </summary>
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
 public class GenMapperAttribute : Attribute
 {
     private readonly string[]? values;
+    /// <summary>
+    /// 目标类型，默认是自身
+    /// </summary>
     public Type? TargetType { get; set; }
 
+    /// <summary>
+    /// 默认构造
+    /// </summary>
     public GenMapperAttribute()
     {
 
     }
 
+    /// <summary>
+    /// 指定目标类型
+    /// </summary>
+    /// <param name="targetType">目标类型</param>
     public GenMapperAttribute(Type targetType)
     {
         TargetType = targetType;
     }
 
+    /// <summary>
+    /// 指定目标类型，并且指定构造函数参数
+    /// </summary>
+    /// <param name="targetType">目标类型</param>
+    /// <param name="values">构造参数</param>
     public GenMapperAttribute(Type targetType, params string[] values)
     {
         this.values = values;
         TargetType = targetType;
     }
 }
+
+/// <summary>
+/// 忽略映射
+/// </summary>
 [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
-public class MapIgnore : Attribute
+public class MapIgnoreAttribute : Attribute
 {
 
 }
+
+/// <summary>
+/// 
+/// </summary>
 [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
 public class MapToAttribute : Attribute
 {
     /// <summary>
-    /// 指定转换来源
+    /// 指定目标类型
     /// </summary>
     public Type? Target { get; set; }
     /// <summary>
-    /// 指定转换来源属性
+    /// 指定目标类型属性
     /// </summary>
     public string? Name { get; set; }
     /// <summary>
@@ -68,3 +95,26 @@ public class MapFromAttribute : Attribute
     /// </summary>
     public string? By { get; set; }
 }
+
+/// <summary>
+/// 为<see cref="IDictionary{String,Object}"/> 生成MapTo拓展方法
+/// </summary>
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+public class GenMapperFromDictionaryAttribute : Attribute
+{
+    private readonly string[]? values;
+    /// <summary>
+    /// 指定构造函数参数
+    /// </summary>
+    /// <param name="values"></param>
+    public GenMapperFromDictionaryAttribute(params string[] values)
+    {
+        this.values = values;
+    }
+}
+
+/// <summary>
+/// 
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class StaticMapperContextAttribute : Attribute { }
