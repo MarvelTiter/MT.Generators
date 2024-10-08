@@ -32,63 +32,6 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
                 return a.HasAttribute(AspectHandler) || a.GetMethods().Where(m => m.MethodKind != MethodKind.Constructor).Any(m => m.HasAttribute(AspectHandler));
             }).ToArray();
 
-            //#region 检查Attribute标注是否合法
-            //bool pass = true;
-            //foreach (var i in allInterfaces)
-            //{
-            //    if (!pass)
-            //    {
-            //        break;
-            //    }
-            //    var allAttribute = i.GetAttributes(AspectHandler).Concat(i.GetMethods().Where(m => m.MethodKind != MethodKind.Constructor).SelectMany(m => m.GetAttributes(AspectHandler)));
-            //    pass = allAttribute.All(a =>
-            //     {
-            //         var at = a.GetNamedValue("AspectType");
-            //         if (at == null)
-            //         {
-            //             context.ReportDiagnostic(DiagnosticDefinitions.AAPG00001(source.TargetNode.GetLocation()));
-            //             return false;
-            //         }
-            //         var att = (INamedTypeSymbol)at;
-            //         if (!att.HasInterface("AutoAopProxyGenerator.IAspectHandler"))
-            //         {
-            //             context.ReportDiagnostic(DiagnosticDefinitions.AAPG00002(source.TargetNode.GetLocation()));
-            //             return false;
-            //         }
-            //         return true;
-            //     });
-
-
-            //}
-            //if (!pass)
-            //{
-            //    return;
-            //}
-            //#endregion
-
-            //#region 获取所有的AspectHandler
-            //var allHandlers = allInterfaces.SelectMany(x =>
-            //{
-            //    var handlers = x.GetAttributes(AspectHandler).Select(a =>
-            //     {
-            //         var at = a.GetNamedValue("AspectType");
-            //         if (at == null)
-            //         {
-            //             context.ReportDiagnostic(DiagnosticDefinitions.AAPG00001(source.TargetNode.GetLocation()));
-            //             return null;
-            //         }
-            //         var att = (INamedTypeSymbol)at;
-            //         if (!att.HasInterface("AutoAopProxyGenerator.IAspectHandler"))
-            //         {
-            //             context.ReportDiagnostic(DiagnosticDefinitions.AAPG00002(source.TargetNode.GetLocation()));
-            //             return null;
-            //         }
-            //         return att;
-            //     });
-            //    return handlers.Where(i => i != null).Cast<INamedTypeSymbol>();
-            //}).Distinct(EqualityComparer<INamedTypeSymbol>.Default).ToArray();
-            //#endregion
-
             if (!CheckAttributeEnable(context, source, allInterfaces, out var handlers))
             {
                 return;
@@ -248,10 +191,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             statements.Add("var _job_gen = _builder_gen.Build()");
             var ptypes = method.Parameters.Length > 0 ? $"[{string.Join(", ", method.Parameters.Select(SelectParameterType))}]" : "Type.EmptyTypes";
             statements.Add($"var _context_gen = ContextHelper<{iface.ToDisplayString()}, {classSymbol.ToDisplayString()}>.GetOrCreate(nameof({method.Name}), {ptypes})");
-            if (hasReturn)
-            {
-                statements.Add("_context_gen.HasReturnValue = true");
-            }
+            
             statements.Add($"_context_gen.Parameters = new object?[] {{{string.Join(", ", method.Parameters.Select(p => p.Name))}}};");
             if (isAsync)
             {
@@ -286,13 +226,12 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             if (hasReturn)
             {
                 yield return $"var _val_gen = await proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
-                yield return "_ctx_gen.Executed = true";
-                yield return "_ctx_gen.SetReturnValue(_val_gen)";
+                yield return "_ctx_gen.SetReturnValue(_val_gen, ExecuteStatus.Executed)";
             }
             else
             {
                 yield return $"await proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
-                yield return "_ctx_gen.Executed = true";
+                yield return "_ctx_gen.SetStatus(ExecuteStatus.Executed)";
             }
         }
         else
@@ -300,14 +239,13 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             if (hasReturn)
             {
                 yield return $"var _val_gen = proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
-                yield return "_ctx_gen.Executed = true";
-                yield return "_ctx_gen.SetReturnValue(_val_gen)";
+                yield return "_ctx_gen.SetReturnValue(_val_gen, ExecuteStatus.Executed)";
                 yield return "return global::System.Threading.Tasks.Task.CompletedTask";
             }
             else
             {
                 yield return $"proxy.{proxyName}({string.Join(", ", method.Parameters.Select(p => p.Name))})";
-                yield return "_ctx_gen.Executed = true";
+                yield return "_ctx_gen.SetStatus(ExecuteStatus.Executed)";
                 yield return "return global::System.Threading.Tasks.Task.CompletedTask";
             }
         }

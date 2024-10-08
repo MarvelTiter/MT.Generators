@@ -33,7 +33,7 @@ namespace TestProject1.AopGeneratorTest
 
         public Task Done(ProxyContext ctx)
         {
-            Console.WriteLine($"Invoke Actual Method Result: {ctx.Executed}");
+            Console.WriteLine($"Invoke Actual Method Result: {ctx.Status}");
             return Task.CompletedTask;
         }
 
@@ -50,11 +50,7 @@ namespace TestProject1.AopGeneratorTest
         public async Task AsyncTest()
         {
             var log = new LogAop();
-            var builder = AsyncPipelineBuilder<ProxyContext>.Create(ctx =>
-            {
-                ctx.Executed = true;
-                return Done(ctx);
-            });
+            var builder = AsyncPipelineBuilder<ProxyContext>.Create(Done);
             builder.Use(log.Invoke);
             var job = builder.Build();
             ProxyContext context = new ProxyContext();
