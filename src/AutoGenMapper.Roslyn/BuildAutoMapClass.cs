@@ -113,6 +113,40 @@ public static class BuildAutoMapClass
             }
             else if (!customTrans.From.IsNullOrEmpty())
             {
+                #region
+                //if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
+                //{
+                //    ITypeSymbol? et = null;
+                //    var fin = "";
+                //    if (prop.Type is IArrayTypeSymbol at)
+                //    {
+                //        et = at.ElementType;
+                //        fin = "ToArray()";
+                //    }
+                //    else
+                //    {
+                //        et = prop.Type.GetGenericTypes().First();
+                //        fin = "ToList()";
+                //    }
+                //    if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
+                //    {
+                //        var na = prop.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
+                //        value = ($"""this.{customTrans.From}{na}.Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
+                //    }
+                //    else
+                //    {
+                //        value = $"this.{customTrans.From}";
+                //    }
+                //}
+                //else if (IsFromMapableObject(customTrans.Target, customTrans.From))
+                //{
+                //    value = $"""this.{customTrans.From}.MapTo<{prop.Type.ToDisplayString()}>("{prop.Type.MetadataName}")""";
+                //}
+                //else
+                //{
+                //    value = $"this.{customTrans.From}";
+                //}
+                #endregion
                 value = HandleComplexProperty(prop, customTrans.Target, customTrans.From!);
                 return true;
             }
@@ -121,6 +155,40 @@ public static class BuildAutoMapClass
         var p = context.SourceProperties.FirstOrDefault(p => p.Name == prop.Name);
         if (p != null)
         {
+            #region
+            //if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
+            //{
+            //    ITypeSymbol? et = null;
+            //    var fin = "";
+            //    if (prop.Type is IArrayTypeSymbol at)
+            //    {
+            //        et = at.ElementType;
+            //        fin = "ToArray()";
+            //    }
+            //    else
+            //    {
+            //        et = prop.Type.GetGenericTypes().First();
+            //        fin = "ToList()";
+            //    }
+            //    if (et.HasInterface(AutoMapperGenerator.GenMapableInterface))
+            //    {
+            //        var na = prop.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
+            //        value = ($"""this.{p.Name}{na}.Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
+            //    }
+            //    else if (IsFromMapableObject(prop.Type, prop.Name))
+            //    {
+            //        value = $"""this.{prop.Name}.MapTo<{prop.Type.ToDisplayString()}>("{prop.Type.MetadataName}")""";
+            //    }
+            //    else
+            //    {
+            //        value = $"this.{p.Name}";
+            //    }
+            //}
+            //else
+            //{
+            //    value = $"this.{p.Name}";
+            //}
+            #endregion
             value = HandleComplexProperty(prop, prop.ContainingType, prop.Name);
             return true;
         }

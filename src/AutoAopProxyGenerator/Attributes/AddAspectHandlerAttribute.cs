@@ -12,8 +12,5 @@ namespace AutoAopProxyGenerator;
 [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Method, AllowMultiple = true)]
 public sealed class AddAspectHandlerAttribute : Attribute
 {
-    /// <summary>
-    /// 切面处理类型
-    /// </summary>
     public Type? AspectType { get; set; }
 }
