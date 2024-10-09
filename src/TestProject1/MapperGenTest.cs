@@ -41,5 +41,11 @@ namespace TestProject1
             var pd = p.MapToProduct();
             p.SubProduct.Id = 1005;
         }
+
+        [TestMethod]
+        public void MapFromTest()
+        {
+
+        }
     }
 }

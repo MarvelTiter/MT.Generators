@@ -44,6 +44,7 @@ namespace TestProject1.Models
 
     [GenMapper]
     [GenMapper(typeof(ProductDto))]
+    [GenMapperFromDictionary(nameof(Id))]
     internal partial class Product
     {
         public Product(int id)

@@ -4,11 +4,13 @@ using System.Linq;
 
 namespace AutoAopProxyGenerator;
 
+/// <summary></summary>
 public static class ContextHelper<TService, TImpl>
 {
     private static readonly ConcurrentDictionary<string, ProxyContext> caches = [];
     private static readonly Type ServiceType = typeof(TService);
     private static readonly Type ImplType = typeof(TImpl);
+    /// <summary></summary>
     public static ProxyContext GetOrCreate(string methodName, Type[] types)
     {
         var key = $"{ServiceType.FullName}_{ImplType.FullName}_{methodName}_{string.Join("_", types.Select(t => t.Name))}";
