@@ -16,7 +16,7 @@ namespace AutoGenMapperGenerator
         internal const string GenMapFromAttributeFullName = "AutoGenMapperGenerator.MapFromAttribute";
         internal const string GenMapToAttributeFullName = "AutoGenMapperGenerator.MapToAttribute";
         internal const string GenMapableInterface = "AutoGenMapperGenerator.IAutoMap";
-        internal const string GenMapIgnoreAttribute = "AutoGenMapperGenerator.MapIgnore";
+        internal const string GenMapIgnoreAttribute = "AutoGenMapperGenerator.MapIgnoreAttribute";
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
@@ -37,12 +37,7 @@ namespace AutoGenMapperGenerator
         {
             var origin = (INamedTypeSymbol)source.TargetSymbol;
             var ns = NamespaceBuilder.Default.Namespace(origin.ContainingNamespace.ToDisplayString());
-            //if (!origin.HasInterface(GenMapableInterface))
-            //{
-            //    context.ReportDiagnostic(DiagnosticDefinitions.AGM00001(source.TargetNode.GetLocation()));
-            //    return null;
-            //}
-
+            
             var ctxs = source.TargetSymbol.GetAttributes(GenMapperAttributeFullName).Select(s => CollectTypeInfos(origin, s)).ToArray();
             var cb = ClassBuilder.Default.Modifiers("partial").ClassName(origin.Name)
                 .Interface(GenMapableInterface)
