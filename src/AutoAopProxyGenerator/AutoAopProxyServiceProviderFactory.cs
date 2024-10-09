@@ -6,16 +6,13 @@ using System.Text;
 
 namespace AutoAopProxyGenerator
 {
-    /// <summary></summary>
     public class AutoAopProxyServiceProviderFactory : IServiceProviderFactory<IServiceCollection>
     {
-        /// <summary></summary>
         public IServiceCollection CreateBuilder(IServiceCollection services)
         {
             return services;
         }
 
-        /// <summary></summary>
         public IServiceProvider CreateServiceProvider(IServiceCollection containerBuilder)
         {
             IServiceCollection serviceCollection = new ServiceCollection();

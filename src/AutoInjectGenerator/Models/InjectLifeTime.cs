@@ -4,24 +4,9 @@ using System.Text;
 
 namespace AutoInjectGenerator;
 
-/// <summary>
-/// 注册生命周期
-/// <para>Transient</para>
-/// <para>Scoped</para>
-/// <para>Singleton</para>
-/// </summary>
 public enum InjectLifeTime
 {
-    /// <summary>
-    /// 
-    /// </summary>
     Transient,
-    /// <summary>
-    /// 
-    /// </summary>
     Scoped,
-    /// <summary>
-    /// 
-    /// </summary>
     Singleton
 }

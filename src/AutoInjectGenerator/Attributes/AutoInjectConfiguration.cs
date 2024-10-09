@@ -2,9 +2,6 @@
 
 namespace AutoInjectGenerator;
 
-/// <summary>
-/// 自动注入分组配置
-/// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
 public class AutoInjectConfiguration : Attribute
 {
