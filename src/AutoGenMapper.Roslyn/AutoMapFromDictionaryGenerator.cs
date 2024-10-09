@@ -17,7 +17,6 @@ public class AutoMapFromDictionaryGenerator : IIncrementalGenerator
     public const string MapperFromDic = "AutoGenMapperGenerator.GenMapperFromDictionaryAttribute";
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-
         context.RegisterPostInitializationOutput(ctx =>
         {
             ctx.AddSource("Mapper.g.cs", SourceText.From("""

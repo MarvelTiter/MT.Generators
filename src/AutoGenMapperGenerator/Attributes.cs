@@ -95,26 +95,3 @@ public class MapFromAttribute : Attribute
     /// </summary>
     public string? By { get; set; }
 }
-
-/// <summary>
-/// 为<see cref="IDictionary{String,Object}"/> 生成MapTo拓展方法
-/// </summary>
-[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-public class GenMapperFromDictionaryAttribute : Attribute
-{
-    private readonly string[]? values;
-    /// <summary>
-    /// 指定构造函数参数
-    /// </summary>
-    /// <param name="values"></param>
-    public GenMapperFromDictionaryAttribute(params string[] values)
-    {
-        this.values = values;
-    }
-}
-
-/// <summary>
-/// 
-/// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public class StaticMapperContextAttribute : Attribute { }
