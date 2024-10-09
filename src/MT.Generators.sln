@@ -12,9 +12,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MT.Generators.Abstraction", "MT.Generators.Abstraction\MT.Generators.Abstraction.csproj", "{B37BF9C7-9A20-46D3-9854-A11121B83D2E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoInject", "AutoInject", "{FD7A81EE-6E54-461B-8766-BB36EB5F31D8}"
-	ProjectSection(SolutionItems) = preProject
-		User.cs = User.cs
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoInject.Roslyn", "AutoInject.Roslyn\AutoInject.Roslyn.csproj", "{E48C1C4F-8111-4513-86EC-0C968E5437CD}"
 EndProject
