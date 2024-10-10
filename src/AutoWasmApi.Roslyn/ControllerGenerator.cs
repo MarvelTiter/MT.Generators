@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using static AutoWasmApiGenerator.GeneratorHepers;
 namespace AutoWasmApiGenerator
@@ -37,9 +38,9 @@ namespace AutoWasmApiGenerator
                     if (CreateCodeFile(item, context, out var file))
                     {
 #if DEBUG
-                        var ss = file?.ToString();
+                        var ss = file.ToString();
 #endif
-                        context.AddSource(file!);
+                        context.AddSource(file);
                     }
                 }
                 //}
@@ -58,7 +59,7 @@ namespace AutoWasmApiGenerator
             });
         }
 
-        private static bool CreateCodeFile(INamedTypeSymbol interfaceSymbol, SourceProductionContext context, out CodeFile? file)
+        private static bool CreateCodeFile(INamedTypeSymbol interfaceSymbol, SourceProductionContext context, [NotNullWhen(true)] out CodeFile? file)
         {
             var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName).ToArray();
             if (methods.Any(a => a.Symbol.IsGenericMethod) || interfaceSymbol.IsGenericType)
@@ -84,8 +85,7 @@ namespace AutoWasmApiGenerator
                 }
                 var httpMethod = TryGetHttpMethod(methodSymbol);
                 var methodSyntax = BuildMethod(methodSymbol, httpMethod, (bool)needAuth);
-                if (methodSyntax != null)
-                    members.Add(methodSyntax);
+                members.Add(methodSyntax);
             }
             file = CodeFile.New($"{interfaceSymbol.FormatFileName()}Controller.g.cs")
            .AddMembers(ns.AddMembers(controllerClass.AddMembers([.. members])));
@@ -94,7 +94,7 @@ namespace AutoWasmApiGenerator
             return true;
         }
 
-        private static MethodBuilder? BuildMethod((IMethodSymbol, AttributeData?) data, string httpMethod, bool needAuth)
+        private static MethodBuilder BuildMethod((IMethodSymbol, AttributeData?) data, string httpMethod, bool needAuth)
         {
             /*
              * [global::Microsoft.AspNetCore.Mvc.{httpMethod}("...")]
