@@ -16,6 +16,12 @@ namespace Blazor.Test
         void Log(string message);
         [WebMethod(Method = WebMethod.Get)]
         Task<bool> LogAsync(string message);
+
+        [WebMethod(Method = WebMethod.Post)]
+        Task<bool> Log2Async([WebMethodParameterBinding(BindingType.FromBody)] string message, [WebMethodParameterBinding(BindingType.Ignore)] CancellationToken token);
+
+        [WebMethod(Method = WebMethod.Delete)]
+        Task<bool> Log3Async([WebMethodParameterBinding(BindingType.FromBody)] string message, [WebMethodParameterBinding(BindingType.FromQuery)] string path, CancellationToken token);
     }
 
     [AutoInject]
@@ -28,6 +34,17 @@ namespace Blazor.Test
 
         public Task<bool> LogAsync(string message)
         {
+            return Task.FromResult(message.Length > 5);
+        }
+
+        public Task<bool> Log2Async(string message, CancellationToken token)
+        {
+            return Task.FromResult(message.Length > 5);
+        }
+
+        public Task<bool> Log3Async(string message, string path, CancellationToken token)
+        {
+            throw new NotImplementedException();
             return Task.FromResult(message.Length > 5);
         }
     }
