@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
-using static AutoWasmApiGenerator.GeneratorHepers;
+using static AutoWasmApiGenerator.GeneratorHelpers;
 using Generators.Shared.Builder;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -223,8 +223,8 @@ _request_gen.RequestUri = new Uri($"{_url_gen}?{string.Join("&", queries)}", Uri
             List<Statement> body = ["clientFactory = factory;"];
             if (needAuth)
             {
-                parameters.Add("global::AutoWasmApiGenerator.IHttpClientHeaderHandler hander");
-                body.Add("headerHandler = hander");
+                parameters.Add("global::AutoWasmApiGenerator.IHttpClientHeaderHandler handler");
+                body.Add("headerHandler = handler");
             }
 
             return ConstructorBuilder.Default
