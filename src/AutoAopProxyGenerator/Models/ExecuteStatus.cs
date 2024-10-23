@@ -19,5 +19,9 @@ public enum ExecuteStatus
     /// <summary>
     /// 已执行
     /// </summary>
-    Executed
+    Executed,
+    /// <summary>
+    /// 出现异常
+    /// </summary>
+    ExceptionOccurred
 }

@@ -3,17 +3,38 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace AutoAopProxyGenerator;
-
+///
 public static class ProxyContextExtensions
 {
+    /// <summary>
+    /// 设置返回值
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="value"></param>
+    /// <param name="status"></param>
     public static void SetReturnValue(this ProxyContext context, object value, ExecuteStatus status = ExecuteStatus.Break)
     {
         context.ReturnValue = value;
         context.Status = status;
     }
+    /// <summary>
+    /// 设置执行状态
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="status"></param>
     public static void SetStatus(this ProxyContext context, ExecuteStatus status)
     {
         context.Status = status;
+    }
+    /// <summary>
+    /// 设置异常信息
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="exception"></param>
+    public static void SetException(this ProxyContext context, Exception exception)
+    {
+        context.Status = ExecuteStatus.ExceptionOccurred;
+        context.Exception = exception;
     }
 }
 /// <summary>
@@ -49,4 +70,8 @@ public record ProxyContext
     /// 实现方法
     /// </summary>
     [NotNull] public MethodInfo? ImplementMethod { get; set; }
+    /// <summary>
+    /// 异常
+    /// </summary>
+    public Exception? Exception { get; set; }
 }
