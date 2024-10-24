@@ -81,7 +81,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
                 break;
             }
         }
-        handlers = [.. h];
+        handlers = [.. h.Distinct(EqualityComparer<INamedTypeSymbol>.Default)];
         return pass;
     }
 
@@ -103,9 +103,11 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             .AddParameter([$"{classSymbol.ToDisplayString()} proxy", .. allHandlers.Select(n => $"{n.ToDisplayString()} {n.MetadataName}")]).AddBody([.. ctorbody]);
         members.Add(ctor);
         // 接口方法
-        foreach (var iface in classSymbol.AllInterfaces)
+        List<INamedTypeSymbol> outterHandlers = [];
+        foreach (var iface in classSymbol.Interfaces)
         {
-            members.AddRange(CreateProxyMethod(iface, classSymbol, proxyClass));
+            //members.AddRange();
+            CreateInterfaceProxyMethod(classSymbol, iface, members, outterHandlers);
         }
 
         proxyClass.ClassName($"{classSymbol.FormatClassName()}GeneratedProxy")
@@ -119,16 +121,20 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             .AddMembers(np.AddMembers(proxyClass));
     }
 
-    private static IEnumerable<MethodBuilder> CreateProxyMethod(INamedTypeSymbol iface, INamedTypeSymbol classSymbol, Node parent)
+    private static void CreateInterfaceProxyMethod(INamedTypeSymbol classSymbol, INamedTypeSymbol iface, List<Node> parentMembers, List<INamedTypeSymbol> outterHandlers)
     {
-        var handlers = iface.GetAttributes(AspectHandler).Select(a => a.GetNamedValue("AspectType")).OfType<INamedTypeSymbol>().ToArray();
-
+        // 自身的切面处理器
+        var infos = iface.GetAttributes(AspectHandler).Select(GetAttrInfo).ToArray();
+        var handlers = infos.Select(i => i.handler);
+        INamedTypeSymbol[] interfaceHandles = [.. handlers, .. outterHandlers];
+        interfaceHandles = interfaceHandles.Distinct(EqualityComparer<INamedTypeSymbol>.Default).ToArray();
         foreach (var m in iface.GetMethods())
         {
             MethodBuilder methodBuilder;
-            var methodHandlers = m.GetAttributes(AspectHandler).Select(a => a.GetNamedValue("AspectType")).OfType<INamedTypeSymbol>();
-            INamedTypeSymbol[] usedHandlers = [.. handlers, .. methodHandlers];
-            if (usedHandlers.Length == 0 || m.HasAttribute(IgnoreAspect)
+            //var methodHandlers = m.GetAttributes(AspectHandler).Select(a => a.GetNamedValue("AspectType")).OfType<INamedTypeSymbol>();
+            INamedTypeSymbol[] usedHandlers = GetMethodEnabledHandlers(m, interfaceHandles).Distinct(EqualityComparer<INamedTypeSymbol>.Default).ToArray();
+            if (usedHandlers.Length == 0
+                //|| m.HasAttribute(IgnoreAspect)
                 //|| (!iface.HasAttribute(AspectHandler) && !m.HasAttribute(AspectHandler))
                 )
             {
@@ -136,14 +142,52 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             }
             else
             {
-
-                methodBuilder = CreateProxyMethod(m, usedHandlers);
+                methodBuilder = CreateProxyMethod(classSymbol, iface, m, usedHandlers);
             }
-
-            yield return methodBuilder;
+            //yield return methodBuilder;
+            parentMembers.Add(methodBuilder);
         }
 
-        MethodBuilder CreateDirectInvokeMethod(IMethodSymbol m)
+        if (iface.Interfaces.Length > 0)
+        {
+            foreach (var (selfOnly, handler) in infos)
+            {
+                if (!selfOnly)
+                {
+                    outterHandlers.Add(handler);
+                }
+            }
+            foreach (var item in iface.Interfaces)
+            {
+                CreateInterfaceProxyMethod(classSymbol, item, parentMembers, outterHandlers);
+            }
+        }
+
+        static INamedTypeSymbol[] GetMethodEnabledHandlers(IMethodSymbol methodSymbol, INamedTypeSymbol[] interfaceHandles)
+        {
+            var methodHandlers = methodSymbol.GetAttributes(AspectHandler).Select(a => a.GetNamedValue("AspectType")).OfType<INamedTypeSymbol>();
+            if (!methodSymbol.GetAttribute(IgnoreAspect, out var ignoreInfo))
+            {
+                // 没有标注IgnoreAspect，直接返回所有可用的
+                return [.. interfaceHandles, .. methodHandlers];
+            }
+            _ = ignoreInfo!.GetConstructorValues(0, out var values);
+            if (values.Length == 0)
+            {
+                // 标注了IgnoreAspect，但是没有指定忽略什么，则忽略全部，除了在自身标注的
+                return [.. methodHandlers];
+            }
+            // 指定忽略的类型
+            INamedTypeSymbol[] ignoreTypes = [.. values.OfType<INamedTypeSymbol>()];
+            List<INamedTypeSymbol> all = [.. interfaceHandles];
+            foreach (var item in ignoreTypes)
+            {
+                all.Remove(item);
+            }
+            return [.. all, .. methodHandlers];
+        }
+
+        static MethodBuilder CreateDirectInvokeMethod(IMethodSymbol m)
         {
             var builder = MethodBuilder.Default
                 .MethodName(m.Name)
@@ -157,9 +201,9 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             return builder;
         }
 
-        MethodBuilder CreateProxyMethod(IMethodSymbol m, INamedTypeSymbol[] methodHandlers)
+        static MethodBuilder CreateProxyMethod(INamedTypeSymbol classSymbol, INamedTypeSymbol iface, IMethodSymbol methodSymbol, INamedTypeSymbol[] methodHandlers)
         {
-            var method = m.IsGenericMethod ? m.ConstructedFrom : m;
+            var method = methodSymbol.IsGenericMethod ? methodSymbol.ConstructedFrom : methodSymbol;
             var returnType = method.ReturnType.GetGenericTypes().FirstOrDefault() ?? method.ReturnType;
             var isAsync = method.IsAsync || method.ReturnType.ToDisplayString().StartsWith("System.Threading.Tasks.Task");
             var builder = MethodBuilder.Default
@@ -191,7 +235,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             statements.Add("var _job_gen = _builder_gen.Build()");
             var ptypes = method.Parameters.Length > 0 ? $"[{string.Join(", ", method.Parameters.Select(SelectParameterType))}]" : "Type.EmptyTypes";
             statements.Add($"var _context_gen = ContextHelper<{iface.ToDisplayString()}, {classSymbol.ToDisplayString()}>.GetOrCreate(nameof({method.Name}), {ptypes})");
-            
+
             statements.Add($"_context_gen.Parameters = new object?[] {{{string.Join(", ", method.Parameters.Select(p => p.Name))}}};");
             if (isAsync)
             {
@@ -207,6 +251,14 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             builder.AddBody([.. statements]);
 
             return builder;
+        }
+
+        static (bool selfOnly, INamedTypeSymbol handler) GetAttrInfo(AttributeData attributeData)
+        {
+            var handler = attributeData.GetNamedValue("AspectType") as INamedTypeSymbol;
+            var selfonly = attributeData.GetNamedValue("SelfOnly");
+            var b = selfonly is bool self && self;
+            return (b, handler!);
         }
     }
     // TODO修改返回值为string

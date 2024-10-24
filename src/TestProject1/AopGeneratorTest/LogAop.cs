@@ -26,4 +26,22 @@ namespace TestProject1.AopGeneratorTest
             Console.WriteLine($"ExceptionAop After: {context.Status}");
         }
     }
+    public class MethodTestAop1 : IAspectHandler
+    {
+        public async Task Invoke(ProxyContext context, Func<Task> process)
+        {
+            Console.WriteLine($"MethodTestAop1 Before: {context.Status}");
+            await process.Invoke();
+            Console.WriteLine($"MethodTestAop1 After: {context.Status}");
+        }
+    }
+    public class MethodTestAop2 : IAspectHandler
+    {
+        public async Task Invoke(ProxyContext context, Func<Task> process)
+        {
+            Console.WriteLine($"MethodTestAop2 Before: {context.Status}");
+            await process.Invoke();
+            Console.WriteLine($"MethodTestAop2 After: {context.Status}");
+        }
+    }
 }

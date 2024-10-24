@@ -12,7 +12,7 @@ public static class ProxyContextExtensions
     /// <param name="context"></param>
     /// <param name="value"></param>
     /// <param name="status"></param>
-    public static void SetReturnValue(this ProxyContext context, object value, ExecuteStatus status = ExecuteStatus.Break)
+    public static void SetReturnValue(this ProxyContext context, object value, ExecuteStatus status = ExecuteStatus.Breaked)
     {
         context.ReturnValue = value;
         context.Status = status;

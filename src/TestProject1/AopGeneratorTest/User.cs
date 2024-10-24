@@ -14,20 +14,30 @@ namespace TestProject1.AopGeneratorTest
         void Hello(string? message);
         Task HelloAsync();
         Task HelloAsync(string message);
-        [AddAspectHandler(AspectType = typeof(ExceptionAop))]
+        //[AddAspectHandler(AspectType = typeof(ExceptionAop))]
         int Count(IHello? other);
         int Count(string message);
         Task<int> CountAsync();
         Task<int> CountAsync(string message);
-        [IgnoreAspect]
+
+        [AddAspectHandler(AspectType = typeof(MethodTestAop1))]
+        [IgnoreAspect(typeof(LogAop))]
         Task<bool> RunJobAsync<T>() where T : LogAop;
+
+        [AddAspectHandler(AspectType = typeof(MethodTestAop2))]
         [IgnoreAspect]
         Task RunJobAsync<T>(string message);
+    }
+
+    [AddAspectHandler(AspectType = typeof(ExceptionAop))]
+    [AddAspectHandler(AspectType = typeof(MethodTestAop2), SelfOnly = true)]
+    public interface IWrapHello : IHello
+    {
 
     }
 
     [GenAspectProxy]
-    public class User: IHello 
+    public class User : IWrapHello
     {
         public void Hello(int? i)
         {
