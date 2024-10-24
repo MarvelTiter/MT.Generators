@@ -146,11 +146,16 @@ namespace AutoInjectGenerator
                     if (a.GetNamedValue("ServiceType", out var t) && t is INamedTypeSymbol type)
                     {
                         serviceType = type.ToDisplayString();
+                        // TODO
+                        //if (!c.AllInterfaces.Contains(type))
+                        //{
+
+                        //}
                     }
                     // 获取到的Interfaces跟AllInterfaces一样
-                    else if (c.Interfaces.Length >= 1)
+                    else if (c.Interfaces.Length == 1)
                     {
-                        serviceType = c.Interfaces.First().ToDisplayString();
+                        serviceType = c.Interfaces[0].ToDisplayString();
                     }
                     else
                     {

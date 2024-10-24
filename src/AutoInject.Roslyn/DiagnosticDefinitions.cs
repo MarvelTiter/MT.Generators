@@ -32,6 +32,17 @@ namespace AutoInjectGenerator
                         category: typeof(AutoInjectContextGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public static Diagnostic AIG00003(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
+                        id: "AIG00003",
+                        title: "该类型不能作为该接口的实现类型",
+                        messageFormat: "该类型不能作为该接口的实现类型",
+                        category: typeof(AutoInjectContextGenerator).FullName!,
+                        defaultSeverity: DiagnosticSeverity.Error,
+                        isEnabledByDefault: true), location);
     }
 }

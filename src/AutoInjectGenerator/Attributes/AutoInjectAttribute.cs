@@ -6,6 +6,8 @@ namespace AutoInjectGenerator;
 
 /// <summary>
 /// 自动注入
+/// <para>当直接实现的接口只有一个时，<see cref="ServiceType"/>就是该接口</para>
+/// <para>否则不指定<see cref="ServiceType"/>的话，就是注入自身</para>
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
 public class AutoInjectAttribute : Attribute

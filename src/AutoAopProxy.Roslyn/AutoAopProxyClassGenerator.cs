@@ -128,6 +128,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         var handlers = infos.Select(i => i.handler);
         INamedTypeSymbol[] interfaceHandles = [.. handlers, .. outterHandlers];
         interfaceHandles = interfaceHandles.Distinct(EqualityComparer<INamedTypeSymbol>.Default).ToArray();
+        var methods = iface.GetMethods();
         foreach (var m in iface.GetMethods())
         {
             MethodBuilder methodBuilder;
@@ -246,7 +247,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
                 statements.Add("_job_gen.Invoke(_context_gen).GetAwaiter().GetResult()");
             }
             if (hasReturn)
-                statements.Add($"return ({returnType.ToDisplayString()})_context_gen.ReturnValue");
+                statements.Add($"return _context_gen.Return<{returnType.ToDisplayString()}>()");
 
             builder.AddBody([.. statements]);
 

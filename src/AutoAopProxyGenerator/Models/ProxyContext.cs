@@ -36,6 +36,21 @@ public static class ProxyContextExtensions
         context.Status = ExecuteStatus.ExceptionOccurred;
         context.Exception = exception;
     }
+
+    /// <summary>
+    /// 安全的返回值
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public static T Return<T>(this ProxyContext context)
+    {
+        if (context.ReturnValue is null)
+        {
+            return default!;
+        }
+        return (T)context.ReturnValue;
+    }
 }
 /// <summary>
 /// AOP过程上下文
