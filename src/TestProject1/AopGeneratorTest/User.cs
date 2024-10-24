@@ -10,31 +10,31 @@ namespace TestProject1.AopGeneratorTest
     public interface IHello2
     {
         void Hello(int? i);
+        [AddAspectHandler(AspectType = typeof(MethodTestAop1))]
+        [IgnoreAspect(typeof(LogAop))]
+        Task<bool> RunJobAsync<T>() where T : LogAop;
     }
-    public interface IHello : IHello2
+    public interface IHello<T> : IHello2
     {
         void Hello(string? message);
         Task HelloAsync();
         Task HelloAsync(string message);
         //[AddAspectHandler(AspectType = typeof(ExceptionAop))]
-        int Count(IHello? other);
         int Count(string message);
         Task<int> CountAsync();
         Task<int> CountAsync(string message);
 
-        [AddAspectHandler(AspectType = typeof(MethodTestAop1))]
-        [IgnoreAspect(typeof(LogAop))]
-        Task<bool> RunJobAsync<T>() where T : LogAop;
+        
 
         [AddAspectHandler(AspectType = typeof(MethodTestAop2))]
         [IgnoreAspect]
-        Task RunJobAsync<T>(string message);
+        Task RunJobAsync(string message);
     }
 
     [AddAspectHandler(AspectType = typeof(LogAop))]
     [AddAspectHandler(AspectType = typeof(ExceptionAop))]
     [AddAspectHandler(AspectType = typeof(MethodTestAop2), SelfOnly = true)]
-    public interface IWrapHello : IHello
+    public interface IWrapHello : IHello<int>
     {
 
     }
@@ -56,10 +56,7 @@ namespace TestProject1.AopGeneratorTest
             return Task.FromResult(3);
         }
 
-        public int Count(IHello? other)
-        {
-            return 2;
-        }
+        
 
         public Task<bool> RunJobAsync<T>() where T : LogAop
         {
@@ -88,7 +85,7 @@ namespace TestProject1.AopGeneratorTest
             return message.Length;
         }
 
-        public Task RunJobAsync<T>(string message)
+        public Task RunJobAsync(string message)
         {
             throw new NotImplementedException();
         }
