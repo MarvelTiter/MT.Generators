@@ -37,10 +37,10 @@ namespace AutoInjectGenerator
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
-        public static Diagnostic AIG00003(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
+        public static Diagnostic AIG00003(string serviceType, string implType,Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
                         id: "AIG00003",
-                        title: "该类型不能作为该接口的实现类型",
-                        messageFormat: "该类型不能作为该接口的实现类型",
+                        title: "类型错误",
+                        messageFormat: $"{implType}不能作为{serviceType}的实现注入",
                         category: typeof(AutoInjectContextGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);

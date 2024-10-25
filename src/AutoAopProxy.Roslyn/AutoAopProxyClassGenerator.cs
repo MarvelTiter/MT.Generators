@@ -148,8 +148,8 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
             //yield return methodBuilder;
             parentMembers.Add(methodBuilder);
         }
-
-        if (iface.Interfaces.Length > 0)
+        var ifaces = iface.GetInterfaces().ToArray();
+        if (ifaces.Length > 0)
         {
             foreach (var (selfOnly, handler) in infos)
             {
@@ -158,7 +158,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
                     outterHandlers.Add(handler);
                 }
             }
-            foreach (var item in iface.Interfaces)
+            foreach (var item in ifaces)
             {
                 CreateInterfaceProxyMethod(classSymbol, item, parentMembers, outterHandlers);
             }

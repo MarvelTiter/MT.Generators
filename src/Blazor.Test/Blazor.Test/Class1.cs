@@ -18,7 +18,10 @@ namespace Blazor.Test
         Task<bool> LogAsync(string message);
     }
 
+    public interface IEmpty { }
+
     [AutoInject]
+    //[AutoInject(ServiceType = typeof(IEmpty))]
     public class Class1 : ITest
     {
         public void Log(string message)

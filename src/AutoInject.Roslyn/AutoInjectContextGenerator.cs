@@ -94,7 +94,17 @@ namespace AutoInjectGenerator
                 return;
             }
 
-            var injectStatements = CreateInjectStatements(all, serviceName, includes, excludes);
+            //var injectStatements = CreateInjectStatements(all, serviceName, includes, excludes, context);
+            var allItems = CollectAll(all, includes, excludes);
+            var errors = allItems.Where(i => i.TypeError);
+            if (errors.Any())
+            {
+                foreach (var item in errors)
+                {
+                    context.ReportDiagnostic(DiagnosticDefinitions.AIG00003(item.Service, item.Implement, item.ClassSymbol.Locations.FirstOrDefault()));
+                }
+            }
+            var injectStatements = CreateInjectStatements(serviceName, allItems);
             var cm = MethodBuilder.Default.MethodName(methodSymbol.Name)
                 .Modifiers("public static partial")
                 .AddParameter([
@@ -114,15 +124,23 @@ namespace AutoInjectGenerator
 #endif
             context.AddSource(file);
         }
-
-        private static IEnumerable<Statement> CreateInjectStatements(IEnumerable<INamedTypeSymbol> all
-            , string serviceName
+        struct InjectItem
+        {
+            public INamedTypeSymbol ClassSymbol { get; set; }
+            public string InjectMethod { get; set; }
+            public string Service { get; set; }
+            public string Implement { get; set; }
+            public string? Key { get; set; }
+            public bool TypeError { get; set; }
+        }
+        private static List<InjectItem> CollectAll(IEnumerable<INamedTypeSymbol> all
             , IReadOnlyCollection<string> includes
             , IReadOnlyCollection<string> excludes)
         {
-            foreach (var c in all)
+            List<InjectItem> items = [];
+            foreach (var classSymbol in all)
             {
-                foreach (var a in c.GetAttributes(AutoInject))
+                foreach (var a in classSymbol.GetAttributes(AutoInject))
                 {
                     // 没有配置规则，全部注入
                     if (includes.Count > 0 || excludes.Count > 0)
@@ -140,22 +158,21 @@ namespace AutoInjectGenerator
                             }
                         }
                     }
-
-                    var implType = c.ToDisplayString();
+                    var implType = classSymbol.ToDisplayString();
                     var serviceType = "";
+                    var typeError = false;
                     if (a.GetNamedValue("ServiceType", out var t) && t is INamedTypeSymbol type)
                     {
                         serviceType = type.ToDisplayString();
-                        // TODO
-                        //if (!c.AllInterfaces.Contains(type))
-                        //{
-
-                        //}
+                        if (!classSymbol.AllInterfaces.Contains(type))
+                        {
+                            typeError = true;
+                        }
                     }
                     // 获取到的Interfaces跟AllInterfaces一样
-                    else if (c.Interfaces.Length == 1)
+                    else if (classSymbol.GetInterfaces().Count() == 1)
                     {
-                        serviceType = c.Interfaces[0].ToDisplayString();
+                        serviceType = classSymbol.GetInterfaces().First().ToDisplayString();
                     }
                     else
                     {
@@ -172,14 +189,32 @@ namespace AutoInjectGenerator
 
                     _ = a.GetNamedValue<bool>("IsTry", out var tryAdd);
                     var method = AddMethodName(serviceKey, tryAdd, injectType, out var key);
-                    if (serviceType == implType)
+                    items.Add(new()
                     {
-                        yield return $"{serviceName}.{method}<{implType}>({key})";
-                    }
-                    else
-                    {
-                        yield return $"{serviceName}.{method}<{serviceType}, {implType}>({key})";
-                    }
+                        ClassSymbol = classSymbol,
+                        InjectMethod = method,
+                        Service = serviceType,
+                        Implement = implType,
+                        Key = key,
+                        TypeError = typeError
+                    });
+                }
+            }
+            return items;
+        }
+
+        private static IEnumerable<Statement> CreateInjectStatements(string serviceName, List<InjectItem> items)
+        {
+            foreach (var item in items)
+            {
+                if (item.TypeError) continue;
+                if (item.Service == item.Implement)
+                {
+                    yield return $"{serviceName}.{item.InjectMethod}<{item.Implement}>({item.Key})";
+                }
+                else
+                {
+                    yield return $"{serviceName}.{item.InjectMethod}<{item.Service}, {item.Implement}>({item.Key})";
                 }
             }
         }
