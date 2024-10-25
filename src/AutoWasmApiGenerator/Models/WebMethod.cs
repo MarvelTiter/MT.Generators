@@ -10,19 +10,19 @@
 public enum WebMethod
 {
     /// <summary>
-    /// 
+    /// Get
     /// </summary>
     Get,
     /// <summary>
-    /// 
+    /// Post
     /// </summary>
     Post,
     /// <summary>
-    /// 
+    /// Put
     /// </summary>
     Put,
     /// <summary>
-    /// 
+    /// Delete
     /// </summary>
     Delete,
 }

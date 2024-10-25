@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>AutoInjectGenerator</RootNamespace>
 	</PropertyGroup>
 	<Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />

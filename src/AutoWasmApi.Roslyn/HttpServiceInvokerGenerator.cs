@@ -3,9 +3,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
-using static AutoWasmApiGenerator.GeneratorHepers;
+using static AutoWasmApiGenerator.GeneratorHelpers;
 using Generators.Shared.Builder;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+
 namespace AutoWasmApiGenerator
 {
     [Generator(LanguageNames.CSharp)]
@@ -36,9 +38,9 @@ namespace AutoWasmApiGenerator
                         if (CreateCodeFile(item, context, out var file))
                         {
 #if DEBUG
-                            var ss = file!.ToString();
+                            var ss = file.ToString();
 #endif
-                            context.AddSource(file!);
+                            context.AddSource(file);
                         }
                     }
                 }
@@ -56,7 +58,7 @@ namespace AutoWasmApiGenerator
             });
         }
 
-        private static bool CreateCodeFile(INamedTypeSymbol interfaceSymbol, SourceProductionContext context, out CodeFile? file)
+        private static bool CreateCodeFile(INamedTypeSymbol interfaceSymbol, SourceProductionContext context, [NotNullWhen(true)] out CodeFile? file)
         {
             var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName);
             List<Node> members = new List<Node>();
@@ -68,7 +70,7 @@ namespace AutoWasmApiGenerator
             bool needAuth = (bool)(controllerAttrData.GetNamedValue("Authorize") ?? false);
             foreach (var method in methods)
             {
-                var methodSyntax = BuildMethod(method,  route, scopeName, needAuth, out var n);
+                var methodSyntax = BuildMethod(method, route, scopeName, needAuth, out var n);
                 if (n && !needAuth)
                 {
                     needAuth = true;
@@ -76,8 +78,8 @@ namespace AutoWasmApiGenerator
                 members.Add(methodSyntax);
             }
 
-            var fields = BuildField( needAuth);
-            var constructor = BuildConstructor(interfaceSymbol,  needAuth);
+            var fields = BuildField(needAuth);
+            var constructor = BuildConstructor(interfaceSymbol, needAuth);
             members.AddRange(fields);
             members.Add(constructor);
 
@@ -215,14 +217,14 @@ _request_gen.RequestUri = new Uri($"{_url_gen}?{string.Join("&", queries)}", Uri
             }
         }
 
-        private static ConstructorBuilder BuildConstructor(INamedTypeSymbol classSymbol,  bool needAuth)
+        private static ConstructorBuilder BuildConstructor(INamedTypeSymbol classSymbol, bool needAuth)
         {
             List<string> parameters = ["global::System.Net.Http.IHttpClientFactory factory"];
             List<Statement> body = ["clientFactory = factory;"];
             if (needAuth)
             {
-                parameters.Add("global::AutoWasmApiGenerator.IHttpClientHeaderHandler hander");
-                body.Add("headerHandler = hander");
+                parameters.Add("global::AutoWasmApiGenerator.IHttpClientHeaderHandler handler");
+                body.Add("headerHandler = handler");
             }
 
             return ConstructorBuilder.Default
