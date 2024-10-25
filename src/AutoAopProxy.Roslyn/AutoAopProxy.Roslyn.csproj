@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>AutoAopProxyGenerator</RootNamespace>
+		<Version>0.1.2</Version>
 	</PropertyGroup>
 
 	<Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
