@@ -4,21 +4,32 @@ using AutoWasmApiGenerator;
 namespace InjectTest
 {
     [AutoInject(Group = "SERVER")]
-    public class Class1
+    public class InjectTestClass
+    {
+
+    }
+    public class Base2 { }
+    public class Base1 : Base2
     {
 
     }
 
     [AutoInject]
-    public class Base
+    [AutoInject(ServiceType = typeof(Base))]
+    public class Base : IDisposable
     {
-
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
     }
+
+    public interface IEmpty { }
 
     [WebController]
     [ApiInvokerGenerate(typeof(AutoInjectAttribute))]
     [MT.Generators.Abstraction.AttachAttributeArgument(typeof(ApiInvokerGenerateAttribute), typeof(AutoInjectAttribute), "Group", "WASM")]
-    public interface IB
+    public interface IB : IEmpty
     {
         void Hello();
     }

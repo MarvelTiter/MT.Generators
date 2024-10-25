@@ -28,6 +28,7 @@ namespace Blazor.Test
 
     [AutoInject]
     //[AutoInject(ServiceType = typeof(IEmpty))]
+    [AutoInject(ServiceType = typeof(Class1))]
     public class Class1 : ITest
     {
         public void Log(string message)
