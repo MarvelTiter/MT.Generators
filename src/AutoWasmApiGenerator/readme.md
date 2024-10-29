@@ -1,46 +1,46 @@
 # AutoWasmApiGenerator
 
-## ½éÉÜ
+## ä»‹ç»
 
-±¾ÏîÄ¿ÊÇÒ»¸öÔöÁ¿Éú³ÉÆ÷£¬ÓÃÓÚÉú³ÉBlazorServerÏîÄ¿µÄWebApi½Ó¿Ú£¬ÒÔ±ãÔÚBlazorAutoÄ£Ê½ÏÂÊ¹ÓÃ¡£
+æœ¬é¡¹ç›®æ˜¯ä¸€ä¸ªå¢é‡ç”Ÿæˆå™¨ï¼Œç”¨äºç”ŸæˆBlazorServeré¡¹ç›®çš„WebApiæ¥å£ï¼Œä»¥ä¾¿åœ¨BlazorAutoæ¨¡å¼ä¸‹ä½¿ç”¨ã€‚
 
 > https://www.cnblogs.com/marvelTitile/p/18360614
 
-## Ê¹ÓÃ
+## ä½¿ç”¨
 
-### ÏîÄ¿½á¹¹
+### é¡¹ç›®ç»“æ„
 
-+ `Server`¶ËÏîÄ¿
-+ `Client`¶ËÏîÄ¿
-+ `Shared`Ë«¶Ë¹²ÓÃµÄÏîÄ¿£¬Ò»°ãÊÇ¹²ÓÃµÄÒ³Ãæ¡¢ÊµÌåÄ£ĞÍ¡¢µÈµÈ
++ `Server`ç«¯é¡¹ç›®
++ `Client`ç«¯é¡¹ç›®
++ `Shared`åŒç«¯å…±ç”¨çš„é¡¹ç›®ï¼Œä¸€èˆ¬æ˜¯å…±ç”¨çš„é¡µé¢ã€å®ä½“æ¨¡å‹ã€ç­‰ç­‰
 
-### Ê¹ÓÃ²½Öè
-1. ÔÚServerÏîÄ¿ÖĞÒıÓÃAutoWasmApiGeneratorÏîÄ¿
+### ä½¿ç”¨æ­¥éª¤
+1. åœ¨Serveré¡¹ç›®ä¸­å¼•ç”¨AutoWasmApiGeneratoré¡¹ç›®
 	```csharp
 	<PackageReference Include="AutoWasmApiGenerator" Version="0.0.*" />
 	```
-2. ÔÚShared»òClientÏîÄ¿ÖĞÌí¼Ó½Ó¿Ú
+2. åœ¨Sharedæˆ–Clienté¡¹ç›®ä¸­æ·»åŠ æ¥å£
 	```csharp
 	[WebController]
 	public interface ITestService
 	{
-		[WebMethod(Method = WebMethod.Post)] // Ä¬ÈÏÖ¸¶¨ÎªPost
+		[WebMethod(Method = WebMethod.Post)] // é»˜è®¤æŒ‡å®šä¸ºPost
 		Task<bool> LogAsync(string message, string path, CancellationToken token);
 	}
 	```
-3. ÔÚServerÏîÄ¿ÖĞÈÎÒâÒ»¸öÎÄ¼ş±ê×¢`WebControllerAssemblyAttribute`, Éú³ÉµÄÎÄ¼şÎª`TestServiceController`
+3. åœ¨Serveré¡¹ç›®ä¸­ä»»æ„ä¸€ä¸ªæ–‡ä»¶æ ‡æ³¨`WebControllerAssemblyAttribute`, ç”Ÿæˆçš„æ–‡ä»¶ä¸º`TestServiceController`
 	```csharp
 	[assembly: AutoWasmApiGenerator.WebControllerAssembly]
 	```
-4. ÔÚClientÏîÄ¿ÖĞ»òÉú³É¿ØÖÆÆ÷µ÷ÓÃÀàµÄÏîÄ¿ÖĞµÄÈÎÒâÒ»¸öÎÄ¼ş±ê×¢`ApiInvokerAssemblyAttribute`, Éú³ÉµÄÎÄ¼şÎª`TestServiceApiInvoker`
+4. åœ¨Clienté¡¹ç›®ä¸­æˆ–ç”Ÿæˆæ§åˆ¶å™¨è°ƒç”¨ç±»çš„é¡¹ç›®ä¸­çš„ä»»æ„ä¸€ä¸ªæ–‡ä»¶æ ‡æ³¨`ApiInvokerAssemblyAttribute`, ç”Ÿæˆçš„æ–‡ä»¶ä¸º`TestServiceApiInvoker`
 	```csharp
 	[assembly: AutoWasmApiGenerator.ApiInvokerAssembly]
 	```
-5. ÔÚClientÏîÄ¿ÖĞ×¢²á
+5. åœ¨Clienté¡¹ç›®ä¸­æ³¨å†Œ
 	```csharp
 	builder.Services.AddScoped<ITestService, TestServiceApiInvoker>();
 	```
-6. Í¨¹ı`ITestService`µ÷ÓÃ·şÎñ
+6. é€šè¿‡`ITestService`è°ƒç”¨æœåŠ¡
 	```csharp
 	@code 
 	{
@@ -52,37 +52,37 @@
 	}
 	```
 
-## Ïà¹ØÌØĞÔ½éÉÜ
+## ç›¸å…³ç‰¹æ€§ä»‹ç»
 
 ### WebControllerAttribute
 
-±ê×¢·şÎñ½Ó¿Ú£¬¸ù¾İ½Ó¿ÚÉú³É¿ØÖÆÆ÷
+æ ‡æ³¨æœåŠ¡æ¥å£ï¼Œæ ¹æ®æ¥å£ç”Ÿæˆæ§åˆ¶å™¨
 
 ### ApiInvokerGenerateAttribute
 
-±ê×¢·şÎñ½Ó¿Ú£¬¸ù¾İ½Ó¿ÚÉú³Éµ÷ÓÃÀà
+æ ‡æ³¨æœåŠ¡æ¥å£ï¼Œæ ¹æ®æ¥å£ç”Ÿæˆè°ƒç”¨ç±»
 
 ### WebMethodAttribute
 
-±ê×¢·½·¨£¬Ö¸¶¨ÇëÇó·½Ê½
+æ ‡æ³¨æ–¹æ³•ï¼ŒæŒ‡å®šè¯·æ±‚æ–¹å¼
 
 ```csharp
 [WebMethod(Method = WebMethod.Post)]
 Task<bool> LogAsync(string message);
 ```
 
-#### ÊôĞÔ
+#### å±æ€§
 
-| Ãû³Æ           | ÀàĞÍ      | ËµÃ÷                   |
+| åç§°           | ç±»å‹      | è¯´æ˜                   |
 | -------------- | -------- | ---------------------- |
-| Method         | [WebMethod] | Ö¸¶¨ÇëÇó·½·¨£¬Ä¬ÈÏÎªPost |
-| Route          | string?  | Ö¸¶¨ActionÂ·ÓÉ£¬nullÊ±Îª·½·¨Ãû³Æ |
-| AllowAnonymous | bool     | ÊÇ·ñÖ§³ÖÄäÃû·ÃÎÊ£¬»á¸²¸ÇAuthorizeÉèÖÃ |
-| Authorize      | bool     | ÊÇ·ñĞèÒªÊÚÈ¨           |
+| Method         | [WebMethod] | æŒ‡å®šè¯·æ±‚æ–¹æ³•ï¼Œé»˜è®¤ä¸ºPost |
+| Route          | string?  | æŒ‡å®šActionè·¯ç”±ï¼Œnullæ—¶ä¸ºæ–¹æ³•åç§° |
+| AllowAnonymous | bool     | æ˜¯å¦æ”¯æŒåŒ¿åè®¿é—®ï¼Œä¼šè¦†ç›–Authorizeè®¾ç½® |
+| Authorize      | bool     | æ˜¯å¦éœ€è¦æˆæƒ           |
 
 ### WebMethod
 
-¿ÉÄÜµÄÖµ
+å¯èƒ½çš„å€¼
 + Get
 + Post
 + Put
@@ -90,25 +90,24 @@ Task<bool> LogAsync(string message);
 
 ### WebMethodParameterBindingAttribute
 
-±ê×¢²ÎÊı£¬Ö¸¶¨²ÎÊı°ó¶¨·½Ê½
+æ ‡æ³¨å‚æ•°ï¼ŒæŒ‡å®šå‚æ•°ç»‘å®šæ–¹å¼
 
 ```csharp
 [WebMethod(Method = WebMethod.Post)]
 Task<bool> Log3Async([WebMethodParameterBinding(BindingType.FromBody)] string message, [WebMethodParameterBinding(BindingType.FromQuery)] string path,[WebMethodParameterBinding(BindingType.Ignore)] CancellationToken token);
 ```
 
-#### ÊôĞÔ
+#### å±æ€§
 
-| Ãû³Æ           | ÀàĞÍ      | ËµÃ÷                   |
+| åç§°           | ç±»å‹      | è¯´æ˜                   |
 | ------------- | -------- | ---------------------- |
-| Type          | [BindingType ] | ²ÎÊı°ó¶¨ÀàĞÍ |
+| Type          | [BindingType ] | å‚æ•°ç»‘å®šç±»å‹ |
 
 #### BindingType
-+ Ignore ºöÂÔ
-+ FromQuery ´Ó²éÑ¯×Ö·û´®ÖĞ»ñÈ¡Öµ¡£
-+ FromRoute ´ÓÂ·ÓÉÊı¾İÖĞ»ñÈ¡Öµ¡£
-+ FromForm ´Ó·¢²¼µÄ±íµ¥ÓòÖĞ»ñÈ¡Öµ¡£
-+ FromBody ´ÓÇëÇóÕıÎÄÖĞ»ñÈ¡Öµ¡£
-+ FromHeader ´Ó HTTP ±êÍ·ÖĞ»ñÈ¡Öµ¡£
-+ FromServices ´Ó·şÎñÈİÆ÷ÖĞ»ñÈ¡Öµ¡£
-
++ Ignore å¿½ç•¥
++ FromQuery ä»æŸ¥è¯¢å­—ç¬¦ä¸²ä¸­è·å–å€¼ã€‚
++ FromRoute ä»è·¯ç”±æ•°æ®ä¸­è·å–å€¼ã€‚
++ FromForm ä»å‘å¸ƒçš„è¡¨å•åŸŸä¸­è·å–å€¼ã€‚
++ FromBody ä»è¯·æ±‚æ­£æ–‡ä¸­è·å–å€¼ã€‚
++ FromHeader ä» HTTP æ ‡å¤´ä¸­è·å–å€¼ã€‚
++ FromServices ä»æœåŠ¡å®¹å™¨ä¸­è·å–å€¼ã€‚
