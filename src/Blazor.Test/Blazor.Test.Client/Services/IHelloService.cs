@@ -1,36 +1,72 @@
 ﻿using AutoAopProxyGenerator;
+using AutoWasmApiGenerator;
 using Blazor.Test.Client.Aop;
 
 namespace Blazor.Test.Client.Services;
 
+public class RequestTest
+{
+    public string? Value { get; set; }
+}
+
 [AddAspectHandler(AspectType = typeof(ExceptionAop))]
 [AddAspectHandler(AspectType = typeof(TestAop))]
+[WebController(Authorize = true)]
+[ApiInvokerGenerate]
 public interface IHelloService
 {
     Task<string> SayHelloAsync(string name);
-    [IgnoreAspect]
-    string SayHelloDirectly(string name);
+
+    Task<int> TestHeaderParameter([WebMethodParameterBinding(BindingType.FromHeader)] string name);
+    Task<int> TestQueryParameter([WebMethodParameterBinding(BindingType.FromQuery)] string name);
+
+    [WebMethod(Route = "{name}")]
+    Task<int> TestRouterParameter([WebMethodParameterBinding(BindingType.FromRoute)] string name);
+    Task<int> TestFormParameter([WebMethodParameterBinding(BindingType.FromForm)] string name);
+    [WebMethod(Route = "{id}")]
+    Task<string> TestMultiParameter([WebMethodParameterBinding(BindingType.FromRoute)] int id
+        , [WebMethodParameterBinding(BindingType.FromQuery)] string name);
+    Task<string> TestQueryAndBodyParameter([WebMethodParameterBinding(BindingType.FromQuery)] int id
+        , [WebMethodParameterBinding(BindingType.FromBody)] RequestTest body);
 }
 
 [GenAspectProxy]
 public class HelloService : IHelloService
 {
-    public async Task<string> SayHelloAsync(string name)
+    public async Task<int> TestHeaderParameter(string name)
     {
-        if (name.IndexOf("M")  > -1)
-        {
-            throw new Exception("Name Error");
-        }
         await Task.Delay(500);
-        return $"Hello, {name}!";
+        return name.Length;
     }
 
-    public string SayHelloDirectly(string name)
+    public async Task<string> SayHelloAsync(string name)
     {
-        if (name.IndexOf("M") > -1)
-        {
-            throw new Exception("Name Error");
-        }
-        return $"Hello, {name}!";
+        await Task.Delay(500);
+        return $"Hello, {name} !";
+    }
+
+    public Task<int> TestQueryParameter([WebMethodParameterBinding(BindingType.FromQuery)] string name)
+    {
+        return Task.FromResult(name.Length);
+    }
+
+    public Task<int> TestRouterParameter([WebMethodParameterBinding(BindingType.FromRoute)] string name)
+    {
+        return Task.FromResult(name.Length);
+    }
+
+    public Task<int> TestFormParameter([WebMethodParameterBinding(BindingType.FromForm)] string name)
+    {
+        return Task.FromResult(name.Length);
+    }
+
+    public Task<string> TestMultiParameter([WebMethodParameterBinding(BindingType.FromRoute)] int id, [WebMethodParameterBinding(BindingType.FromQuery)] string name)
+    {
+        return Task.FromResult($"id: {id}, name: {name}");
+    }
+
+    public Task<string> TestQueryAndBodyParameter([WebMethodParameterBinding(BindingType.FromQuery)] int id, [WebMethodParameterBinding(BindingType.FromBody)] RequestTest body)
+    {
+        return Task.FromResult($"id: {id}, name: {body.Value}");
     }
 }
