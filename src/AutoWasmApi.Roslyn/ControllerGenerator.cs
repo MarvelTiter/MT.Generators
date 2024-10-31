@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Generators.Shared;
 using Generators.Shared.Builder;
@@ -110,9 +111,20 @@ public class ControllerGenerator : IIncrementalGenerator
          */
         var a = data.Item2;
         var methodSymbol = data.Item1;
+        var methodScoped = methodSymbol.Name.Replace("Async", "");
+        var customRoute = a?.GetNamedValue("Route")?.ToString();
+        string methodRoute;
+        if (string.IsNullOrEmpty(customRoute))
+        {
+            methodRoute = methodScoped;
+        }
+        else
+        {
+            methodRoute = $"{methodScoped}/{customRoute}";
+        }
 
         var methodRouteAttribute =
-            $"global::Microsoft.AspNetCore.Mvc.Http{httpMethod}(\"{a?.GetNamedValue("Route")?.ToString() ?? methodSymbol.Name.Replace("Async", "")}\")";
+            $"global::Microsoft.AspNetCore.Mvc.Http{httpMethod}(\"{methodRoute}\")";
         var allowAnonymous = (bool)(a?.GetNamedValue("AllowAnonymous") ?? false);
         var methodAuth = (bool)(a?.GetNamedValue("Authorize") ?? false);
         return MethodBuilder.Default

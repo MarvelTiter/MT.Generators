@@ -27,17 +27,16 @@ namespace InjectTest
     public interface IEmpty { }
 
     [WebController]
-    [ApiInvokerGenerate(typeof(AutoInjectAttribute))]
-    [MT.Generators.Abstraction.AttachAttributeArgument(typeof(ApiInvokerGenerateAttribute), typeof(AutoInjectAttribute), "Group", "WASM")]
+    [ApiInvokerGenerate]
     public interface IB : IEmpty
     {
-        void Hello();
+        Task Hello();
     }
 
     [AutoInject(Group = "SERVER", ServiceKey = "Test", IsTry = true)]
     public class Class2 : Base, IB
     {
-        public void Hello()
+        public Task Hello()
         {
             throw new NotImplementedException();
         }
