@@ -77,10 +77,10 @@ namespace AutoWasmApiGenerator
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
-        public static Diagnostic WAG00006(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
+        public static Diagnostic WAG00006(Location? location, string? symbolString = null) => Diagnostic.Create(new DiagnosticDescriptor(
                         id: "WAG00006",
                         title: "路由中未包含路由参数",
-                        messageFormat: "路由中未包含路由参数",
+                        messageFormat: $"路由中未包含路由参数({symbolString})",
                         category: typeof(HttpServiceInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
@@ -90,10 +90,10 @@ namespace AutoWasmApiGenerator
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
-        public static Diagnostic WAG00007(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
+        public static Diagnostic WAG00007(Location? location, string? symbolString = null) => Diagnostic.Create(new DiagnosticDescriptor(
                         id: "WAG00007",
                         title: "不能同时设置[FromBody]和[FromForm]",
-                        messageFormat: "不能同时设置[FromBody]和[FromForm]",
+                        messageFormat: $"不能同时设置[FromBody]和[FromForm]({symbolString})",
                         category: typeof(HttpServiceInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
@@ -103,10 +103,10 @@ namespace AutoWasmApiGenerator
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
-        public static Diagnostic WAG00008(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
+        public static Diagnostic WAG00008(Location? location, string? symbolString = null) => Diagnostic.Create(new DiagnosticDescriptor(
                         id: "WAG00008",
                         title: "不能设置多个[FromBody]",
-                        messageFormat: "不能设置多个[FromBody]",
+                        messageFormat: $"不能设置多个[FromBody]({symbolString})",
                         category: typeof(HttpServiceInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
@@ -116,10 +116,10 @@ namespace AutoWasmApiGenerator
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
-        public static Diagnostic WAG00009(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
+        public static Diagnostic WAG00009(Location? location, string? symbolString = null) => Diagnostic.Create(new DiagnosticDescriptor(
                         id: "WAG00009",
                         title: "暂不支持的返回值类型",
-                        messageFormat: "暂不支持的返回值类型",
+                        messageFormat: $"暂不支持的返回值类型({symbolString})",
                         category: typeof(HttpServiceInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);

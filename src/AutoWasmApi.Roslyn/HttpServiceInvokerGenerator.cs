@@ -130,13 +130,19 @@ namespace AutoWasmApiGenerator
             var methodScoped = methodSymbol.Name.Replace("Async", "");
             var customRoute = methodAttribute?.GetNamedValue("Route")?.ToString();
             string methodRoute;
+            bool useRouteParam = false;
             if (string.IsNullOrEmpty(customRoute))
             {
                 methodRoute = methodScoped;
             }
+            else if (Regex.Match(customRoute, "{.+}").Success)
+            {
+                useRouteParam = true;
+                methodRoute = $"{methodScoped}/{customRoute}";
+            }
             else
             {
-                methodRoute = $"{methodScoped}/{customRoute}";
+                methodRoute = customRoute!;
             }
             //var methodRoute = $"{methodAttribute?.GetNamedValue("Route") ?? methodSymbol.Name.Replace("Async", "")}";
             List<Statement> statements =
@@ -163,7 +169,7 @@ namespace AutoWasmApiGenerator
                     var t = (int)bindingType!;
                     return ((int)bindingType!, p);
                 }
-                if (methodRoute.Contains(p.Name))
+                if (useRouteParam && customRoute!.Contains(p.Name))
                 {
                     return (1, p);
                 }
@@ -183,13 +189,13 @@ namespace AutoWasmApiGenerator
             {
                 if (!methodRoute.Contains($"{{{item.p.Name}}}"))
                 {
-                    return (null, DiagnosticDefinitions.WAG00006(item.p.Locations.FirstOrDefault()));
+                    return (null, DiagnosticDefinitions.WAG00006(methodSymbol.Locations.FirstOrDefault(), methodSymbol.ToDisplayString()));
                 }
             }
 
             if (paramInfos.Any(t => t.Item1 == 2) && paramInfos.Any(t => t.Item1 == 3))
             {
-                return (null, DiagnosticDefinitions.WAG00007(methodSymbol.Locations.FirstOrDefault()));
+                return (null, DiagnosticDefinitions.WAG00007(methodSymbol.Locations.FirstOrDefault(), methodSymbol.ToDisplayString()));
             }
             #endregion
 
@@ -267,7 +273,7 @@ namespace AutoWasmApiGenerator
             var bodyParameters = paramInfos.Where(t => (t.Item1 == -1 && webMethod != "Get") || t.Item1 == 3);
             if (bodyParameters.Count() > 1)
             {
-                return (null, DiagnosticDefinitions.WAG00008(methodSymbol.Locations.FirstOrDefault()));
+                return (null, DiagnosticDefinitions.WAG00008(methodSymbol.Locations.FirstOrDefault(), methodSymbol.ToDisplayString()));
             }
 
             if (bodyParameters.Any())

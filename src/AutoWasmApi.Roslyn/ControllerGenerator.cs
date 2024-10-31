@@ -118,9 +118,13 @@ public class ControllerGenerator : IIncrementalGenerator
         {
             methodRoute = methodScoped;
         }
-        else
+        else if(Regex.Match(customRoute, "{.+}").Success)
         {
             methodRoute = $"{methodScoped}/{customRoute}";
+        }
+        else
+        {
+            methodRoute = customRoute!;
         }
 
         var methodRouteAttribute =

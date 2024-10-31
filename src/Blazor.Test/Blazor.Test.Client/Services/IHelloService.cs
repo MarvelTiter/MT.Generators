@@ -11,7 +11,7 @@ public class RequestTest
 
 [AddAspectHandler(AspectType = typeof(ExceptionAop))]
 [AddAspectHandler(AspectType = typeof(TestAop))]
-[WebController(Authorize = true)]
+[WebController(Route = "hello/test", Authorize = true)]
 [ApiInvokerGenerate]
 public interface IHelloService
 {
@@ -20,8 +20,8 @@ public interface IHelloService
     Task<int> TestHeaderParameter([WebMethodParameterBinding(BindingType.FromHeader)] string name);
     Task<int> TestQueryParameter([WebMethodParameterBinding(BindingType.FromQuery)] string name);
 
-    [WebMethod(Route = "{name}")]
-    Task<int> TestRouterParameter([WebMethodParameterBinding(BindingType.FromRoute)] string name);
+    //[WebMethod(Route = "rp")]
+    Task<int> TestRouterParameter(string test);
     Task<int> TestFormParameter([WebMethodParameterBinding(BindingType.FromForm)] string name);
     [WebMethod(Route = "{id}")]
     Task<string> TestMultiParameter([WebMethodParameterBinding(BindingType.FromRoute)] int id
