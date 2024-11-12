@@ -107,6 +107,18 @@ namespace AutoWasmApiGenerator
             var authorize = (bool)(methodAttribute.GetNamedValue("Authorize") ?? false);
             needAuth = !allowsAnonymous && (authorize || controllerAuth);
 
+            // 检查当前返回类型是否是Task或Task<T>
+            // 如果检查类型不符合要求，说明不是异步方法
+            // 返回错误信息
+            var returnTypeInfo = methodSymbol.ReturnType;
+            var isTask = returnTypeInfo.Name == "Task";
+            var isGenericTask = returnTypeInfo.OriginalDefinition.ToDisplayString() == "System.Threading.Tasks.Task<T>";
+
+            if (!isTask && !isGenericTask)
+            {
+                return (null, DiagnosticDefinitions.WAG00005(methodSymbol.Locations.FirstOrDefault()));
+            }
+
             if (methodSymbol.HasAttribute(NotSupported))
             {
                 var b = MethodBuilder.Default
