@@ -118,6 +118,19 @@ namespace AutoWasmApiGenerator
                         .Lambda("throw new global::System.NotSupportedException()");
                 return (b, null);
             }
+
+            // 检查当前返回类型是否是Task或Task<T>
+            // 如果检查类型不符合要求，说明不是异步方法
+            // 返回错误信息
+            var returnTypeInfo = methodSymbol.ReturnType;
+            var isTask = returnTypeInfo.Name == "Task";
+            var isGenericTask = returnTypeInfo.OriginalDefinition.ToDisplayString() == "System.Threading.Tasks.Task<T>";
+
+            if (!isTask && !isGenericTask)
+            {
+                return (null, DiagnosticDefinitions.WAG00005(methodSymbol.Locations.FirstOrDefault()));
+            }
+
             string webMethod;
             if (!methodAttribute.GetNamedValue("Method", out var v))
             {
