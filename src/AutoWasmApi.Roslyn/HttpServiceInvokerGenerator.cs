@@ -280,7 +280,7 @@ namespace AutoWasmApiGenerator
             {
                 var p = bodyParameters.First().p;
                 statements.Add($"var _json_gen = global::System.Text.Json.JsonSerializer.Serialize({p.Name})");
-                statements.Add("""_request_gen.Content = new StringContent(_json_gen, global::System.Text.Encoding.Default, "application/json")""");
+                statements.Add("""_request_gen.Content = new global::System.Net.Http.StringContent(_json_gen, global::System.Text.Encoding.Default, "application/json")""");
             }
 
             #endregion
@@ -311,7 +311,7 @@ namespace AutoWasmApiGenerator
 
             #endregion
 
-            statements.Add("_request_gen.RequestUri = new Uri(_url_gen, UriKind.Relative)");
+            statements.Add("_request_gen.RequestUri = new global::System.Uri(_url_gen, UriKind.Relative)");
             var returnType = methodSymbol.ReturnType.GetGenericTypes().FirstOrDefault() ?? methodSymbol.ReturnType;
 
             if (methodSymbol.ReturnsVoid || returnType.ToDisplayString() == "System.Threading.Tasks.Task")
