@@ -118,6 +118,19 @@ namespace AutoWasmApiGenerator
                         .Lambda("throw new global::System.NotSupportedException()");
                 return (b, null);
             }
+
+            // 检查当前返回类型是否是Task或Task<T>
+            // 如果检查类型不符合要求，说明不是异步方法
+            // 返回错误信息
+            var returnTypeInfo = methodSymbol.ReturnType;
+            var isTask = returnTypeInfo.Name == "Task";
+            var isGenericTask = returnTypeInfo.OriginalDefinition.ToDisplayString() == "System.Threading.Tasks.Task<T>";
+
+            if (!isTask && !isGenericTask)
+            {
+                return (null, DiagnosticDefinitions.WAG00005(methodSymbol.Locations.FirstOrDefault()));
+            }
+
             string webMethod;
             if (!methodAttribute.GetNamedValue("Method", out var v))
             {
@@ -280,7 +293,7 @@ namespace AutoWasmApiGenerator
             {
                 var p = bodyParameters.First().p;
                 statements.Add($"var _json_gen = global::System.Text.Json.JsonSerializer.Serialize({p.Name})");
-                statements.Add("""_request_gen.Content = new StringContent(_json_gen, global::System.Text.Encoding.Default, "application/json")""");
+                statements.Add("""_request_gen.Content = new global::System.Net.Http.StringContent(_json_gen, global::System.Text.Encoding.Default, "application/json")""");
             }
 
             #endregion
@@ -311,7 +324,7 @@ namespace AutoWasmApiGenerator
 
             #endregion
 
-            statements.Add("_request_gen.RequestUri = new Uri(_url_gen, UriKind.Relative)");
+            statements.Add("_request_gen.RequestUri = new global::System.Uri(_url_gen, UriKind.Relative)");
             var returnType = methodSymbol.ReturnType.GetGenericTypes().FirstOrDefault() ?? methodSymbol.ReturnType;
 
             if (methodSymbol.ReturnsVoid || returnType.ToDisplayString() == "System.Threading.Tasks.Task")
