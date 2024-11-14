@@ -124,7 +124,7 @@ namespace AutoWasmApiGenerator
             // 返回错误信息
             var returnTypeInfo = methodSymbol.ReturnType;
             var isTask = returnTypeInfo.Name == "Task";
-            var isGenericTask = returnTypeInfo.OriginalDefinition.ToDisplayString() == "System.Threading.Tasks.Task<T>";
+            var isGenericTask = returnTypeInfo.OriginalDefinition.ToDisplayString() == "System.Threading.Tasks.Task<TResult>";
 
             if (!isTask && !isGenericTask)
             {
