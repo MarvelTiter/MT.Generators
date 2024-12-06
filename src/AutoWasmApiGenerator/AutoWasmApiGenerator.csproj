@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
+    <PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
@@ -17,15 +17,15 @@
 
 	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
 		<ProjectReference Include="..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" ReferenceOutputAssembly="false" />
-	</ItemGroup>
+    </ItemGroup>
 
-	<ItemGroup>
+    <ItemGroup>
 		<!-- Package the generator in the analyzer directory of the nuget package -->
 		<None Include="..\AutoWasmApi.Roslyn\bin\$(Configuration)\netstandard2.0\AutoWasmApi.Roslyn.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-	</ItemGroup>
+    </ItemGroup>
 
-	<ItemGroup>
-		<None Include=".\readme.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
-	
+    <ItemGroup>
+        <None Include=".\readme.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
 </Project>

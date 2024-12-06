@@ -80,6 +80,15 @@ namespace AutoWasmApiGenerator
                 defaultSeverity: DiagnosticSeverity.Error,
                 isEnabledByDefault: true);
 
+        private static readonly DiagnosticDescriptor Wag00010DiagDescriptor = new(
+                id: "WAG00010",
+                title: "生成错误",
+                messageFormat: "生成过程中发生错误: {0}",
+                category: typeof(HttpServiceInvokerGenerator).FullName!,
+                defaultSeverity: DiagnosticSeverity.Error,
+                isEnabledByDefault: true
+            );
+
         public static Diagnostic WAG00001(Location? location)
         {
             return Diagnostic.Create(Wag00001DiagDescriptor, location);
@@ -123,6 +132,11 @@ namespace AutoWasmApiGenerator
         public static Diagnostic WAG00009(Location? location, string? symbolString = null)
         {
             return Diagnostic.Create(Wag00009DiagDescriptor, location, symbolString);
+        }
+
+        public static Diagnostic WAG00010(Location? location, string symbolString)
+        {
+            return Diagnostic.Create(Wag00010DiagDescriptor, location, symbolString);
         }
     }
 }
