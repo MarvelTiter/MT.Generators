@@ -14,3 +14,4 @@ WAG00007 | AutoWasmApiGenerator.HttpServiceInvokerGenerator | Error | 不能同�
 WAG00008 | AutoWasmApiGenerator.HttpServiceInvokerGenerator | Error | 不能设置多个[FromBody]({0})
 WAG00009 | AutoWasmApiGenerator.HttpServiceInvokerGenerator | Error | 暂不支持的返回值类型({0})
 WAG00010 | AutoWasmApiGenerator.HttpServiceInvokerGenerator | Error | 生成服务调用器过程中发生错误: {0}
+WAG00011 | AutoWasmApiGenerator.HttpServiceInvokerGenerator | Error | AutoWasmApiGenerator.ApiInvokerGenerateAttribute需要同时设置AutoWasmApiGenerator.WebControllerAttribute

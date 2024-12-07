@@ -27,6 +27,10 @@ public class HttpServiceInvokerGenerator : IIncrementalGenerator
                 {
                     if (!item.HasAttribute(WebControllerAttributeFullName))
                     {
+                        foreach (var location in item.Locations)
+                        {
+                            context.ReportDiagnostic(DiagnosticDefinitions.WAG00011(location));
+                        }
                         continue;
                     }
 
