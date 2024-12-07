@@ -81,7 +81,7 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
         members.Add(constructor);
 
         var classBuilder = invokeClass.AddMembers([.. members]);
-        var ns = NamespaceBuilder.Default.Namespace(interfaceSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+        var ns = NamespaceBuilder.Default.Namespace(interfaceSymbol.ContainingNamespace.ToDisplayString());
         var namespaceBuilder = ns.AddMembers(classBuilder);
         file = CodeFile.New($"{interfaceSymbol.FormatFileName()}ApiInvoker.g.cs")
             .AddUsings("using Microsoft.Extensions.DependencyInjection;")
