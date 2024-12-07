@@ -26,13 +26,15 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
         public const string Post = "Post";
         public const string Put = "Put";
         public const string Delete = "Delete";
-
-        public const int Ignore = -1;
-        public const int FromQuery = 0;
-        public const int FromRoute = 1;
-        public const int FromForm = 2;
-        public const int FromBody = 3;
-        public const int FromHeader = 4;
+    }
+    private enum ParameterBindingType
+    {
+        Ignore = -1,
+        FromQuery = 0,
+        FromRoute = 1,
+        FromForm = 2,
+        FromBody = 3,
+        FromHeader = 4
     }
 
     public (string generatedFileName, string sourceCode, List<Diagnostic> errorAndWarnings) Generate(
@@ -92,7 +94,7 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
         return true;
     }
 
-    private static MethodBuilder? BuildMethod((IMethodSymbol, AttributeData?) method, string? route,
+    private static MethodBuilder? BuildMethod((IMethodSymbol methodSymbol, AttributeData? methodAttribute) method, string? route,
         string scopeName, bool controllerAuth, out bool needAuth, List<Diagnostic> errorAndWarnings)
     {
         var methodSymbol = method.Item1;
@@ -175,32 +177,34 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
             if (p.GetAttribute(WebMethodParameterBindingAttribute, out var ad))
             {
                 ad!.GetConstructorValue(0, out var bindingType);
-                var t = (int)bindingType!;
-                return (t, p);
+                var t = (ParameterBindingType)(int)bindingType!;
+                return (bindingType: t, p);
             }
 
             if (useRouteParam && customRoute!.Contains(p.Name))
             {
-                return (1, p);
+                return (bindingType: ParameterBindingType.FromRoute, p);
             }
 
-            return (-1, p);
+            return (bindingType: ParameterBindingType.Ignore, p);
         }).ToList();
 
         #region 检查参数配置
 
-        var routerParameters = paramInfos.Where(t => t.Item1 == WebMethodConstants.FromRoute);
-        foreach ((int _, IParameterSymbol p) item in routerParameters)
+        var routerParameters = paramInfos.Where(t => t.bindingType == ParameterBindingType.FromRoute);
+        foreach (var item in routerParameters)
         {
+            // 如果路由参数中包含方法名，则忽略
             if (methodRoute.Contains($"{{{item.p.Name}}}")) continue;
             errorAndWarnings.Add(DiagnosticDefinitions.WAG00006(methodSymbol.Locations.FirstOrDefault(),
                     methodSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
             return null;
         }
 
-        if (paramInfos.Any(t => t.Item1 == 2) && paramInfos.Any(t => t.Item1 == 3))
+        if (paramInfos.Any(t => t.bindingType == ParameterBindingType.FromForm) && paramInfos.Any(t => t.bindingType == ParameterBindingType.FromBody))
         {
-            errorAndWarnings.Add(DiagnosticDefinitions.WAG00006(methodSymbol.Locations.FirstOrDefault(),
+            // 不能同时存在FromBody和FromForm
+            errorAndWarnings.Add(DiagnosticDefinitions.WAG00007(methodSymbol.Locations.FirstOrDefault(),
                 methodSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
             return null;
         }
@@ -272,9 +276,9 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
     /// <param name="webMethod"></param>
     /// <param name="errorAndWarnings"></param>
     private static void AddQueryParameters(List<Statement> statements,
-        IEnumerable<(int i, IParameterSymbol p)> paramInfos, string webMethod, List<Diagnostic> errorAndWarnings)
+        IEnumerable<(ParameterBindingType i, IParameterSymbol p)> paramInfos, string webMethod, List<Diagnostic> errorAndWarnings)
     {
-        var queryParameters = paramInfos.Where(t => (t.i == -1 && webMethod == WebMethodConstants.Get) || t.i == WebMethodConstants.FromQuery).ToList();
+        var queryParameters = paramInfos.Where(t => (t.i == ParameterBindingType.Ignore && webMethod == WebMethodConstants.Get) || t.i == ParameterBindingType.FromQuery).ToList();
 
         if (!queryParameters.Any()) return;
         statements.Add("var _queries_gen = new global::System.Collections.Generic.List<string>()");
@@ -310,9 +314,9 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
     /// </summary>
     /// <param name="statements"></param>
     /// <param name="paramInfos"></param>
-    private static void AddFormParameters(List<Statement> statements, IEnumerable<(int i, IParameterSymbol p)> paramInfos)
+    private static void AddFormParameters(List<Statement> statements, IEnumerable<(ParameterBindingType i, IParameterSymbol p)> paramInfos)
     {
-        var formParameters = paramInfos.Where(t => t.i == WebMethodConstants.FromForm).ToList();
+        var formParameters = paramInfos.Where(t => t.i == ParameterBindingType.FromForm).ToList();
 
         if (!formParameters.Any()) return;
         statements.Add(
@@ -354,22 +358,32 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
     /// <param name="methodSymbol"></param>
     /// <param name="errorAndWarnings"></param>
     /// <exception cref="InvalidOperationException"></exception>
-    private static bool AddBodyParameters(List<Statement> statements, IEnumerable<(int i, IParameterSymbol p)> paramInfos, string webMethod, IMethodSymbol methodSymbol, List<Diagnostic> errorAndWarnings)
+    private static bool AddBodyParameters(List<Statement> statements, IEnumerable<(ParameterBindingType i, IParameterSymbol p)> paramInfos, string webMethod, IMethodSymbol methodSymbol, List<Diagnostic> errorAndWarnings)
     {
         // var bodyParameters = paramInfos.Where(t => (t.i == -1 && webMethod != WebMethodConstants.Get) || t.i == WebMethodConstants.Body).ToList();
-        var bodyParameters = paramInfos.Where(t => t.i == WebMethodConstants.FromBody).ToList();
-        if (bodyParameters.Count > 1)
+        var bodyParameters = paramInfos.Where(t => t.i == ParameterBindingType.FromBody).ToList();
+        return bodyParameters.Count switch
+        {
+            > 1 => DoReturnError(),
+            0 => true,
+            1 => DoAddBody(),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        bool DoReturnError()
         {
             errorAndWarnings.Add(DiagnosticDefinitions.WAG00008(methodSymbol.Locations.FirstOrDefault()));
             return false;
         }
 
-        if (bodyParameters.Count == 0) return true;
-        var p = bodyParameters.First().p;
+        bool DoAddBody()
+        {
+            var p = bodyParameters[0].p;
         statements.Add($"var _json_gen = global::System.Text.Json.JsonSerializer.Serialize({p.Name})");
         statements.Add(
             """_request_gen.Content = new global::System.Net.Http.StringContent(_json_gen, global::System.Text.Encoding.Default, "application/json")""");
         return true;
+    }
     }
 
     /// <summary>
@@ -377,9 +391,9 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
     /// </summary>
     /// <param name="statements"></param>
     /// <param name="paramInfos"></param>
-    private static bool AddHeaderParameters(List<Statement> statements, IEnumerable<(int i, IParameterSymbol p)> paramInfos)
+    private static bool AddHeaderParameters(List<Statement> statements, IEnumerable<(ParameterBindingType i, IParameterSymbol p)> paramInfos)
     {
-        var headerParameters = paramInfos.Where(t => t.Item1 == WebMethodConstants.FromHeader).ToList();
+        var headerParameters = paramInfos.Where(t => t.i == ParameterBindingType.FromHeader).ToList();
 
         if (!headerParameters.Any()) return true;
         foreach (var item in headerParameters)
@@ -406,7 +420,8 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
         return true;
     }
 
-    private static bool AddResponseHandling(List<Statement> statements, ITypeSymbol returnType, List<Diagnostic> errorAndWarnings, string? cancellationTokenName)
+    private static bool AddResponseHandling(List<Statement> statements, ITypeSymbol returnType,
+        List<Diagnostic> errorAndWarnings, string? cancellationTokenName, IMethodSymbol methodSymbol)
     {
         cancellationTokenName ??= string.Empty;
         if (returnType is { TypeKind: TypeKind.Class, SpecialType: not SpecialType.System_String })
@@ -429,7 +444,7 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
             }
             else
             {
-                errorAndWarnings.Add(DiagnosticDefinitions.WAG00009(returnType.Locations.FirstOrDefault()));
+                errorAndWarnings.Add(DiagnosticDefinitions.WAG00009(methodSymbol.Locations.FirstOrDefault(), returnType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
                 return false;
             }
         }
@@ -461,10 +476,10 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
     private static ClassBuilder CreateHttpClassBuilder(INamedTypeSymbol interfaceSymbol)
     {
         IEnumerable<string> additionalAttribute = [];
-        if (interfaceSymbol.GetAttribute(ApiInvokerAttributeFullName, out var data))
+        if (interfaceSymbol.GetAttribute(ApiInvokerGenerateAttributeFullName, out var data))
         {
             //var o = data.GetAttributeValue(nameof(ApiInvokerGeneraAttribute.Attribute));
-            additionalAttribute = interfaceSymbol.GetAttributeInitInfo(ApiInvokerAttributeFullName, data!);
+            additionalAttribute = interfaceSymbol.GetAttributeInitInfo(ApiInvokerGenerateAttributeFullName, data!);
         }
 
 
