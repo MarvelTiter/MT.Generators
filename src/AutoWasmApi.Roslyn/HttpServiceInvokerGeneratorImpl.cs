@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using AutoWasmApiGenerator.Extensions;
 using Generators.Models;
 using Generators.Shared;
 using Generators.Shared.Builder;
@@ -437,7 +438,7 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
             {
                 statements.Add("return _str_gen");
             }
-            else if (returnType.IsValueType)
+            else if (returnType.HasTryParseMethod())
             {
                 statements.Add($"{returnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}.TryParse(_str_gen, out var val)");
                 statements.Add("return val");
