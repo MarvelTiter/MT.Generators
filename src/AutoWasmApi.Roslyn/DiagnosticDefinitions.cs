@@ -35,7 +35,7 @@ namespace AutoWasmApiGenerator
                 id: "WAG00004",
                 title: "控制器（controller）不能包含泛型",
                 messageFormat: "控制器（controller）不能包含泛型",
-                category: typeof(HttpServiceInvokerGenerator).FullName!,
+                category: typeof(ControllerGenerator).FullName!,
                 defaultSeverity: DiagnosticSeverity.Error,
                 isEnabledByDefault: true);
 
