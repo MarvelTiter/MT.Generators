@@ -22,7 +22,8 @@ public class HttpServiceInvokerGenerator : IIncrementalGenerator
                     return;
                 }
 
-                var all = compilation.GetAllSymbols(ApiInvokerAttributeFullName);
+                var all = compilation.GetAllSymbols(ApiInvokerGenerateAttributeFullName);
+
                 foreach (var item in all)
                 {
                     if (!item.HasAttribute(WebControllerAttributeFullName))
