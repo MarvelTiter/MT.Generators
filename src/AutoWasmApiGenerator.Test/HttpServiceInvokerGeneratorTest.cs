@@ -1,3 +1,4 @@
+using System.Reflection;
 using FluentAssertions;
 using Generators.Shared;
 using Microsoft.CodeAnalysis;
@@ -16,6 +17,7 @@ public static class ExecutableReferenceExtension
 public partial class HttpServiceInvokerGeneratorTest : IncrementalSourceGeneratorTestBase
 {
     private static readonly PortableExecutableReference[] References;
+    private static readonly string GeneratorVersion;
 
     static HttpServiceInvokerGeneratorTest()
     {
@@ -24,6 +26,11 @@ public partial class HttpServiceInvokerGeneratorTest : IncrementalSourceGenerato
             typeof(HttpServiceInvokerGenerator),
             typeof(WebControllerAttribute)
         }.DistinctReferences();
+        GeneratorVersion = typeof(HttpServiceInvokerGenerator).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()
+            ?.Version ?? throw new Exception("Unknown generator version");
+        UpdateSuccessTestString();
+        UpdateWag00009TestString();
+        UpdateFromRouteTestString();
     }
 
     [Fact]
