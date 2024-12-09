@@ -25,12 +25,6 @@ public class ControllerGenerator : IIncrementalGenerator
         //    WebControllerAttributeFullName
         //    , static (node, _) => true
         //    , static (ctx, _) => ctx);
-#if DEBUG && false
-        if (!Debugger.IsAttached)
-        {
-            Debugger.Launch(); // This will launch the debugger when the source generator runs.
-        }
-#endif
 
         context.RegisterSourceOutput(context.CompilationProvider, static (context, compilation) =>
         {

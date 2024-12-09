@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AutoWasmApiGenerator;
@@ -13,8 +14,9 @@ public interface IHttpClientHeaderHandler
     /// 
     /// </summary>
     /// <param name="request"></param>
+    /// <param name="token"></param>
     /// <returns></returns>
-    Task SetRequestHeaderAsync(HttpRequestMessage request);
+    Task SetRequestHeaderAsync(HttpRequestMessage request, CancellationToken token = default);
 }
 
 /// <summary>
@@ -22,21 +24,21 @@ public interface IHttpClientHeaderHandler
 /// </summary>
 public class DefaultHttpClientHeaderHandler : IHttpClientHeaderHandler
 {
-    private DefaultHttpClientHeaderHandler()
-    {
-        
-    }
-    private static readonly Lazy<IHttpClientHeaderHandler> lazy = new(() => new DefaultHttpClientHeaderHandler());
+    private DefaultHttpClientHeaderHandler() { } 
+
+    private static readonly Lazy<IHttpClientHeaderHandler> Lazy = new(() => new DefaultHttpClientHeaderHandler());
     /// <summary>
     /// µ¥Àý
     /// </summary>
-    public static IHttpClientHeaderHandler Default => lazy.Value;
+    public static IHttpClientHeaderHandler Default => Lazy.Value;
+
     /// <summary>
     /// <inheritdoc/>
     /// </summary>
     /// <param name="request"></param>
+    /// <param name="token"></param>
     /// <returns></returns>
-    public Task SetRequestHeaderAsync(HttpRequestMessage request)
+    public Task SetRequestHeaderAsync(HttpRequestMessage request, CancellationToken token = default)
     {
         return Task.CompletedTask;
     }
