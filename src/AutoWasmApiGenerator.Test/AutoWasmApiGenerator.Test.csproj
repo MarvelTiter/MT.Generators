@@ -7,7 +7,17 @@
 
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
+        <AutoWasmApiGenerator_GenerateInvoker>true</AutoWasmApiGenerator_GenerateInvoker>
+        <AutoWasmApiGenerator_GenerateWebController>true</AutoWasmApiGenerator_GenerateWebController>
     </PropertyGroup>
+
+    <Import Project="..\AutoWasmApi.Roslyn\build\AutoWasmApiGenerator.props" />
+
+    <ItemGroup>
+      <Compile Remove="Extensions\**" />
+      <EmbeddedResource Remove="Extensions\**" />
+      <None Remove="Extensions\**" />
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Basic.Reference.Assemblies.Net80" Version="1.7.9" />
@@ -28,7 +38,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" OutputItemType="Analyzer"/>
+        <ProjectReference Include="..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" OutputItemType="Analyzer" />
         <ProjectReference Include="..\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
     </ItemGroup>
     <ItemGroup>
@@ -44,10 +54,6 @@
 
     <ItemGroup>
         <Using Include="Xunit" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Extensions\" />
     </ItemGroup>
 
     <Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />

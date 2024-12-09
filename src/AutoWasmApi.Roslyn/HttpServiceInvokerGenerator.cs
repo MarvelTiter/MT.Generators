@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
+using AutoWasmApiGenerator.Options;
 using Generators.Shared;
 using Microsoft.CodeAnalysis;
 using static AutoWasmApiGenerator.GeneratorHelpers;
@@ -13,11 +15,20 @@ public class HttpServiceInvokerGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterSourceOutput(context.CompilationProvider, static (context, compilation) =>
+        // if (!Debugger.IsAttached)
+        // {
+        //     Debugger.Launch();
+        // }
+        var globalOptions = context.AnalyzerConfigOptionsProvider.Select(GlobalOptions.Select);
+        context.RegisterSourceOutput(context.CompilationProvider.Combine(globalOptions), static (context, compilationData) =>
         {
             try
             {
-                if (!compilation.Assembly.HasAttribute(ApiInvokerAssemblyAttributeFullName))
+                var compilation = compilationData.Left;
+                var globalOptions = compilationData.Right;
+                var generate = compilation.Assembly.HasAttribute(ApiInvokerAssemblyAttributeFullName)
+                               || globalOptions.GenerateInvoker;
+                if (!generate)
                 {
                     return;
                 }
