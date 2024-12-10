@@ -56,6 +56,6 @@
         <Using Include="Xunit" />
     </ItemGroup>
 
-    <Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
+    <Import Project="..\..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
 
 </Project>

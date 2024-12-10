@@ -5,7 +5,7 @@ VisualStudioVersion = 17.11.35111.106
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProject1", "TestProject1\TestProject1.csproj", "{6994C35E-E92F-418C-B5C9-B437FF25A6A0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoWasmApiGenerator", "AutoWasmApiGenerator\AutoWasmApiGenerator.csproj", "{9C1A1324-0111-468F-9644-F80F72A66DC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoWasmApiGenerator", "AutoWasmApiGenerator\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj", "{9C1A1324-0111-468F-9644-F80F72A66DC5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoInjectGenerator", "AutoInjectGenerator\AutoInjectGenerator.csproj", "{1CA123D0-5B2A-4BBD-A90E-B58E01A7B2CA}"
 EndProject
@@ -41,9 +41,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{71D54F
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Generators.Shared", "Shared\Generators.Shared\Generators.Shared.shproj", "{0C3325BB-C186-4E45-A567-69DAF5411E8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWasmApiGenerator.Test", "AutoWasmApiGenerator.Test\AutoWasmApiGenerator.Test.csproj", "{3ED9CDA7-B256-4B4C-85DF-E1EA62715428}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWasmApiGenerator.Test", "AutoWasmApiGenerator\AutoWasmApiGenerator.Test\AutoWasmApiGenerator.Test.csproj", "{3ED9CDA7-B256-4B4C-85DF-E1EA62715428}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWasmApi.Roslyn", "AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj", "{144DCF75-901E-40EE-8449-FC404D57017D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWasmApi.Roslyn", "AutoWasmApiGenerator\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj", "{144DCF75-901E-40EE-8449-FC404D57017D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

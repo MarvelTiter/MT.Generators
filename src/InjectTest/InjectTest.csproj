@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj" />
     <ProjectReference Include="..\AutoInjectGenerator\AutoInjectGenerator.csproj" />
+    <ProjectReference Include="..\AutoWasmApiGenerator\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj" />
     <ProjectReference Include="..\MT.Generators.Abstraction\MT.Generators.Abstraction.csproj" />
   </ItemGroup>
 

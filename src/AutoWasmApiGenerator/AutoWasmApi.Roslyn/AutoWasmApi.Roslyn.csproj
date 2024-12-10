@@ -7,7 +7,7 @@
 		<Version>0.1.1</Version>
 	</PropertyGroup>
 
-	<Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
-	<Import Project="..\Shared\Generators.Shared\MT.Generators.props" />
+	<Import Project="..\..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
+	<Import Project="..\..\Shared\Generators.Shared\MT.Generators.props" />
 
 </Project>

@@ -19,8 +19,8 @@
 		<ProjectReference Include="..\..\AutoAopProxyGenerator\AutoAopProxyGenerator.csproj" />
 		<ProjectReference Include="..\..\AutoGenMapper.Roslyn\AutoGenMapper.Roslyn.csproj" OutputItemType="Analyzer" />
 		<ProjectReference Include="..\..\AutoGenMapperGenerator\AutoGenMapperGenerator.csproj" />
-		<ProjectReference Include="..\..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" OutputItemType="Analyzer" />
-		<ProjectReference Include="..\..\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj" />
+		<ProjectReference Include="..\..\AutoWasmApiGenerator\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" OutputItemType="Analyzer" />
+		<ProjectReference Include="..\..\AutoWasmApiGenerator\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj" />
 		<ProjectReference Include="..\..\InjectTest\InjectTest.csproj" />
 	</ItemGroup>
 
