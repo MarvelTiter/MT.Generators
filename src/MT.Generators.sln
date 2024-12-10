@@ -16,6 +16,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoInject.Roslyn", "AutoInject.Roslyn\AutoInject.Roslyn.csproj", "{E48C1C4F-8111-4513-86EC-0C968E5437CD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoWasm", "AutoWasm", "{0D1AD616-22D2-4D10-BD23-92040AFD90D5}"
+	ProjectSection(SolutionItems) = preProject
+		AutoWasmApiGenerator\Directory.Build.props = AutoWasmApiGenerator\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Test", "Blazor.Test\Blazor.Test\Blazor.Test.csproj", "{4A47713C-2332-40C1-9AAB-7B2A14D148A2}"
 EndProject

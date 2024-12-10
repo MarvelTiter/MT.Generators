@@ -1,13 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<RootNamespace>AutoWasmApiGenerator</RootNamespace>
-		<LangVersion>latest</LangVersion>
-		<Version>0.1.1</Version>
-	</PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
 
-	<Import Project="..\..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
-	<Import Project="..\..\Shared\Generators.Shared\MT.Generators.props" />
+    <Import Project="..\..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
+    <Import Project="..\..\Shared\Generators.Shared\MT.Generators.props" />
 
 </Project>

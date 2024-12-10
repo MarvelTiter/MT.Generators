@@ -14,12 +14,6 @@
     <Import Project="..\AutoWasmApi.Roslyn\build\AutoWasmApiGenerator.props" />
 
     <ItemGroup>
-      <Compile Remove="Extensions\**" />
-      <EmbeddedResource Remove="Extensions\**" />
-      <None Remove="Extensions\**" />
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="Basic.Reference.Assemblies.Net80" Version="1.7.9" />
         <PackageReference Include="Basic.Reference.Assemblies.NetStandard20" Version="1.7.9" />
         <PackageReference Include="coverlet.collector" Version="6.0.2">
