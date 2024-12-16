@@ -28,15 +28,6 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
         public const string Put = "Put";
         public const string Delete = "Delete";
     }
-    private enum ParameterBindingType
-    {
-        Ignore = -1,
-        FromQuery = 0,
-        FromRoute = 1,
-        FromForm = 2,
-        FromBody = 3,
-        FromHeader = 4
-    }
 
     public (string generatedFileName, string sourceCode, List<Diagnostic> errorAndWarnings) Generate(
         INamedTypeSymbol interfaceSymbol)
@@ -489,4 +480,16 @@ public class HttpServiceInvokerGeneratorImpl : IHttpServiceInvokerGenerator
             .Attribute([.. additionalAttribute.Select(i => i.ToString())])
             .BaseType(interfaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
     }
+}
+
+internal enum ParameterBindingType
+{
+    Fallback = -2,
+    Ignore = -1,
+    FromQuery = 0,
+    FromRoute = 1,
+    FromForm = 2,
+    FromBody = 3,
+    FromHeader = 4,
+    FromServices = 5,
 }
