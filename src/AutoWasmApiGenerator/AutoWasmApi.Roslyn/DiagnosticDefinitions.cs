@@ -83,8 +83,8 @@ namespace AutoWasmApiGenerator
 
         private static readonly DiagnosticDescriptor Wag00010DiagDescriptor = new(
                 id: "WAG00010",
-                title: "生成错误",
-                messageFormat: "生成过程中发生错误: {0}",
+                title: "生成ApiInvoker错误",
+                messageFormat: "生成ApiInvoker过程中发生错误: {0}",
                 category: typeof(HttpServiceInvokerGenerator).FullName!,
                 defaultSeverity: DiagnosticSeverity.Error,
                 isEnabledByDefault: true
@@ -98,6 +98,16 @@ namespace AutoWasmApiGenerator
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true
         );
+
+        private static readonly DiagnosticDescriptor Wag00012DiagDescriptor = new(
+                id: "WAG00012",
+                title: "生成Controller错误",
+                messageFormat: "生成Controller过程中发生错误: {0}",
+                category: typeof(ControllerGenerator).FullName!,
+                defaultSeverity: DiagnosticSeverity.Error,
+                isEnabledByDefault: true
+            );
+
 
         /// <summary>
         /// 继承多个接口需要指定接口标注[WebControllerAttribute]
@@ -196,7 +206,7 @@ namespace AutoWasmApiGenerator
         }
 
         /// <summary>
-        /// 生成错误
+        /// 生成ApiInvoker错误
         /// </summary>
         /// <param name="location"></param>
         /// <param name="symbolString"></param>
@@ -214,6 +224,17 @@ namespace AutoWasmApiGenerator
         public static Diagnostic WAG00011(Location? location)
         {
             return Diagnostic.Create(Wag00011DiagDescriptor, location);
+        }
+
+        /// <summary>
+        /// 生成Controller错误
+        /// </summary>
+        /// <param name="location"></param>
+        /// <param name="symbolString"></param>
+        /// <returns></returns>
+        public static Diagnostic WAG00012(Location? location, string symbolString)
+        {
+            return Diagnostic.Create(Wag00012DiagDescriptor, location, symbolString);
         }
     }
 }

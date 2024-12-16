@@ -15,10 +15,6 @@ public class HttpServiceInvokerGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // if (!Debugger.IsAttached)
-        // {
-        //     Debugger.Launch();
-        // }
         var globalOptions = context.AnalyzerConfigOptionsProvider.Select(GlobalOptions.Select);
         context.RegisterSourceOutput(context.CompilationProvider.Combine(globalOptions), static (context, compilationData) =>
         {
