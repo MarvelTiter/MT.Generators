@@ -25,6 +25,7 @@ namespace AutoWasmApiGenerator
                 ?.Version ?? throw new Exception("Unknown generator version");
             UpdateTestSuccessResult();
             UpdatePartialResult();
+            UpdateVirtualResult();
         }
 
         private void DoTestSuccess(string source, string resultSource)
@@ -49,7 +50,18 @@ namespace AutoWasmApiGenerator
         public void Test_SuccessCode()
         {
             DoTestSuccess(TestSuccessCode, TestSuccessResult);
+        }
+
+        [Fact]
+        public void Test_Partial()
+        {
             DoTestSuccess(TestPartialSource, TestPartialSourceResult);
+        }
+
+        [Fact]
+        public void Test_Virtual()
+        {
+            DoTestSuccess(TestVirtualSource, TestVirtualSourceResult);
         }
 
 

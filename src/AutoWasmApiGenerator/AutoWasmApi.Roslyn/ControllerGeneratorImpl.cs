@@ -41,6 +41,7 @@ public class ControllerGeneratorImpl : IControllerGenerator
         members.Add(localField);
         members.Add(constructor);
         var needAuth = attributeData.GetNamedValue("Authorize") ?? false;
+
         foreach (var methodSymbol in methods)
         {
             if (methodSymbol.Symbol.HasAttribute(GeneratorHelpers.NotSupported))
@@ -92,9 +93,12 @@ public class ControllerGeneratorImpl : IControllerGenerator
             $"global::Microsoft.AspNetCore.Mvc.Http{httpMethod}(\"{methodRoute}\")";
         var allowAnonymous = (bool)(a?.GetNamedValue("AllowAnonymous") ?? false);
         var methodAuth = (bool)(a?.GetNamedValue("Authorize") ?? false);
+        var @virtual = (a?.GetNamedValue<bool>("Virtual", out var vv) ?? false) && vv;
+        var modifier = @virtual ? "public virtual" : "public";
         return MethodBuilder.Default
             .MethodName(methodSymbol.Name)
             .ReturnType(methodSymbol.ReturnType.ToDisplayString())
+            .Modifiers(modifier)
             .Attribute(methodRouteAttribute)
             .AttributeIf(allowAnonymous, "global::Microsoft.AspNetCore.Authorization.AllowAnonymous")
             .AttributeIf((methodAuth || needAuth) && !allowAnonymous,
