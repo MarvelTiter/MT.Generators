@@ -8,7 +8,7 @@ public static class GeneratorHelpers
 {
     public const string WebControllerAttributeFullName = "AutoWasmApiGenerator.WebControllerAttribute";
     public const string WebControllerAssemblyAttributeFullName = "AutoWasmApiGenerator.WebControllerAssemblyAttribute";
-    public const string ApiInvokerAttributeFullName = "AutoWasmApiGenerator.ApiInvokerGenerateAttribute";
+    public const string ApiInvokerGenerateAttributeFullName = "AutoWasmApiGenerator.ApiInvokerGenerateAttribute";
     public const string ApiInvokerAssemblyAttributeFullName = "AutoWasmApiGenerator.ApiInvokerAssemblyAttribute";
     public const string WebMethodAttributeFullName = "AutoWasmApiGenerator.WebMethodAttribute";
     public const string DisableWebApiGenerator = "DisableWebApiGenerator";

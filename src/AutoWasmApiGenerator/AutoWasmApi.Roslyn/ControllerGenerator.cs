@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using AutoWasmApiGenerator.Options;
 using Generators.Shared;
 using Generators.Shared.Builder;
 using Microsoft.CodeAnalysis;
@@ -25,18 +26,18 @@ public class ControllerGenerator : IIncrementalGenerator
         //    WebControllerAttributeFullName
         //    , static (node, _) => true
         //    , static (ctx, _) => ctx);
-#if DEBUG && false
-        if (!Debugger.IsAttached)
-        {
-            Debugger.Launch(); // This will launch the debugger when the source generator runs.
-        }
-#endif
+        var globalOptions = context.AnalyzerConfigOptionsProvider.Select(GlobalOptions.Select);
 
-        context.RegisterSourceOutput(context.CompilationProvider, static (context, compilation) =>
+        context.RegisterSourceOutput(context.CompilationProvider.Combine(globalOptions), static (context, compilationData) =>
         {
             //try
             //{
-            if (!compilation.Assembly.HasAttribute(WebControllerAssemblyAttributeFullName))
+            var compilation = compilationData.Left;
+            var globalOptions = compilationData.Right;
+            var generate = compilation.Assembly.HasAttribute(WebControllerAssemblyAttributeFullName)
+                           || globalOptions.GenerateWebController;
+
+            if (!generate)
             {
                 return;
             }
@@ -118,7 +119,7 @@ public class ControllerGenerator : IIncrementalGenerator
         {
             methodRoute = methodScoped;
         }
-        else if(Regex.Match(customRoute, "{.+}").Success)
+        else if (Regex.Match(customRoute, "{.+}").Success)
         {
             methodRoute = $"{methodScoped}/{customRoute}";
         }

@@ -5,7 +5,7 @@ VisualStudioVersion = 17.11.35111.106
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProject1", "TestProject1\TestProject1.csproj", "{6994C35E-E92F-418C-B5C9-B437FF25A6A0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoWasmApiGenerator", "AutoWasmApiGenerator\AutoWasmApiGenerator.csproj", "{9C1A1324-0111-468F-9644-F80F72A66DC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoWasmApiGenerator", "AutoWasmApiGenerator\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj", "{9C1A1324-0111-468F-9644-F80F72A66DC5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoInjectGenerator", "AutoInjectGenerator\AutoInjectGenerator.csproj", "{1CA123D0-5B2A-4BBD-A90E-B58E01A7B2CA}"
 EndProject
@@ -16,8 +16,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoInject.Roslyn", "AutoInject.Roslyn\AutoInject.Roslyn.csproj", "{E48C1C4F-8111-4513-86EC-0C968E5437CD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoWasm", "AutoWasm", "{0D1AD616-22D2-4D10-BD23-92040AFD90D5}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoWasmApi.Roslyn", "AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj", "{625157FF-90BB-4950-9643-7BAEF5CEF6A8}"
+	ProjectSection(SolutionItems) = preProject
+		AutoWasmApiGenerator\Directory.Build.props = AutoWasmApiGenerator\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Test", "Blazor.Test\Blazor.Test\Blazor.Test.csproj", "{4A47713C-2332-40C1-9AAB-7B2A14D148A2}"
 EndProject
@@ -42,6 +43,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{71D54FEF-E30B-4829-9EF2-C27DF766E235}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Generators.Shared", "Shared\Generators.Shared\Generators.Shared.shproj", "{0C3325BB-C186-4E45-A567-69DAF5411E8B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWasmApiGenerator.Test", "AutoWasmApiGenerator\AutoWasmApiGenerator.Test\AutoWasmApiGenerator.Test.csproj", "{3ED9CDA7-B256-4B4C-85DF-E1EA62715428}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWasmApi.Roslyn", "AutoWasmApiGenerator\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj", "{144DCF75-901E-40EE-8449-FC404D57017D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,10 +74,6 @@ Global
 		{E48C1C4F-8111-4513-86EC-0C968E5437CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E48C1C4F-8111-4513-86EC-0C968E5437CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E48C1C4F-8111-4513-86EC-0C968E5437CD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{625157FF-90BB-4950-9643-7BAEF5CEF6A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{625157FF-90BB-4950-9643-7BAEF5CEF6A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{625157FF-90BB-4950-9643-7BAEF5CEF6A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{625157FF-90BB-4950-9643-7BAEF5CEF6A8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4A47713C-2332-40C1-9AAB-7B2A14D148A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4A47713C-2332-40C1-9AAB-7B2A14D148A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A47713C-2332-40C1-9AAB-7B2A14D148A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -101,6 +102,14 @@ Global
 		{6FFF3104-CCD7-4916-A911-AEB9A5D35536}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6FFF3104-CCD7-4916-A911-AEB9A5D35536}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6FFF3104-CCD7-4916-A911-AEB9A5D35536}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3ED9CDA7-B256-4B4C-85DF-E1EA62715428}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ED9CDA7-B256-4B4C-85DF-E1EA62715428}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ED9CDA7-B256-4B4C-85DF-E1EA62715428}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ED9CDA7-B256-4B4C-85DF-E1EA62715428}.Release|Any CPU.Build.0 = Release|Any CPU
+		{144DCF75-901E-40EE-8449-FC404D57017D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{144DCF75-901E-40EE-8449-FC404D57017D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{144DCF75-901E-40EE-8449-FC404D57017D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{144DCF75-901E-40EE-8449-FC404D57017D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -110,7 +119,6 @@ Global
 		{9C1A1324-0111-468F-9644-F80F72A66DC5} = {0D1AD616-22D2-4D10-BD23-92040AFD90D5}
 		{1CA123D0-5B2A-4BBD-A90E-B58E01A7B2CA} = {FD7A81EE-6E54-461B-8766-BB36EB5F31D8}
 		{E48C1C4F-8111-4513-86EC-0C968E5437CD} = {FD7A81EE-6E54-461B-8766-BB36EB5F31D8}
-		{625157FF-90BB-4950-9643-7BAEF5CEF6A8} = {0D1AD616-22D2-4D10-BD23-92040AFD90D5}
 		{4A47713C-2332-40C1-9AAB-7B2A14D148A2} = {47FB0C42-25F4-49C1-A98C-D6536116B894}
 		{20CA19C8-3036-4D1B-B095-C59A4C76B8D0} = {47FB0C42-25F4-49C1-A98C-D6536116B894}
 		{8638056F-E36D-4EBC-A4EA-A7AE22DDC161} = {FCEAEFA9-132B-4945-9E97-53612B8A5CBF}
@@ -119,14 +127,17 @@ Global
 		{26DD2068-DD76-4FF9-8FB6-8E354188F7F7} = {B1852D0E-A185-491C-B81D-03D1AC5EF97C}
 		{6FFF3104-CCD7-4916-A911-AEB9A5D35536} = {B1852D0E-A185-491C-B81D-03D1AC5EF97C}
 		{0C3325BB-C186-4E45-A567-69DAF5411E8B} = {71D54FEF-E30B-4829-9EF2-C27DF766E235}
+		{3ED9CDA7-B256-4B4C-85DF-E1EA62715428} = {47FB0C42-25F4-49C1-A98C-D6536116B894}
+		{144DCF75-901E-40EE-8449-FC404D57017D} = {0D1AD616-22D2-4D10-BD23-92040AFD90D5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E16846FC-C2B2-43ED-A534-5726B5C9DDEE}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Shared\Generators.Shared\Generators.Shared.projitems*{0c3325bb-c186-4e45-a567-69daf5411e8b}*SharedItemsImports = 13
+		Shared\Generators.Shared\Generators.Shared.projitems*{144dcf75-901e-40ee-8449-fc404d57017d}*SharedItemsImports = 5
 		Shared\Generators.Shared\Generators.Shared.projitems*{26dd2068-dd76-4ff9-8fb6-8e354188f7f7}*SharedItemsImports = 5
-		Shared\Generators.Shared\Generators.Shared.projitems*{625157ff-90bb-4950-9643-7baef5cef6a8}*SharedItemsImports = 5
+		Shared\Generators.Shared\Generators.Shared.projitems*{3ed9cda7-b256-4b4c-85df-e1ea62715428}*SharedItemsImports = 5
 		Shared\Generators.Shared\Generators.Shared.projitems*{ba595e23-bd3a-4b36-a094-06e5814fe5e9}*SharedItemsImports = 5
 		Shared\Generators.Shared\Generators.Shared.projitems*{e48c1c4f-8111-4513-86ec-0c968e5437cd}*SharedItemsImports = 5
 	EndGlobalSection

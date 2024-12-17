@@ -49,7 +49,7 @@ namespace Blazor.Test
         public Task<bool> Log3Async(string message, string path, CancellationToken token)
         {
             throw new NotImplementedException();
-            return Task.FromResult(message.Length > 5);
+            // return Task.FromResult(message.Length > 5);
         }
     }
 

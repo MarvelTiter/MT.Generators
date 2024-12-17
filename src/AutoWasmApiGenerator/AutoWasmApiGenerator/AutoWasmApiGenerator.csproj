@@ -1,15 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
+    <PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
-		<LangVersion>latest</LangVersion>
-		<Nullable>enable</Nullable>
-		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
 		<IsRoslynComponent>true</IsRoslynComponent>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Authors>MarvelTiter</Authors>
-		<Version>0.1.1</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -22,6 +16,11 @@
 	<ItemGroup>
 		<!-- Package the generator in the analyzer directory of the nuget package -->
 		<None Include="..\AutoWasmApi.Roslyn\bin\$(Configuration)\netstandard2.0\AutoWasmApi.Roslyn.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+
+        <None Include="..\AutoWasmApi.Roslyn\build\**" Visible="true">
+            <Pack>true</Pack>
+            <PackagePath>build</PackagePath>
+        </None>
 	</ItemGroup>
 
 	<ItemGroup>
