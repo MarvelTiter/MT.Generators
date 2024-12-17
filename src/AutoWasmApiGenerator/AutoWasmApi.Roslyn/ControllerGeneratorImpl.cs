@@ -34,13 +34,12 @@ public class ControllerGeneratorImpl : IControllerGenerator
             return false;
         }
         var ns = NamespaceBuilder.Default.Namespace(interfaceSymbol.ContainingNamespace.ToDisplayString());
-        var controllerClass = CreateControllerClass(interfaceSymbol);
+        var controllerClass = CreateControllerClass(interfaceSymbol, out var attributeData);
         List<Node> members = [];
         var localField = BuildLocalField(interfaceSymbol);
         var constructor = BuildConstructor(interfaceSymbol);
         members.Add(localField);
         members.Add(constructor);
-        _ = interfaceSymbol.GetAttribute(GeneratorHelpers.WebControllerAttributeFullName, out var attributeData);
         var needAuth = attributeData.GetNamedValue("Authorize") ?? false;
         foreach (var methodSymbol in methods)
         {
@@ -185,9 +184,9 @@ public class ControllerGeneratorImpl : IControllerGenerator
             .AddParameter($"{interfaceSymbol.ToDisplayString()} service");
     }
 
-    private static ClassBuilder CreateControllerClass(INamedTypeSymbol interfaceSymbol)
+    private static ClassBuilder CreateControllerClass(INamedTypeSymbol interfaceSymbol, out AttributeData? controllerAttribute)
     {
-        _ = interfaceSymbol.GetAttribute(GeneratorHelpers.WebControllerAttributeFullName, out var controllerAttribute);
+        _ = interfaceSymbol.GetAttribute(GeneratorHelpers.WebControllerAttributeFullName, out controllerAttribute);
         var route = controllerAttribute.GetNamedValue("Route") ?? "[controller]";
         var needAuth = controllerAttribute.GetNamedValue("Authorize") ?? false;
         //var additionalAttribute = source.TargetSymbol.GetAttributeInitInfo<ControllerGenerator>();
