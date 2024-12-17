@@ -21,6 +21,11 @@ public class WebControllerAttribute : Attribute
     /// 是否需要授权才可以访问
     /// </summary>
     public bool Authorize { get; set; }
+
+    /// <summary>
+    /// 是否生成Partial类
+    /// </summary>
+    public bool Partial { get; set; }
     
     /// <summary>
     /// 

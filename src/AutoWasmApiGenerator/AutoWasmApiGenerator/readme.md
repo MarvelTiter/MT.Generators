@@ -111,3 +111,14 @@ Task<bool> Log3Async([WebMethodParameterBinding(BindingType.FromBody)] string me
 + FromBody 从请求正文中获取值。
 + FromHeader 从 HTTP 标头中获取值。
 + FromServices 从服务容器中获取值。
+
+
+## TODOs
+
+- [ ] 支持类partial功能
+- [ ] 支持方法partial功能
+- [ ] 支持方法名称自定义功能
+- [ ] 支持同步方法
+- [ ] 支持同时设置`[FromBody]`和`[FromForm]` (需要参考一下此功能是否可以实现)
+- [ ] 增加全局配置
+- [ ] 整理Analyzer中的错误提示

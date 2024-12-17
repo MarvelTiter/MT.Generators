@@ -1,0 +1,14 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include="MSBuildProjectFullPath" />
+        <CompilerVisibleProperty Include="MSBuildProjectName" />
+        <CompilerVisibleProperty Include="RootNamespace" />
+        <CompilerVisibleProperty Include="CustomToolNamespace" />
+        <CompilerVisibleProperty Include="AutoWasmApiGenerator_GenerateInvoker" />
+        <CompilerVisibleProperty Include="AutoWasmApiGenerator_GenerateWebController" />
+    </ItemGroup>
+
+</Project>

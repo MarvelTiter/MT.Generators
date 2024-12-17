@@ -24,4 +24,8 @@ public class WebMethodAttribute : Attribute
     /// 是否需要授权
     /// </summary>
     public bool Authorize { get; set; }
+    /// <summary>
+    /// 是否生成虚方法
+    /// </summary>
+    public bool Virtual { get; set; }
 }
