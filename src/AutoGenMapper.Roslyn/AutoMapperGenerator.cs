@@ -37,7 +37,7 @@ namespace AutoGenMapperGenerator
         {
             var origin = (INamedTypeSymbol)source.TargetSymbol;
             var ns = NamespaceBuilder.Default.Namespace(origin.ContainingNamespace.ToDisplayString());
-            
+
             var ctxs = source.TargetSymbol.GetAttributes(GenMapperAttributeFullName).Select(s => CollectTypeInfos(origin, s)).ToArray();
             var cb = ClassBuilder.Default.Modifiers("partial").ClassName(origin.Name)
                 .Interface(GenMapableInterface)
@@ -65,7 +65,7 @@ namespace AutoGenMapperGenerator
         private static GenMapperContext CollectTypeInfos(INamedTypeSymbol source, AttributeData a)
         {
             var context = new GenMapperContext() { SourceType = source };
-            context.SourceProperties = source.GetMembers().Where(i => i.Kind == SymbolKind.Property)
+            context.SourceProperties = source.GetAllMembers(_ => true).Where(i => i.Kind == SymbolKind.Property)
                     .Cast<IPropertySymbol>().ToArray();
             if (!(a.GetNamedValue("TargetType", out var t) && t is INamedTypeSymbol target))
             {
@@ -85,7 +85,7 @@ namespace AutoGenMapperGenerator
             }
 
 
-            context.TargetProperties = target.GetMembers().Where(i => i.Kind == SymbolKind.Property)
+            context.TargetProperties = target.GetAllMembers(_ => true).Where(i => i.Kind == SymbolKind.Property)
                 .Cast<IPropertySymbol>().ToArray();
             //Debugger.Launch();
             foreach (var (froms, tos) in context.TargetProperties.Select(GetMapInfo))
