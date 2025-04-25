@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace AutoWasmApiGenerator;
 
 /// <summary>
-/// APIµ÷ÓÃÀàÖĞ£¬À¹½Ø´¦Àí
+/// APIè°ƒç”¨ç±»ä¸­ï¼Œæ‹¦æˆªå¤„ç†
 /// </summary>
 public interface IHttpClientHeaderHandler
 {
@@ -18,7 +18,7 @@ public interface IHttpClientHeaderHandler
 }
 
 /// <summary>
-/// <see cref="IHttpClientHeaderHandler"/>µÄ¿ÕÊµÏÖ
+/// <see cref="IHttpClientHeaderHandler"/>çš„ç©ºå®ç°
 /// </summary>
 public class DefaultHttpClientHeaderHandler : IHttpClientHeaderHandler
 {
@@ -28,7 +28,7 @@ public class DefaultHttpClientHeaderHandler : IHttpClientHeaderHandler
     }
     private static readonly Lazy<IHttpClientHeaderHandler> lazy = new(() => new DefaultHttpClientHeaderHandler());
     /// <summary>
-    /// µ¥Àı
+    /// å•ä¾‹
     /// </summary>
     public static IHttpClientHeaderHandler Default => lazy.Value;
     /// <summary>
