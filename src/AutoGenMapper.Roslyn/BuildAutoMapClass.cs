@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -8,89 +9,123 @@ using Microsoft.CodeAnalysis;
 
 namespace AutoGenMapperGenerator;
 
-public static class BuildAutoMapClass
+public static partial class BuildAutoMapClass
 {
-    internal static MethodBuilder GenerateInterfaceMethod(GenMapperContext[] mapToMethods)
+    internal static IEnumerable<MethodBuilder> GenerateInterfaceMethod(GenMapperContext[] contexts)
     {
-        var statements = new List<Statement>();
-        if (mapToMethods.Length == 1)
+        #region map to method
         {
-            statements.Add($"return MapTo{mapToMethods[0].TargetType!.Name}()");
-        }
-        else
-        {
-            statements.Add($"if (string.IsNullOrEmpty(target))");
-            statements.Add("""    throw new ArgumentNullException(nameof(target), "存在多个目标类型，请指定目标类型，推荐使用nameof(TargetType)")""");
-            foreach (var method in mapToMethods)
+            var statements = new List<Statement>();
+            if (contexts.Length == 1)
             {
-                statements.Add($"if (target == nameof({method.TargetType!.Name}))");
-                statements.Add($"   return MapTo{method.TargetType.Name}();");
+                statements.Add($"return MapTo{contexts[0].TargetType!.Name}()");
             }
-            statements.Add("""throw new ArgumentException("未找到指定目标类型的映射方法");""");
+            else
+            {
+                statements.Add($"if (string.IsNullOrEmpty(target))");
+                statements.Add("""    throw new ArgumentNullException(nameof(target), "存在多个目标类型，请指定目标类型，推荐使用nameof(TargetType)")""");
+                foreach (var method in contexts)
+                {
+                    statements.Add($"if (target == nameof({method.TargetType!.Name}))");
+                    statements.Add($"   return MapTo{method.TargetType.Name}();");
+                }
+                statements.Add("""throw new ArgumentException("未找到指定目标类型的映射方法");""");
+            }
+            var mapTo = MethodBuilder.Default
+                .MethodName("MapTo")
+                .ReturnType("object?")
+                .AddParameter("string? target = null")
+                .AddGeneratedCodeAttribute(typeof(AutoMapperGenerator))
+                .AddBody([.. statements]);
+            yield return mapTo;
         }
-        var m = MethodBuilder.Default
-            .MethodName("MapTo")
-            .ReturnType("object?")
-            .AddParameter("string? target = null")
-            .AddGeneratedCodeAttribute(typeof(AutoMapperGenerator))
-            .AddBody([.. statements]);
-        return m;
+        #endregion
+
+        #region map from method
+        {
+            var statements = new List<Statement>();
+            if (contexts.Length == 1)
+            {
+                var ctx = contexts[0];
+                statements.Add(IfStatement.Default.If($"value is {ctx.TargetType.ToDisplayString()} source").AddStatement($"MapFrom{contexts[0].TargetType.Name}(source)"));
+            }
+            else
+            {
+                statements.Add(IfStatement.Default.If("value is null")
+                    .AddStatement("return"));
+                int i = 0;
+                foreach (var ctx in contexts)
+                {
+                    var sn = $"source_{i}";
+                    statements.Add(IfStatement.Default.If($"value is {ctx.TargetType.ToDisplayString()} {sn}")
+                        .AddStatement($"MapFrom{ctx.TargetType.Name}({sn})", "return")); i++;
+                }
+                statements.Add("""throw new ArgumentException("未找到指定目标类型的映射方法");""");
+            }
+            var mapFrom = MethodBuilder.Default
+                .MethodName("MapFrom")
+                .AddParameter("object? value")
+                .AddGeneratedCodeAttribute(typeof(AutoMapperGenerator))
+                .AddBody([.. statements]);
+            yield return mapFrom;
+
+        }
+
+        #endregion
+
     }
-    internal static MethodBuilder GenerateMethod(GenMapperContext context)
+    static bool IsMapableObject(this IPropertySymbol target)
     {
+        return target.Type.HasAttribute(AutoMapperGenerator.GenMapperAttributeFullName) == true;
+    }
+    static string? TryGetMethodInvoker(this IMethodSymbol method)
+    {
+        return method.IsStatic ?
+            method.ReceiverType?.ToDisplayString() ?? method.ContainingType?.ToDisplayString()
+            : null;
+    }
+
+    internal static MethodBuilder GenerateMapToMethod(GenMapperContext context)
+    {
+        const string TARGET_OBJECT = "_result_gen";
         var statements = new List<Statement>()
         {
-            $"var _result_gen = new {context.TargetType.ToDisplayString()}({string.Join(", ", context.ConstructorParameters)})"
+            $"var {TARGET_OBJECT} = new {context.TargetType.ToDisplayString()}({string.Join(", ", context.ConstructorParameters)})"
         };
-        List<string> solved = [];
-        foreach (var mapTo in context.Tos)
-        {
-            if (!EqualityComparer<INamedTypeSymbol>.Default.Equals(context.TargetType, mapTo.Target))
-            {
-                continue;
-            }
 
-            if (mapTo.By != null)
+        foreach (var item in context.Maps)
+        {
+            if (item.MappingType == MappingType.SingleToSingle)
             {
-                statements.Add($"this.{mapTo.By.Name}(_result_gen)");
+                var line = HandleForwardSingleToSingle(item);
+                statements.Add(line);
             }
-            else if (!mapTo.To.IsNullOrEmpty())
+            else if (item.MappingType == MappingType.MultiToSingle)
             {
-                statements.Add($"_result_gen.{mapTo.To} = this.{mapTo.From}");
-                solved.Add(mapTo.To!);
+                var invoker = item.ForwardBy!.TryGetMethodInvoker() ?? "this";
+                var targetName = item.TargetName.First();
+                var pnames = string.Join(", ", item.SourceName.Select(s => $"this.{s}"));
+                var line = $"{TARGET_OBJECT}.{targetName} = {invoker}.{item.ForwardBy!.Name}({pnames})";
+                statements.Add(line);
+            }
+            else if (item.MappingType == MappingType.SingleToMulti)
+            {
+                var invoker = item.ForwardBy!.TryGetMethodInvoker() ?? "this";
+                var sourceParam = item.SourceName[0];
+                var tempArray = $"_{sourceParam}_arr_gen";
+                var line = $"var {tempArray} = {invoker}.{item.ForwardBy!.Name}({string.Join(", ", $"this.{sourceParam}")})";
+                statements.Add(line);
+                //var checkArrResult = IfStatement.Default.If($"{tempArray} is not null");
+                for (int i = 0; i < item.TargetProp.Count; i++)
+                {
+                    var tar = item.TargetProp[i];
+                    statements.Add($"{TARGET_OBJECT}.{tar.Name} = {tempArray}.Item{i + 1}");
+                }
+                //statements.Add(checkArrResult);
             }
         }
 
-        foreach (var prop in context.TargetProperties)
-        {
-            if (solved.Contains(prop.Name) || context.ConstructorParameters.Contains(prop.Name))
-            {
-                continue;
-            }
-            //var mdis = prop.mod
-            if (prop.IsReadOnly || prop.DeclaredAccessibility != Accessibility.Public)
-            {
-                continue;
-            }
-
-
-            if (GetPropertyValue(context, prop, out var value, out var fromName, out var checkNull))
-            {
-                if (checkNull)
-                {
-                    var check = IfStatement.Default
-                        .If($"this.{fromName} is not null")
-                        .AddStatement($"_result_gen.{prop.Name} = {value}");
-                    statements.Add(check);
-                }
-                else
-                {
-                    statements.Add($"_result_gen.{prop.Name} = {value}");
-                }
-            }
-        }
-
-        statements.Add($"return _result_gen;");
+        statements.Add($"return {TARGET_OBJECT};");
 
         var builder = MethodBuilder.Default
             .MethodName($"MapTo{context.TargetType.Name}")
@@ -99,99 +134,86 @@ public static class BuildAutoMapClass
             .AddBody([.. statements]);
 
         return builder;
-    }
 
-    private static bool GetPropertyValue(GenMapperContext context
-        , IPropertySymbol prop
-        , out string? value
-        , out string? fromName
-        , out bool checkNull)
-    {
-        var customTrans = context.Froms.FirstOrDefault(f =>
-        EqualityComparer<INamedTypeSymbol>.Default.Equals(f.Target, context.SourceType)
-        && f.To == prop.Name);
-        if (customTrans != null)
+        Statement HandleForwardSingleToSingle(MapInfo item)
         {
-            var tranMethod = customTrans.By;
-            if (tranMethod != null)
+            Statement line;
+            IPropertySymbol sp = item.SourceProp.First();
+            IPropertySymbol tp = item.TargetProp.First();
+            if (item.ForwardBy is not null)
             {
-                if (tranMethod.IsStatic)
+                var invoker = item.ForwardBy.IsStatic ? item.ForwardBy.ReceiverType?.ToDisplayString() ?? item.ForwardBy.ContainingType?.ToDisplayString() : "this";
+                // 使用自定义映射
+                line = $"{TARGET_OBJECT}.{tp.Name} = {invoker}.{item.ForwardBy.Name}(this.{sp.Name})";
+            }
+            else
+            {
+                if (sp.Type.HasInterfaceAll("System.Collections.IEnumerable")
+                    && sp.Type.SpecialType == SpecialType.None
+                    && tp.Type.HasInterface("System.Collections.IEnumerable")
+                    && tp.Type.SpecialType == SpecialType.None)
                 {
-                    value = $"{tranMethod.ReceiverType?.ToDisplayString() ?? tranMethod.ContainingType?.ToDisplayString()}.{tranMethod.Name}(this)";
+                    // 属性是数组或者其他可迭代对象
+                    var sourceElement = sp.Type.GetElementType();
+                    var targetElement = tp.Type.GetElementType();
+                    var fin = sp.Type is IArrayTypeSymbol ? "ToArray()" : "ToList()";
+                    if (sourceElement.HasAttribute(AutoMapperGenerator.GenMapperAttributeFullName))
+                    {
+                        var na = sp.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
+                        line = $"""
+{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}{na}.Where(i => i is not null).Select(i => i.MapTo<{targetElement.ToDisplayString()}>("{targetElement.MetadataName}")).{fin}
+""";
+                    }
+                    else
+                    {
+                        line = $"{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}";
+                    }
+                }
+                else if (sp.Type.TypeKind == TypeKind.Class && sp.Type.SpecialType == SpecialType.None)
+                {
+                    // 属性是自定义类
+                    if (sp.IsMapableObject())
+                    {
+                        var na = sp.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
+                        line = $"""
+{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}{na}.MapTo<{tp.Type.ToDisplayString()}>("{tp.Type.MetadataName}")
+""";
+                    }
+                    else
+                    {
+                        line = $"{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}";
+                    }
                 }
                 else
                 {
-                    value = $"_result_gen.{tranMethod.Name}(this)";
+                    if (EqualityComparer<ITypeSymbol>.Default.Equals(sp.Type, tp.Type))
+                    {
+                        line = $"{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}";
+                    }
+                    else
+                    {
+                        // 处理类型转换
+                        if (tp.Type.SpecialType == SpecialType.System_String)
+                        {
+                            line = $"{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}.ToString()";
+                        }
+                        else if (tp.Type.GetMembers().FirstOrDefault(m => m.Name == "TryParse") is IMethodSymbol tryParse
+                            && sp.Type.SpecialType == SpecialType.System_String)
+                        {
+                            line = IfStatement.Default.If($"{tp.Type.ToDisplayString()}.{tryParse.Name}(this.{sp.Name}.ToString(), out var _{tp.Name}_out_gen)")
+                                .AddStatement($"{TARGET_OBJECT}.{tp.Name} = _{tp.Name}_out_gen");
+                        }
+                        else
+                        {
+                            line = $"""
+                                    throw new AutoGenMapperGenerator.AutoGenMapperException("{context.SourceType.ToDisplayString()}.{sp.Name}和{context.TargetType.ToDisplayString()}.{tp.Name}尝试自动类型转换失败，请自定义{sp.Type.ToDisplayString()}和{tp.Type.ToDisplayString()}之间的转换")
+                                    """;
+                        }
+                    }
                 }
-                fromName = null;
-                checkNull = false;
-                return true;
             }
-            else if (!customTrans.From.IsNullOrEmpty())
-            {
-                fromName = customTrans.From;
-                value = HandleComplexProperty(prop, customTrans.Target, customTrans.From!, out checkNull);
-                return true;
-            }
-        }
 
-        var p = context.SourceProperties.FirstOrDefault(p => p.Name == prop.Name);
-        if (p != null)
-        {
-            fromName = prop.Name;
-            value = HandleComplexProperty(prop, prop.ContainingType, prop.Name, out checkNull);
-            return true;
-        }
-        value = null;
-        fromName = null;
-        checkNull = false;
-        return false;
-    }
-
-    private static bool IsFromMapableObject(ITypeSymbol target, string name)
-    {
-        var prop = target.GetMembers().FirstOrDefault(m => m.Name == name) as IPropertySymbol;
-        return prop?.Type.HasAttribute(AutoMapperGenerator.GenMapperAttributeFullName) == true;
-    }
-
-    private static string HandleComplexProperty(IPropertySymbol prop, ITypeSymbol fromTarget, string fromName, out bool checkNull)
-    {
-        if (prop.Type.HasInterfaceAll("System.Collections.IEnumerable") && prop.Type.SpecialType == SpecialType.None)
-        {
-            ITypeSymbol? et = null;
-            var fin = "";
-            if (prop.Type is IArrayTypeSymbol at)
-            {
-                et = at.ElementType;
-                fin = "ToArray()";
-            }
-            else
-            {
-                et = prop.Type.GetGenericTypes().First();
-                fin = "ToList()";
-            }
-            if (et.HasAttribute(AutoMapperGenerator.GenMapperAttributeFullName))
-            {
-                var na = prop.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
-                checkNull = true;
-                return ($"""this.{fromName}{na}.Where(i => i is not null).Select(i => i.MapTo<{et.ToDisplayString()}>("{et.MetadataName}")).{fin}""");
-            }
-            else
-            {
-                checkNull = false;
-                return $"this.{fromName}";
-            }
-        }
-        else if (IsFromMapableObject(fromTarget, fromName))
-        {
-            var na = prop.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
-            checkNull = true;
-            return $"""this.{fromName}{na}.MapTo<{prop.Type.ToDisplayString()}>("{prop.Type.MetadataName}")""";
-        }
-        else
-        {
-            checkNull = false;
-            return $"this.{fromName}";
+            return line;
         }
     }
 }

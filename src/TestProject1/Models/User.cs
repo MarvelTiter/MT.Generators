@@ -23,7 +23,7 @@ namespace TestProject1.Models
         IEnumerable<IPower>? Children { get; set; }
     }
 
-    [GenMapper]
+    // [GenMapper]
     public partial class Power : IPower
     {
         public string? PowerId { get; set; }
@@ -44,20 +44,37 @@ namespace TestProject1.Models
 
     [GenMapper]
     [GenMapper(typeof(ProductDto))]
+    [MapBetween(typeof(ProductDto), [nameof(Name), nameof(Category)], nameof(ProductDto.Name), By = nameof(MapToDtoName))]
+    [MapBetween(typeof(ProductDto), nameof(SplitValue), [nameof(ProductDto.S1), nameof(ProductDto.S2)], By = nameof(MapOneToMultiTest))]
     internal partial class Product
     {
-        public Product(int id)
-        {
-            Id = id;
-        }
         public int Id { get; set; }
         public string? Name { get; set; }
         public string? Category { get; set; }
-        [MapTo(Target = typeof(ProductDto), Name = nameof(ProductDto.Date))]
+        [MapBetween(typeof(ProductDto), nameof(ProductDto.Date))]
         public DateTime? ProductDate { get; set; }
         public Product? SubProduct { get; set; }
         public IEnumerable<Product> Products { get; set; } = [];
+        public string? SplitValue { get; set; }
 
+        public static string MapToDtoName(string name, string category)
+        {
+            return $"{name}-{category}";
+        }
+        public static (string, string) MapToDtoName(string name)
+        {
+            var val = name.Split(',');
+            return (val[0], val[1]);
+        }
+        public static string MapOneToMultiTest(string s1, string s2)
+        {
+            return $"{s1},{s2}";
+        }
+        public static (string, string) MapOneToMultiTest(string value)
+        {
+            var val = value.Split(',');
+            return (val[0], val[1]);
+        }
     }
 
     internal class ProductDto
@@ -66,15 +83,14 @@ namespace TestProject1.Models
         {
             Id = id;
         }
-        public string NameMapFrom(Product p)
-        {
-            return $"{p.Category}-{p.Name}";
-        }
         public int Id { get; set; }
 
-        [MapFrom(Source = typeof(Product), By = nameof(NameMapFrom))]
         public string? Name { get; set; }
         //[MapFrom(Source = typeof(Product), Name = nameof(Product.ProductDate))]
         public DateTime? Date { get; set; }
+        public string? S1 { get; set; }
+        public string? S2 { get; set; }
+        public ProductDto? SubProduct { get; set; }
+        public IEnumerable<ProductDto> Products { get; set; } = [];
     }
 }

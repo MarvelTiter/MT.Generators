@@ -3,7 +3,7 @@
     <PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
         <RootNamespace>AutoGenMapperGenerator</RootNamespace>
-		<Version>0.0.7</Version>
+		<Version>0.0.9</Version>
     </PropertyGroup>
 
     <Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />

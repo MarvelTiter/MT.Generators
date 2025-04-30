@@ -14,32 +14,16 @@ namespace TestProject1
         [TestMethod]
         public void AutoMode()
         {
-            var p = new Product(1000)
+            var model = new MappingTestModel()
             {
-                Name = "Edge",
-                Category = "Browser",
-                ProductDate = new DateTime(2020, 02, 02),
-                Products = [
-                    new(1001){
-                        Name = "H1",
-                        Category = "HTML"
-                    },
-                    new(1002){
-                        Name = "H2",
-                        Category = "HTML"
-                    },
-                    new(1003){
-                        Name = "H3",
-                        Category = "HTML"
-                    }
-                    ],
-                SubProduct = new Product(1004)
-                {
-                    Name = "span"
-                }
+                Deadline = DateTime.Now,
+                Last = DateTime.Now,
+                Id = 1000,
+                Level = "1001",
+                Name = "Test",
             };
-            var pd = p.MapToProduct();
-            p.SubProduct.Id = 1005;
+            var dto = model.MapToMappingTestModelDto();
+            Assert.IsTrue(dto.Label == "1001-Test-1001");
         }
 
         [TestMethod]
