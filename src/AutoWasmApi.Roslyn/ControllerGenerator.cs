@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Generators.Shared;
@@ -15,6 +16,9 @@ namespace AutoWasmApiGenerator;
 [Generator(LanguageNames.CSharp)]
 public class ControllerGenerator : IIncrementalGenerator
 {
+    private const string PROXY_INSTANCE = "_proxyService_gen";
+    private const string TUPLE_JSON_OPTION = "AutoWasmApiGenerator.AutoWasmApiGeneratorJsonHelper.TupleOption";
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         //var ctx = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -34,35 +38,35 @@ public class ControllerGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(context.CompilationProvider, static (context, compilation) =>
         {
-            //try
-            //{
-            if (!compilation.Assembly.HasAttribute(WebControllerAssemblyAttributeFullName))
+            try
             {
-                return;
-            }
-            var all = compilation.GetAllSymbols(WebControllerAttributeFullName);
-            foreach (var item in all)
-            {
-                if (CreateCodeFile(item, context, out var file))
+                if (!compilation.Assembly.HasAttribute(WebControllerAssemblyAttributeFullName))
                 {
+                    return;
+                }
+
+                var all = compilation.GetAllSymbols(WebControllerAttributeFullName);
+                foreach (var item in all)
+                {
+                    if (!CreateCodeFile(item, context, out var file))
+                        continue;
 #if DEBUG
                     var ss = file.ToString();
 #endif
                     context.AddSource(file);
                 }
             }
-            //}
-            //catch (Exception ex)
-            //{
-            //    context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
-            //        id: "ControllerGenerator_ERROR00001",
-            //        title: "生成错误",
-            //        messageFormat: ex.Message,
-            //        category: typeof(HttpServiceInvokerGenerator).FullName!,
-            //        defaultSeverity: DiagnosticSeverity.Warning,
-            //        isEnabledByDefault: true
-            //        ), Location.None));
-            //}
+            catch (Exception ex)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
+                    id: "ControllerGenerator_ERROR00001",
+                    title: "生成错误",
+                    messageFormat: ex.Message,
+                    category: typeof(HttpServiceInvokerGenerator).FullName!,
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true
+                ), Location.None));
+            }
         });
     }
 
@@ -70,12 +74,13 @@ public class ControllerGenerator : IIncrementalGenerator
         [NotNullWhen(true)] out CodeFile? file)
     {
         var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName).ToArray();
-        if (methods.Any(a => a.Symbol.IsGenericMethod) || interfaceSymbol.IsGenericType)
+        if (methods.Any(a => !a.Symbol.HasAttribute(ApiNotSupported) && (a.Symbol.IsGenericMethod) || interfaceSymbol.IsGenericType))
         {
             file = null;
-            context.ReportDiagnostic(DiagnosticDefinitions.WAG00004(Location.None));
+            context.ReportDiagnostic(DiagnosticDefinitions.WAG00004(interfaceSymbol.Locations.FirstOrDefault()));
             return false;
         }
+
         var ns = NamespaceBuilder.Default.Namespace(interfaceSymbol.ContainingNamespace.ToDisplayString());
         var controllerClass = CreateControllerClass(interfaceSymbol);
         List<Node> members = [];
@@ -85,16 +90,19 @@ public class ControllerGenerator : IIncrementalGenerator
         members.Add(constructor);
         _ = interfaceSymbol.GetAttribute(WebControllerAttributeFullName, out var attributeData);
         var needAuth = attributeData.GetNamedValue("Authorize") ?? false;
+        var authScheme = attributeData.GetNamedValue("AuthorizationScheme")?.ToString();
         foreach (var methodSymbol in methods)
         {
-            if (methodSymbol.Symbol.HasAttribute(NotSupported))
+            if (methodSymbol.Symbol.HasAttribute(ControllerNotSupported))
             {
                 continue;
             }
+
             var httpMethod = TryGetHttpMethod(methodSymbol);
-            var methodSyntax = BuildMethod(methodSymbol, httpMethod, (bool)needAuth);
+            var methodSyntax = BuildMethod(methodSymbol, httpMethod, (bool)needAuth, authScheme);
             members.Add(methodSyntax);
         }
+
         file = CodeFile.New($"{interfaceSymbol.FormatFileName()}Controller.g.cs")
             .AddMembers(ns.AddMembers(controllerClass.AddMembers([.. members])));
         //.AddUsings(source.GetTargetUsings());
@@ -102,12 +110,12 @@ public class ControllerGenerator : IIncrementalGenerator
         return true;
     }
 
-    private static MethodBuilder BuildMethod((IMethodSymbol, AttributeData?) data, string httpMethod, bool needAuth)
+    private static MethodBuilder BuildMethod((IMethodSymbol, AttributeData?) data, string httpMethod, bool needAuth, string? authScheme)
     {
         /*
          * [global::Microsoft.AspNetCore.Mvc.{httpMethod}("...")]
          * [global::System.CodeDom.Compiler.GeneratedCode("...", "...")]
-         * public <RETURN_TYPE> <METHOD_NAME>(<Parameter> p) => proxyService.<METHOD_NAME>(p);
+         * public <RETURN_TYPE> <METHOD_NAME>(<Parameter> p) => _proxyService_gen.<METHOD_NAME>(p);
          */
         var a = data.Item2;
         var methodSymbol = data.Item1;
@@ -118,7 +126,7 @@ public class ControllerGenerator : IIncrementalGenerator
         {
             methodRoute = methodScoped;
         }
-        else if(Regex.Match(customRoute, "{.+}").Success)
+        else if (Regex.Match(customRoute, "{.+}").Success)
         {
             methodRoute = $"{methodScoped}/{customRoute}";
         }
@@ -131,17 +139,62 @@ public class ControllerGenerator : IIncrementalGenerator
             $"global::Microsoft.AspNetCore.Mvc.Http{httpMethod}(\"{methodRoute}\")";
         var allowAnonymous = (bool)(a?.GetNamedValue("AllowAnonymous") ?? false);
         var methodAuth = (bool)(a?.GetNamedValue("Authorize") ?? false);
-        return MethodBuilder.Default
-            .MethodName(methodSymbol.Name)
-            .ReturnType(methodSymbol.ReturnType.ToDisplayString())
-            .Attribute(methodRouteAttribute)
-            .AttributeIf(allowAnonymous, "global::Microsoft.AspNetCore.Authorization.AllowAnonymous")
-            .AttributeIf((methodAuth || needAuth) && !allowAnonymous,
-                "global::Microsoft.AspNetCore.Authorization.Authorize")
-            .AddGeneratedCodeAttribute(typeof(ControllerGenerator))
-            .AddParameter(GenerateParameter(httpMethod, methodSymbol))
-            .Lambda(
-                $"proxyService.{methodSymbol.Name}({string.Join(", ", methodSymbol.Parameters.Select(p => p.Name))});");
+        var authorizeAttribute = string.IsNullOrEmpty(authScheme)
+            ? "global::Microsoft.AspNetCore.Authorization.Authorize"
+            : $"""global::Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = "{authScheme}")""";
+        var (IsTask, HasReturn, ReturnType) = methodSymbol.GetReturnTypeInfo();
+        if (HasReturn && ReturnType.IsTupleType)
+        {
+            var methodReturn = IsTask ? "global::System.Threading.Tasks.Task<string>" : "object";
+            var methodReturnResult = $"var _return_gen = {(IsTask ? "await " : "")}{PROXY_INSTANCE}.{methodSymbol.Name}({string.Join(", ", methodSymbol.Parameters.Select(p => p.Name))})";
+            var tuple = (INamedTypeSymbol)ReturnType;
+            StringBuilder obj = new();
+            ConvertToAnonymousObject(obj, tuple, "_return_gen");
+            var finalReturn = $"var _anonymous_gen = {obj};";
+            var finalJsonReturn = $"return global::System.Text.Json.JsonSerializer.Serialize(_anonymous_gen, {TUPLE_JSON_OPTION})";
+            return MethodBuilder.Default
+                .MethodName(methodSymbol.Name)
+                .Async(IsTask)
+                .ReturnType(methodReturn)
+                .Attribute(methodRouteAttribute)
+                .AttributeIf(allowAnonymous, "global::Microsoft.AspNetCore.Authorization.AllowAnonymous")
+                .AttributeIf((methodAuth || needAuth) && !allowAnonymous, authorizeAttribute)
+                .AddGeneratedCodeAttribute(typeof(ControllerGenerator))
+                .AddParameter(GenerateParameter(httpMethod, methodSymbol))
+                .AddBody(methodReturnResult, finalReturn, finalJsonReturn);
+        }
+        else
+        {
+            return MethodBuilder.Default
+                .MethodName(methodSymbol.Name)
+                .ReturnType(methodSymbol.ReturnType.ToDisplayString())
+                .Attribute(methodRouteAttribute)
+                .AttributeIf(allowAnonymous, "global::Microsoft.AspNetCore.Authorization.AllowAnonymous")
+                .AttributeIf((methodAuth || needAuth) && !allowAnonymous, authorizeAttribute)
+                .AddGeneratedCodeAttribute(typeof(ControllerGenerator))
+                .AddParameter(GenerateParameter(httpMethod, methodSymbol))
+                .Lambda(
+                    $"{PROXY_INSTANCE}.{methodSymbol.Name}({string.Join(", ", methodSymbol.Parameters.Select(p => p.Name))});");
+        }
+    }
+
+    private static void ConvertToAnonymousObject(StringBuilder obj, INamedTypeSymbol tuple, string tupleObject)
+    {
+        obj.Append("new {");
+        foreach (var field in tuple.TupleElements)
+        {
+            obj.Append($"{field.Name}=");
+            if (field.Type.IsTupleType)
+            {
+                var subTupleObject = $"{tupleObject}.{field.Name}";
+                ConvertToAnonymousObject(obj, (INamedTypeSymbol)field.Type, subTupleObject);
+            }
+            else
+            {
+                obj.Append($"{tupleObject}.{field.Name},");
+            }
+        }
+        obj.Append('}');
     }
 
     private static string[] GenerateParameter(string httpMethod, IMethodSymbol methodSymbol)
@@ -156,7 +209,13 @@ public class ControllerGenerator : IIncrementalGenerator
 
             if (!p.GetAttribute(GeneratorHelpers.WebMethodParameterBindingAttribute, out var binding))
             {
-                return (-2, p);
+                // 如果参数值是自定义类，默认使用body传参，否则使用query传参
+                if (p.Type is { TypeKind: TypeKind.Class, SpecialType: not SpecialType.System_String })
+                {
+                    return (3, p);
+                }
+
+                return (0, p);
             }
 
             Debug.Assert(binding != null, nameof(binding) + " != null");
@@ -205,11 +264,10 @@ public class ControllerGenerator : IIncrementalGenerator
 
     private static FieldBuilder BuildLocalField(INamedTypeSymbol interfaceSymbol)
     {
-        // private readonly <SERVICE_TYPE> proxyService;
-        //return FieldDeclaration(VariableDeclaration(IdentifierName(interfaceSymbol.ToDisplayString())).AddVariables(VariableDeclarator(Identifier("proxyService")))).AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ReadOnlyKeyword));
+        // private readonly <SERVICE_TYPE> _proxyService_gen;
         return FieldBuilder.Default
             .MemberType(interfaceSymbol.ToDisplayString())
-            .FieldName("proxyService");
+            .FieldName(PROXY_INSTANCE);
     }
 
     private static ConstructorBuilder BuildConstructor(INamedTypeSymbol interfaceSymbol)
@@ -217,14 +275,14 @@ public class ControllerGenerator : IIncrementalGenerator
         /*
          * public <SERVICE_TYPE>Controller(<SERVICE_TYPE> service)
          * {
-         *     proxyService = service;
+         *     _proxyService_gen = service;
          * }
          */
 
         return ConstructorBuilder.Default
             .MethodName($"{FormatClassName(interfaceSymbol.FormatClassName())}Controller")
             .AddGeneratedCodeAttribute(typeof(ControllerGenerator))
-            .AddBody("proxyService = service;")
+            .AddBody($"{PROXY_INSTANCE} = service;")
             .AddParameter($"{interfaceSymbol.ToDisplayString()} service");
     }
 

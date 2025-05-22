@@ -43,6 +43,7 @@ public class AutoInjectContextGenerator : IIncrementalGenerator
     const string AutoInjectContext = "AutoInjectGenerator.AutoInjectContextAttribute";
     const string AutoInjectConfiguration = "AutoInjectGenerator.AutoInjectConfiguration";
     const string AutoInject = "AutoInjectGenerator.AutoInjectAttribute";
+    const string AutoInjectSelf = "AutoInjectGenerator.AutoInjectSelfAttribute";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -76,7 +77,7 @@ public class AutoInjectContextGenerator : IIncrementalGenerator
                 {
                     continue;
                 }
-                var all = source.GetAllSymbols(AutoInject);
+                var all = source.GetAllSymbols(AutoInject, true);
                 CreateContextFile(context, item, all);
             }
         });
@@ -165,7 +166,7 @@ public class AutoInjectContextGenerator : IIncrementalGenerator
         List<InjectItem> items = [];
         foreach (var classSymbol in all)
         {
-            foreach (var a in classSymbol.GetAttributes(AutoInject))
+            foreach (var a in classSymbol.GetAttributes(AutoInject, true))
             {
                 // 没有配置规则，全部注入
                 if (includes.Count > 0 || excludes.Count > 0)
@@ -183,14 +184,19 @@ public class AutoInjectContextGenerator : IIncrementalGenerator
                         }
                     }
                 }
+
                 var implType = classSymbol.ToDisplayString();
-                var serviceType = "";
                 var typeError = false;
+                string? serviceType;
                 //var services = classSymbol.GetInterfaces().ToArray();
-                if (a.GetNamedValue("ServiceType", out var t) && t is INamedTypeSymbol type)
+                if (IsInjectSelf(a))
+                {
+                    serviceType = implType;
+                }
+                else if (a.GetNamedValue("ServiceType", out var t) && t is INamedTypeSymbol type)
                 {
                     serviceType = type.ToDisplayString();
-                    if (!classSymbol.AllInterfaces.Contains(type) 
+                    if (!classSymbol.AllInterfaces.Contains(type)
                         && !SymbolEqualityComparer.Default.Equals(classSymbol, type)
                         && !classSymbol.IsSubClassOf(type))
                     {
@@ -230,6 +236,8 @@ public class AutoInjectContextGenerator : IIncrementalGenerator
         }
         return items;
     }
+
+    private static bool IsInjectSelf(AttributeData data) => data.AttributeClass?.ToDisplayString() == AutoInjectSelf;
 
     private static IEnumerable<Statement> CreateInjectStatements(string serviceName, List<InjectItem> items)
     {

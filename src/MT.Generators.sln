@@ -43,6 +43,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{71D54F
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Generators.Shared", "Shared\Generators.Shared\Generators.Shared.shproj", "{0C3325BB-C186-4E45-A567-69DAF5411E8B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		doc\AopProxy版本日志.md = doc\AopProxy版本日志.md
+		doc\GenMapper版本日志.md = doc\GenMapper版本日志.md
+		doc\AutoWasm版本日志.md = doc\AutoWasm版本日志.md
+		doc\AutoInject版本日志.md = doc\AutoInject版本日志.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

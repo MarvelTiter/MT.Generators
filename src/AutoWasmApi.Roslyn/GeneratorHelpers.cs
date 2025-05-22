@@ -13,7 +13,8 @@ public static class GeneratorHelpers
     public const string WebMethodAttributeFullName = "AutoWasmApiGenerator.WebMethodAttribute";
     public const string DisableWebApiGenerator = "DisableWebApiGenerator";
     public const string DisableApiInvokerGenerator = "DisableApiInvokerGenerator";
-    public const string NotSupported = "AutoWasmApiGenerator.ApiInvokeNotSupportedAttribute";
+    public const string ApiNotSupported = "AutoWasmApiGenerator.ApiInvokeNotSupportedAttribute";
+    public const string ControllerNotSupported = "AutoWasmApiGenerator.WebMethodNotSupportedAttribute";
     public const string WebMethodParameterBindingAttribute = "AutoWasmApiGenerator.WebMethodParameterBindingAttribute";
 
     public static Dictionary<int, string> WebMethod { get; } = new()

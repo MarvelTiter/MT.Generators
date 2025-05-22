@@ -21,13 +21,4 @@ public class WebControllerAttribute : Attribute
     /// 是否需要授权才可以访问
     /// </summary>
     public bool Authorize { get; set; }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="attributes"></param>
-    public WebControllerAttribute(params Type[] attributes)
-    {
-        Attributes = attributes;
-    }
 }

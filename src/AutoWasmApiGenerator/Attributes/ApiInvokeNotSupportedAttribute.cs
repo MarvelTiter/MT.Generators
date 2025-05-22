@@ -3,9 +3,9 @@
 namespace AutoWasmApiGenerator
 {
     /// <summary>
-    /// 不允许调用
+    /// 不生成接口调用的代码
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
     public class ApiInvokeNotSupportedAttribute : Attribute
     {
 

@@ -9,7 +9,6 @@ using AutoInjectGenerator;
 namespace Blazor.Test
 {
     [WebController(Authorize = true)]
-    [ApiInvokerGenerate]
     public interface ITest
     {
         [ApiInvokeNotSupported]

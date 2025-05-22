@@ -6,14 +6,14 @@ using Blazor.Test.Components;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 
-[assembly:AutoWasmApiGenerator.WebControllerAssembly]
+[assembly: AutoWasmApiGenerator.WebControllerAssembly]
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
-
+builder.Services.ConfigureHttpJsonOptions(jo => { jo.SerializerOptions.IncludeFields = true; });
 builder.Services.AddScoped<IHelloService, HelloService>();
 builder.Services.AddScoped<TestAop>();
 builder.Services.AddScoped<ExceptionAop>();

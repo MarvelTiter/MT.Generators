@@ -14,8 +14,9 @@ namespace InjectTest
 
     }
 
-    [AutoInject]
-    [AutoInject(ServiceType = typeof(Base))]
+    //[AutoInject]
+    //[AutoInject(ServiceType = typeof(Base))]
+    [AutoInjectSelf]
     public class Base : IDisposable
     {
         public void Dispose()
@@ -27,7 +28,6 @@ namespace InjectTest
     public interface IEmpty { }
 
     [WebController]
-    [ApiInvokerGenerate]
     public interface IB : IEmpty
     {
         Task Hello();

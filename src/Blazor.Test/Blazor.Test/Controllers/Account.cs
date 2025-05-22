@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Blazor.Test.Controllers;
 
@@ -33,11 +34,37 @@ public class AccountController : ControllerBase
 public class TestController : ControllerBase
 {
     [HttpGet("[action]")]
-    public IActionResult Hello()
+    public ActionResult<(string, int)> Hello()
     {
-        var request = new HttpRequestMessage();
+        return Ok((Name: "hello", Age: 123));
+    }
 
-        //request.Headers.Add()
-        return Ok();
+    [HttpGet("[action]")]
+    public ActionResult<Task<string>> Hello2()
+    {
+        return Ok(StringResult());
+    }
+
+    [HttpGet("[action]")]
+    public async Task<ActionResult<Task<string>>> Hello3()
+    {
+        var r = await StringResult();
+        return Ok(r);
+    }
+
+    [HttpGet("[action]")]
+    public void Command([FromQuery] (string, int) p)
+    {
+        Console.WriteLine($"Command {p}");
+    }
+
+    Task<string> StringResult() => Task.FromResult("Hello2");
+
+    object ParseJsonToTuple(string json)
+    {
+        var doc = JsonDocument.Parse(json);
+        var je = doc.RootElement;
+        je.GetProperty("").GetDateTime();
+        return 0;
     }
 }

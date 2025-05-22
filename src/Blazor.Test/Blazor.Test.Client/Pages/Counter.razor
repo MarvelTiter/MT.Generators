@@ -9,16 +9,20 @@
 <p role="status">Current count: @currentCount</p>
 
 <button class="btn btn-primary" @onclick="QueryParameter">FromQuery</button>
+<button class="btn btn-primary" @onclick="QueryParameter2">FromQuery2</button>
 <button class="btn btn-primary" @onclick="HeaderParameter">FromHeader</button>
 <button class="btn btn-primary" @onclick="RouterParameter">FromRoute</button>
 <button class="btn btn-primary" @onclick="FormParameter">FromForm</button>
 <button class="btn btn-primary" @onclick="RouteAndQueryParameter">Route and Query</button>
 <button class="btn btn-primary" @onclick="QueryAndBodyParameter">Query and Body</button>
+<button class="btn btn-primary" @onclick="TestReturnTuple">TestReturnTuple</button>
+<button class="btn btn-primary" @onclick="Test">测试</button>
 
 <br />
 SayHello Input: @input
 <br />
 SayHello Response: @response
+
 @code {
     private int currentCount = 0;
     string? response;
@@ -27,11 +31,25 @@ SayHello Response: @response
     [Inject, NotNull] IHelloService? Service { get; set; }
     [Inject, NotNull] IHttpClientFactory? clientFactory { get; set; }
 
+    private void Test()
+    {
+        response = System.Text.Json.JsonSerializer.Serialize(("Hello", 123), AutoWasmApiGenerator.AutoWasmApiGeneratorJsonHelper.TupleOption);
+    }
+
     private async Task QueryParameter()
     {
         currentCount++;
         name = $"Marvel{currentCount}";
         var responseTest = await Service.TestQueryParameter(name);
+        response = responseTest.ToString();
+        StateHasChanged();
+    }
+
+    private async Task QueryParameter2()
+    {
+        currentCount++;
+        name = $"Marvel{currentCount}";
+        var responseTest = await Service.TestQueryParameter2(name, currentCount);
         response = responseTest.ToString();
         StateHasChanged();
     }
@@ -80,4 +98,14 @@ SayHello Response: @response
         response = responseTest.ToString();
         StateHasChanged();
     }
+
+    private async Task TestReturnTuple()
+    {
+        currentCount++;
+        name = $"Marvel{currentCount}";
+        var result = await Service.TestReturnTuple(name);
+        response = $"{result.Item1}:{result.Item2}";
+        StateHasChanged();
+    }
+
 }

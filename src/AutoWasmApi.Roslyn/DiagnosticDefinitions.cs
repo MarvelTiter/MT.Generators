@@ -123,5 +123,18 @@ namespace AutoWasmApiGenerator
                         category: typeof(HttpServiceInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
+
+        /// <summary>
+        /// 不支持的元组属性类型
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public static Diagnostic WAG00010(Location? location, string? message = null) => Diagnostic.Create(new DiagnosticDescriptor(
+                        id: "WAG00010",
+                        title: "不支持的元组属性类型",
+                        messageFormat: $"不支持的元组属性类型({message})",
+                        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                        defaultSeverity: DiagnosticSeverity.Error,
+                        isEnabledByDefault: true), location);
     }
 }
