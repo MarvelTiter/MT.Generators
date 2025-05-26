@@ -5,177 +5,90 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TestProject1.AopGeneratorTest
+namespace TestProject1.AopGeneratorTest;
+
+public interface IHello2
 {
-    public interface IHello2
+    void Hello(int? i);
+    [AddAspectHandler(AspectType = typeof(MethodTestAop1))]
+    [IgnoreAspect(typeof(LogAop))]
+    Task<bool> RunJobAsync<T>() where T : LogAop;
+}
+public interface IHello<T> : IHello2
+{
+    void Hello(string? message);
+    Task HelloAsync();
+    Task HelloAsync(string message);
+    //[AddAspectHandler(AspectType = typeof(ExceptionAop))]
+    int Count(string message);
+    Task<int> CountAsync();
+    Task<int> CountAsync(string message);
+
+    [AddAspectHandler(AspectType = typeof(MethodTestAop2))]
+    [IgnoreAspect]
+    Task RunJobAsync(string message);
+}
+
+[AddAspectHandler(AspectType = typeof(LogAop))]
+[AddAspectHandler(AspectType = typeof(ExceptionAop))]
+[AddAspectHandler(AspectType = typeof(MethodTestAop2), SelfOnly = true)]
+public interface IWrapHello : IHello<int>
+{
+    //void Hello(string? message);
+}
+
+public interface IWrapHello2
+{
+    
+}
+
+[GenAspectProxy]
+public class User : IWrapHello
+{
+    public void Hello(int? i)
     {
-        void Hello(int? i);
-        [AddAspectHandler(AspectType = typeof(MethodTestAop1))]
-        [IgnoreAspect(typeof(LogAop))]
-        Task<bool> RunJobAsync<T>() where T : LogAop;
-    }
-    public interface IHello<T> : IHello2
-    {
-        void Hello(string? message);
-        Task HelloAsync();
-        Task HelloAsync(string message);
-        //[AddAspectHandler(AspectType = typeof(ExceptionAop))]
-        int Count(string message);
-        Task<int> CountAsync();
-        Task<int> CountAsync(string message);
-
-        
-
-        [AddAspectHandler(AspectType = typeof(MethodTestAop2))]
-        [IgnoreAspect]
-        Task RunJobAsync(string message);
-    }
-
-    [AddAspectHandler(AspectType = typeof(LogAop))]
-    [AddAspectHandler(AspectType = typeof(ExceptionAop))]
-    [AddAspectHandler(AspectType = typeof(MethodTestAop2), SelfOnly = true)]
-    public interface IWrapHello : IHello<int>
-    {
-
-    }
-
-    [GenAspectProxy]
-    public class User : IWrapHello
-    {
-        public void Hello(int? i)
-        {
-            Console.WriteLine("Hello world");
-        }
-
-        public Task HelloAsync()
-        {
-            throw new NotImplementedException();
-        }
-        public Task<int> CountAsync()
-        {
-            return Task.FromResult(3);
-        }
-
-        
-
-        public Task<bool> RunJobAsync<T>() where T : LogAop
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Hello(string? message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task HelloAsync(string message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int Count(string message)
-        {
-            return message.Length;
-        }
-
-        public async Task<int> CountAsync(string message)
-        {
-            await Task.Delay(1);
-            Console.WriteLine($"{message}: {message.Length}");
-            return message.Length;
-        }
-
-        public Task RunJobAsync(string message)
-        {
-            throw new NotImplementedException();
-        }
+        Console.WriteLine("Hello world");
     }
 
-    //[GenAspectProxy]
-    ////[AddAspectHandler(AspectType = typeof(LogAop))]
-    //public class UserProxy : IHello
-    //{
-    //    private readonly User proxy;
-    //    LogAop log;
-    //    public UserProxy()
-    //    {
-    //        this.proxy = new User();
-    //        this.log = new LogAop();
-    //    }
+    public Task HelloAsync()
+    {
+        throw new NotImplementedException();
+    }
+    public Task<int> CountAsync()
+    {
+        return Task.FromResult(3);
+    }
 
-    //    public void Hello()
-    //    {
-    //        Task Done(ProxyContext ctx)
-    //        {
-    //            proxy.Hello();
-    //            ctx.Executed = true;
-    //            return Task.CompletedTask;
-    //        }
-    //        var builder = AsyncPipelineBuilder<ProxyContext>.Create(Done);
-    //        var job = builder.Build();
-    //        var context = ContextHelper.GetOrCreate(typeof(IHello), typeof(User), "Hello", Type.EmptyTypes);
+    public Task<bool> RunJobAsync<T>() where T : LogAop
+    {
+        throw new NotImplementedException();
+    }
 
-    //        job.Invoke(new ProxyContext()).GetAwaiter().GetResult();
-    //    }
+    public void Hello(string? message)
+    {
+        throw new NotImplementedException();
+    }
 
-    //    public Task HelloAsync()
-    //    {
-    //        async Task done(ProxyContext ctx)
-    //        {
-    //            await proxy.HelloAsync();
-    //            ctx.Executed = true;
-    //        }
-    //        var builder = AsyncPipelineBuilder<ProxyContext>.Create(done);
-    //        var job = builder.Build();
-    //        return job.Invoke(new ProxyContext());
-    //    }
+    public Task HelloAsync(string message)
+    {
+        throw new NotImplementedException();
+    }
 
-    //    public int Count()
-    //    {
-    //        int returnValue = default;
-    //        Task done(ProxyContext ctx)
-    //        {
-    //            returnValue = proxy.Count();
-    //            ctx.ReturnValue = returnValue;
-    //            ctx.Executed = true;
-    //            return global::System.Threading.Tasks.Task.CompletedTask;
-    //        }
-    //        var builder = AsyncPipelineBuilder<ProxyContext>.Create(done);
-    //        builder.Use(log.Invoke);
-    //        var job = builder.Build();
-    //        job.Invoke(new ProxyContext()).GetAwaiter().GetResult();
-    //        return returnValue;
-    //    }
+    public int Count(string message)
+    {
+        return message.Length;
+    }
 
-    //    public async Task<int> CountAsync()
-    //    {
-    //        int returnValue = default;
-    //        async Task done(ProxyContext ctx)
-    //        {
-    //            returnValue = await proxy.CountAsync();
-    //            ctx.ReturnValue = returnValue;
-    //            ctx.Executed = true;
-    //        }
-    //        var builder = AsyncPipelineBuilder<ProxyContext>.Create(done);
-    //        var job = builder.Build();
-    //        await job.Invoke(new ProxyContext());
-    //        return returnValue;
-    //    }
+    public async Task<int> CountAsync(string message)
+    {
+        await Task.Delay(1);
+        Console.WriteLine($"{message}: {message.Length}");
+        return message.Length;
+    }
 
-    //    public async Task<bool> RunJobAsync<T>()
-    //    {
-    //        bool returnValue = default;
-    //        async Task Done(ProxyContext ctx)
-    //        {
-    //            returnValue = await proxy.RunJobAsync<T>();
-    //            ctx.ReturnValue = returnValue;
-    //            ctx.Executed = true;
-    //        }
-    //        var builder = AsyncPipelineBuilder<ProxyContext>.Create(Done);
-    //        var job = builder.Build();
-    //        await job.Invoke(new ProxyContext());
-    //        return returnValue;
-    //    }
-    //}
+    public Task RunJobAsync(string message)
+    {
+        throw new NotImplementedException();
+    }
 }
 
