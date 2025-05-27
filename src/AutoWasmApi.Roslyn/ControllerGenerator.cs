@@ -62,7 +62,7 @@ public class ControllerGenerator : IIncrementalGenerator
                     id: "ControllerGenerator_ERROR00001",
                     title: "生成错误",
                     messageFormat: ex.Message,
-                    category: typeof(HttpServiceInvokerGenerator).FullName!,
+                    category: typeof(ApiInvokerGenerator).FullName!,
                     defaultSeverity: DiagnosticSeverity.Warning,
                     isEnabledByDefault: true
                 ), Location.None));

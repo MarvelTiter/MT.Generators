@@ -15,7 +15,7 @@ using System;
 namespace AutoWasmApiGenerator
 {
     [Generator(LanguageNames.CSharp)]
-    public class HttpServiceInvokerGenerator : IIncrementalGenerator
+    public class ApiInvokerGenerator : IIncrementalGenerator
     {
         private const string CUSTOM_JSON_OPTION = "AutoWasmApiGenerator.AutoWasmApiGeneratorJsonHelper.Option";
 
@@ -34,13 +34,13 @@ namespace AutoWasmApiGenerator
                     {
                         return;
                     }
-
+                    _ = compilation.Assembly.GetAttribute(ApiInvokerAssemblyAttributeFullName, out var asmAttributeData);
                     var all = compilation.GetAllSymbols(WebControllerAttributeFullName);
                     foreach (var item in all)
                     {
                         if (item.HasAttribute(ApiNotSupported))
                             continue;
-                        if (!CreateCodeFile(item, context, out var file))
+                        if (!CreateCodeFile(item, asmAttributeData!, context, out var file))
                             continue;
 #if DEBUG
                         var ss = file.ToString();
@@ -54,7 +54,7 @@ namespace AutoWasmApiGenerator
                         id: "ERROR00001",
                         title: "生成错误",
                         messageFormat: ex.Message,
-                        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                        category: typeof(ApiInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Warning,
                         isEnabledByDefault: true
                     ), Location.None));
@@ -62,7 +62,10 @@ namespace AutoWasmApiGenerator
             });
         }
 
-        private static bool CreateCodeFile(INamedTypeSymbol interfaceSymbol, SourceProductionContext context, [NotNullWhen(true)] out CodeFile? file)
+        private static bool CreateCodeFile(INamedTypeSymbol interfaceSymbol
+            , AttributeData returnConfig
+            , SourceProductionContext context
+            , [NotNullWhen(true)] out CodeFile? file)
         {
             var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName);
             List<Node> members = new List<Node>();
@@ -74,7 +77,7 @@ namespace AutoWasmApiGenerator
             bool needAuth = (bool)(controllerAttrData.GetNamedValue("Authorize") ?? false);
             foreach (var method in methods)
             {
-                var result = BuildMethod(method, route, scopeName, needAuth, out var n);
+                var result = BuildMethod(interfaceSymbol, method, returnConfig, route, scopeName, needAuth, out var n);
                 if (n && !needAuth)
                 {
                     needAuth = true;
@@ -90,8 +93,8 @@ namespace AutoWasmApiGenerator
                 members.Add(result.Item1!);
             }
 
-            var fields = BuildField(needAuth);
-            var constructor = BuildConstructor(interfaceSymbol, needAuth);
+            var fields = BuildField();
+            var constructor = BuildConstructor(interfaceSymbol);
             members.AddRange(fields);
             members.Add(constructor);
 
@@ -102,7 +105,13 @@ namespace AutoWasmApiGenerator
             return true;
         }
 
-        private static (MethodBuilder?, Diagnostic?) BuildMethod((IMethodSymbol, AttributeData?) method, string? route, string scopeName, bool controllerAuth, out bool needAuth)
+        private static (MethodBuilder?, Diagnostic?) BuildMethod(INamedTypeSymbol iSymbol
+            , (IMethodSymbol, AttributeData?) method
+            , AttributeData returnConfig
+            , string? route
+            , string scopeName
+            , bool controllerAuth
+            , out bool needAuth)
         {
             var methodSymbol = method.Item1;
             var methodAttribute = method.Item2;
@@ -118,7 +127,7 @@ namespace AutoWasmApiGenerator
                     .Generic([.. methodSymbol.GetTypeParameters()])
                     .ReturnType(methodSymbol.ReturnType.ToDisplayString())
                     .AddParameter([.. methodSymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}")])
-                    .AddGeneratedCodeAttribute(typeof(HttpServiceInvokerGenerator))
+                    .AddGeneratedCodeAttribute(typeof(ApiInvokerGenerator))
                     .Lambda("throw new global::System.NotSupportedException()");
                 return (b, null);
             }
@@ -174,10 +183,6 @@ namespace AutoWasmApiGenerator
                 // request.Method = HttpMethod.<Method>
                 $"_request_gen.Method = global::System.Net.Http.HttpMethod.{webMethod}",
             ];
-            if (needAuth)
-            {
-                statements.Add("await headerHandler.SetRequestHeaderAsync(_request_gen)");
-            }
 
             // 处理参数标签 
             var paramInfos = methodSymbol.Parameters.Select(p =>
@@ -343,41 +348,52 @@ namespace AutoWasmApiGenerator
             statements.Add("_request_gen.RequestUri = new global::System.Uri(_url_gen, UriKind.Relative)");
             //var returnType = methodSymbol.ReturnType.GetGenericTypes().FirstOrDefault() ?? methodSymbol.ReturnType;
             var returnType = returnInfo.ReturnType;
-            if (!returnInfo.HasReturn)
+            var tcf = TryCatch.Default;
+            statements.Add($"var _send_context = new global::AutoWasmApiGenerator.SendContext(typeof({iSymbol.ToDisplayString()}), nameof({methodSymbol.Name}), _request_gen)");
+            if (paramInfos.Length > 0)
             {
-                statements.Add("_ = await _client_gen.SendAsync(_request_gen)");
+                var ps = paramInfos.Select(p => p.p.Name);
+                statements.Add($"_send_context.Parameters = [{string.Join(", ", ps)}]");
             }
-            else
+            if (returnInfo.HasReturn)
             {
-                statements.Add("using var _response_gen = await _client_gen.SendAsync(_request_gen)");
-                statements.Add("_response_gen.EnsureSuccessStatusCode()");
+                statements.Add($"_send_context.ReturnType = typeof({returnInfo.ReturnType.ToDisplayString(NullableFlowState.None)})");
+            }
+            tcf.AddBody("await delegatingHandler.BeforeSendAsync(_send_context)");
+            tcf.AddBody("using var _response_gen = await _client_gen.SendAsync(_request_gen)");
+            tcf.AddBody("_send_context.Response = _response_gen");
+            tcf.AddBody("_response_gen.EnsureSuccessStatusCode()");
+            tcf.AddBody("await delegatingHandler.AfterSendAsync(_send_context)");
+            if (returnInfo.HasReturn)
+            {
+                //statements.Add("using var _response_gen = await _client_gen.SendAsync(_request_gen)");
                 // 返回值是复杂类型，使用Json反序列化
                 if (returnType is { TypeKind: TypeKind.Class, SpecialType: not SpecialType.System_String, IsTupleType: false })
                 {
-                    statements.Add("using var _stream_gen = await _response_gen.Content.ReadAsStreamAsync()");
+                    tcf.AddBody("using var _stream_gen = await _response_gen.Content.ReadAsStreamAsync()");
                     //return System.Text.Json.JsonSerializer.Deserialize<RETURN_TYPE>(jsonStream, jsonOptions);
-                    statements.Add($"return global::System.Text.Json.JsonSerializer.Deserialize<{returnType.ToDisplayString()}>(_stream_gen, {CUSTOM_JSON_OPTION});");
+                    tcf.AddBody($"return global::System.Text.Json.JsonSerializer.Deserialize<{returnType.ToDisplayString()}>(_stream_gen, {CUSTOM_JSON_OPTION});");
                 }
                 else if (returnType.IsTupleType)
                 {
-                    statements.Add("var _json_string_gen = await _response_gen.Content.ReadAsStringAsync()");
+                    tcf.AddBody("var _json_string_gen = await _response_gen.Content.ReadAsStringAsync()");
                     //return System.Text.Json.JsonSerializer.Deserialize<RETURN_TYPE>(jsonStream, jsonOptions);
-                    statements.Add($"var _jsonElement_gen = global::System.Text.Json.JsonDocument.Parse(_json_string_gen).RootElement;");
+                    tcf.AddBody($"var _jsonElement_gen = global::System.Text.Json.JsonDocument.Parse(_json_string_gen).RootElement;");
                     var tupleObject = new StringBuilder();
                     ConvertJsonElementToTuple(tupleObject, (INamedTypeSymbol)returnType, "_jsonElement_gen");
-                    statements.Add($"return {tupleObject}");
+                    tcf.AddBody($"return {tupleObject}");
                 }
                 else
                 {
-                    statements.Add("var _str_gen = await _response_gen.Content.ReadAsStringAsync()");
+                    tcf.AddBody("var _str_gen = await _response_gen.Content.ReadAsStringAsync()");
                     if (returnType.SpecialType == SpecialType.System_String)
                     {
-                        statements.Add("return _str_gen");
+                        tcf.AddBody("return _str_gen");
                     }
                     else if (returnType.IsValueType && returnType.SpecialType != SpecialType.None)
                     {
-                        statements.Add($"{returnType.ToDisplayString()}.TryParse(_str_gen, out var val)");
-                        statements.Add("return val");
+                        tcf.AddBody($"{returnType.ToDisplayString()}.TryParse(_str_gen, out var val)");
+                        tcf.AddBody("return val");
                     }
                     else
                     {
@@ -385,16 +401,109 @@ namespace AutoWasmApiGenerator
                     }
                 }
             }
+            tcf.AddCatch(c =>
+            {
+                c.Exception = "Exception ex";
+                c.AddBody("var _ex_context = new global::AutoWasmApiGenerator.ExceptionContext(_send_context, ex)");
+                c.AddBody("await delegatingHandler.OnExceptionAsync(_ex_context)");
+                c.AddBody(IfStatement.Default.If("!_ex_context.Handled").AddStatement("throw"));
+                if (returnInfo.HasReturn)
+                {
+                    // 尝试从IExceptionResultFactory获取返回值
+                    c.AddBody("var errorResultFactory = serviceProvider.GetService<global::AutoWasmApiGenerator.IExceptionResultFactory>()");
+                    c.AddBody(IfStatement.Default.If($"errorResultFactory?.GetErrorResult<{returnInfo.ReturnType.ToDisplayString()}>(_ex_context, out var _default_result) == true").AddStatement("return _default_result"));
+                    // 尝试从约束属性构建返回值 -> 无参构造函数，有类似success命名的布尔值属性，有类似message、msg命名的字符串属性
+                    // 自定义类型
+                    string[] successFlags;
+                    string[] messageFlags;
+                    if (returnConfig.GetNamedValue<string>("SuccessFlag", out var successProp))
+                    {
+                        successFlags = successProp!.Split([',', '，', ' ', '|'], StringSplitOptions.RemoveEmptyEntries);
+                    }
+                    else
+                    {
+                        successFlags = ["success"];
+                    }
+                    if (returnConfig.GetNamedValue<string>("MessageFlag", out var messageProp))
+                    {
+                        messageFlags = messageProp!.Split([',', '，', ' ', '|'], StringSplitOptions.RemoveEmptyEntries);
+                    }
+                    else
+                    {
+                        messageFlags = ["message", "msg"];
+                    }
+                    if (returnType is { TypeKind: TypeKind.Class, SpecialType: not SpecialType.System_String, IsTupleType: false })
+                    {
+                        // 无参构造函数
+                        var hasNoParamCtor = returnType.GetMembers().Where(m => m.Kind == SymbolKind.Method).Cast<IMethodSymbol>().FirstOrDefault(m => m.MethodKind == MethodKind.Constructor && m.Parameters.Length == 0) is not null;
+                        if (hasNoParamCtor)
+                        {
+                            var success = returnType.GetAllMembers(_ => true).FirstOrDefault(m => m.Kind == SymbolKind.Property && FindMatchProperty(successFlags, m.Name)) as IPropertySymbol;
+                            var message = returnType.GetAllMembers(_ => true).FirstOrDefault(m => m.Kind == SymbolKind.Property && FindMatchProperty(messageFlags, m.Name)) as IPropertySymbol;
+                            if (success is not null || message is not null)
+                            {
+                                c.AddBody($"{returnType.ToDisplayString()} _gen_return = new()");
+                                if (success is not null && success.Type.SpecialType == SpecialType.System_Boolean)
+                                {
+                                    c.AddBody($"_gen_return.{success.Name} = false");
+                                }
+                                if (message is not null && message.Type.SpecialType == SpecialType.System_String)
+                                {
+                                    c.AddBody($"_gen_return.{message.Name} = ex.Message");
+                                }
+                                c.AddBody("return _gen_return");
+                            }
+                        }
 
+                    }
+                    else if (returnType is INamedTypeSymbol { IsTupleType: true } t)
+                    {
+                        var elements = t.TupleElements;
+                        c.AddBody($"return ({string.Join(", ", elements.Select(CheckFieldNameAndType))})");
+                        string CheckFieldNameAndType(IFieldSymbol field)
+                        {
+                            if (FindMatchProperty(successFlags, field.Name) && field.Type.SpecialType == SpecialType.System_Boolean)
+                            {
+                                return "false";
+                            }
+                            if (FindMatchProperty(messageFlags, field.Name) && field.Type.SpecialType == SpecialType.System_String)
+                            {
+                                return "ex.Message";
+                            }
+                            else
+                            {
+                                return "default";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        c.AddBody("return default");
+                    }
+                }
+            });
+            statements.Add(tcf);
             var builder = MethodBuilder.Default
                 .MethodName(methodSymbol.Name)
                 .Generic([.. methodSymbol.GetTypeParameters()])
                 .Async()
                 .ReturnType(methodSymbol.ReturnType.ToDisplayString())
                 .AddParameter([.. methodSymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}")])
-                .AddGeneratedCodeAttribute(typeof(HttpServiceInvokerGenerator))
+                .AddGeneratedCodeAttribute(typeof(ApiInvokerGenerator))
                 .AddBody([.. statements]);
             return (builder, null);
+        }
+
+        private static bool FindMatchProperty(string[] successFlags, string name)
+        {
+            var lower = name.ToLowerInvariant();
+            foreach (var item in successFlags)
+            {
+                var lowerItem = item.ToLowerInvariant();
+                if (lower.Contains(lowerItem) || lowerItem.Contains(lower))
+                    return true;
+            }
+            return false;
         }
 
         private static void ConvertJsonElementToTuple(StringBuilder tupleObject, INamedTypeSymbol tupleType, string jsonElement)
@@ -473,32 +582,32 @@ namespace AutoWasmApiGenerator
             }
         }
 
-        private static IEnumerable<FieldBuilder> BuildField(bool needAuth)
+        private static IEnumerable<FieldBuilder> BuildField()
         {
             // private readonly IHttpClientFactory clientFactory;
             yield return FieldBuilder.Default
                 .MemberType("global::System.Net.Http.IHttpClientFactory")
                 .FieldName("clientFactory");
-            if (needAuth)
-            {
-                yield return FieldBuilder.Default
-                    .MemberType("global::AutoWasmApiGenerator.IHttpClientHeaderHandler")
-                    .FieldName("headerHandler");
-            }
+            yield return FieldBuilder.Default
+                .MemberType("global::AutoWasmApiGenerator.IGeneratedApiInvokeDelegatingHandler")
+                .FieldName("delegatingHandler");
+            yield return FieldBuilder.Default
+                .MemberType("global::System.IServiceProvider")
+                .FieldName("serviceProvider");
         }
 
-        private static ConstructorBuilder BuildConstructor(INamedTypeSymbol classSymbol, bool needAuth)
+        private static ConstructorBuilder BuildConstructor(INamedTypeSymbol classSymbol)
         {
             List<string> parameters =
             [
                 "global::System.Net.Http.IHttpClientFactory factory"
             ];
             List<Statement> body = ["clientFactory = factory;"];
-            if (needAuth)
-            {
-                parameters.Add("global::System.IServiceProvider services");
-                body.Add("headerHandler = services.GetService<global::AutoWasmApiGenerator.IHttpClientHeaderHandler>() ?? global::AutoWasmApiGenerator.DefaultHttpClientHeaderHandler.Default");
-            }
+
+            parameters.Add("global::System.IServiceProvider services");
+            body.Add("serviceProvider = services");
+            body.Add("delegatingHandler = services.GetService<global::AutoWasmApiGenerator.IGeneratedApiInvokeDelegatingHandler>() ?? global::AutoWasmApiGenerator.GeneratedApiInvokeDelegatingHandler.Default");
+
 
             return ConstructorBuilder.Default
                 .MethodName($"{FormatClassName(classSymbol.MetadataName)}ApiInvoker")
@@ -517,44 +626,44 @@ namespace AutoWasmApiGenerator
 
             return ClassBuilder.Default
                 .ClassName($"{FormatClassName(interfaceSymbol.MetadataName)}ApiInvoker")
-                .AddGeneratedCodeAttribute(typeof(HttpServiceInvokerGenerator))
+                .AddGeneratedCodeAttribute(typeof(ApiInvokerGenerator))
                 // .Attribute([.. additionalAttribute.Select(i => i.ToString())])
                 .BaseType(interfaceSymbol.ToDisplayString());
         }
 
-        private static string ConvertCamelCaseName(string name)
-        {
-            if (string.IsNullOrEmpty(name) || !char.IsUpper(name[0]))
-            {
-                return name;
-            }
-            var chars = new Span<char>([.. name]);
-            FixCasing(chars);
+        //private static string ConvertCamelCaseName(string name)
+        //{
+        //    if (string.IsNullOrEmpty(name) || !char.IsUpper(name[0]))
+        //    {
+        //        return name;
+        //    }
+        //    var chars = new Span<char>([.. name]);
+        //    FixCasing(chars);
 
-            return new string(chars.ToArray());
+        //    return new string(chars.ToArray());
 
-            static void FixCasing(Span<char> chars)
-            {
-                for (int i = 0; i < chars.Length; i++)
-                {
-                    if (i == 1 && !char.IsUpper(chars[i]))
-                    {
-                        break;
-                    }
-                    bool hasNext = (i + 1 < chars.Length);
-                    // Stop when next char is already lowercase.
-                    if (i > 0 && hasNext && !char.IsUpper(chars[i + 1]))
-                    {
-                        // If the next char is a space, lowercase current char before exiting.
-                        if (chars[i + 1] == ' ')
-                        {
-                            chars[i] = char.ToLowerInvariant(chars[i]);
-                        }
-                        break;
-                    }
-                    chars[i] = char.ToLowerInvariant(chars[i]);
-                }
-            }
-        }
+        //    static void FixCasing(Span<char> chars)
+        //    {
+        //        for (int i = 0; i < chars.Length; i++)
+        //        {
+        //            if (i == 1 && !char.IsUpper(chars[i]))
+        //            {
+        //                break;
+        //            }
+        //            bool hasNext = (i + 1 < chars.Length);
+        //            // Stop when next char is already lowercase.
+        //            if (i > 0 && hasNext && !char.IsUpper(chars[i + 1]))
+        //            {
+        //                // If the next char is a space, lowercase current char before exiting.
+        //                if (chars[i + 1] == ' ')
+        //                {
+        //                    chars[i] = char.ToLowerInvariant(chars[i]);
+        //                }
+        //                break;
+        //            }
+        //            chars[i] = char.ToLowerInvariant(chars[i]);
+        //        }
+        //    }
+        //}
     }
 }

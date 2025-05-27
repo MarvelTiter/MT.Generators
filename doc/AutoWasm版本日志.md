@@ -1,5 +1,18 @@
 ﻿# 版本功能更新记录
 
+## v0.1.3
+- ⚡️生成API调用类时添加异常处理
+- ⚡️API调用类添加切面入口`IGeneratedApiInvokeDelegatingHandler`
+- ⚡️API调用类返回值优化，当返回自定义类时，将尝试构造该返回值，并从中寻找类似success的属性和类似message的属性，并将异常信息赋值给message，这两个标记可以通过`ApiInvokerAssemblyAttribute`新增的参数辅助查找
+```csharp
+// 假设接口统一返回 QueryResult
+public class QueryResult
+{
+	public bool Success { get; set; }
+	public string Message { get; set; }
+}
+```
+
 ## v0.1.2
 
 - ⚡️移除`ApiInvokerGenerateAttribute`, 统一使用`WebControllerAttribute`作为标识

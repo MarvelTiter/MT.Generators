@@ -25,7 +25,7 @@ public interface IHelloService
 
     [WebMethod(Method = WebMethod.Get)]
     //[ApiInvokeNotSupported]
-    Task<(string Name, int Age, (string Prop, int Value) Info)> TestReturnTuple(string name);
+    Task<(bool Success, string Message, (string Prop, int Value) Info)> TestReturnTuple(string name);
 
     [WebMethod(Method = WebMethod.Get)]
     [ApiInvokeNotSupported]
@@ -78,9 +78,9 @@ public class HelloService : IHelloService
         return QueryResult.Success().SetPayload(name).AsTask();
     }
 
-    public Task<(string, int, (string, int))> TestReturnTuple(string name)
+    public Task<(bool, string, (string, int))> TestReturnTuple(string name)
     {
-        return Task.FromResult((name, name.Length, (name, name.Length)));
+        return Task.FromResult((true, name, (name, name.Length)));
     }
 
     public Task<string> TestRouterParameter([WebMethodParameterBinding(BindingType.FromRoute)] string name)

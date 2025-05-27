@@ -60,11 +60,23 @@ public class TestController : ControllerBase
 
     Task<string> StringResult() => Task.FromResult("Hello2");
 
-    object ParseJsonToTuple(string json)
+    (int, string?) ParseJsonToTuple(string json)
     {
-        var doc = JsonDocument.Parse(json);
-        var je = doc.RootElement;
-        je.GetProperty("").GetDateTime();
-        return 0;
+        try
+        {
+            var doc = JsonDocument.Parse(json);
+            var je = doc.RootElement;
+            je.GetProperty("").GetDateTime();
+            return (default, default);
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+        finally
+        {
+            Console.WriteLine("");
+        }
+        
     }
 }

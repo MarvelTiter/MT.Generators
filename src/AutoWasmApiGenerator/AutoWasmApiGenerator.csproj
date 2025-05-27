@@ -9,7 +9,7 @@
 		<IsRoslynComponent>true</IsRoslynComponent>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Authors>MarvelTiter</Authors>
-		<Version>0.1.2</Version>
+		<Version>0.1.3</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -26,6 +26,10 @@
 
 	<ItemGroup>
 		<None Include=".\readme.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
 	</ItemGroup>
 	
 </Project>

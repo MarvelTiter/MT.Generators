@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -11,7 +11,7 @@ public class DefaultHttpClientHeaderHandler : IHttpClientHeaderHandler
 {
     private DefaultHttpClientHeaderHandler()
     {
-        
+
     }
     private static readonly Lazy<IHttpClientHeaderHandler> lazy = new(() => new DefaultHttpClientHeaderHandler());
     /// <summary>

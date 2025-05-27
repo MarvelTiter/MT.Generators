@@ -29,7 +29,7 @@ namespace AutoWasmApiGenerator
                         id: "WAG00002",
                         title: "无法为该类型生成WebApi调用类，缺少接口",
                         messageFormat: "无法为该类型生成WebApi调用类，缺少接口",
-                        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                        category: typeof(ApiInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
 
@@ -42,7 +42,7 @@ namespace AutoWasmApiGenerator
                         id: "WAG00003",
                         title: "方法参数过多",
                         messageFormat: "方法参数过多",
-                        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                        category: typeof(ApiInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
 
@@ -55,7 +55,7 @@ namespace AutoWasmApiGenerator
                         id: "WAG00004",
                         title: "控制器（controller）不能包含泛型",
                         messageFormat: "控制器（controller）不能包含泛型",
-                        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                        category: typeof(ApiInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
 
@@ -68,7 +68,7 @@ namespace AutoWasmApiGenerator
                         id: "WAG00005",
                         title: "仅支持异步方法",
                         messageFormat: "仅支持异步方法",
-                        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                        category: typeof(ApiInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
 
@@ -81,7 +81,7 @@ namespace AutoWasmApiGenerator
                         id: "WAG00006",
                         title: "路由中未包含路由参数",
                         messageFormat: $"路由中未包含路由参数({symbolString})",
-                        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                        category: typeof(ApiInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
 
@@ -94,7 +94,7 @@ namespace AutoWasmApiGenerator
                         id: "WAG00007",
                         title: "不能同时设置[FromBody]和[FromForm]",
                         messageFormat: $"不能同时设置[FromBody]和[FromForm]({symbolString})",
-                        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                        category: typeof(ApiInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
 
@@ -107,7 +107,7 @@ namespace AutoWasmApiGenerator
                         id: "WAG00008",
                         title: "不能设置多个[FromBody]",
                         messageFormat: $"不能设置多个[FromBody]({symbolString})",
-                        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                        category: typeof(ApiInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
 
@@ -120,7 +120,7 @@ namespace AutoWasmApiGenerator
                         id: "WAG00009",
                         title: "暂不支持的返回值类型",
                         messageFormat: $"暂不支持的返回值类型({symbolString})",
-                        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                        category: typeof(ApiInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
 
@@ -133,7 +133,7 @@ namespace AutoWasmApiGenerator
                         id: "WAG00010",
                         title: "不支持的元组属性类型",
                         messageFormat: $"不支持的元组属性类型({message})",
-                        category: typeof(HttpServiceInvokerGenerator).FullName!,
+                        category: typeof(ApiInvokerGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
     }

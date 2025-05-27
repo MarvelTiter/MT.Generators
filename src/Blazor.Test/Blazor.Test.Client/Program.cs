@@ -1,4 +1,4 @@
-using Blazor.Test.Client.Services;
+﻿using Blazor.Test.Client.Services;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 [assembly:AutoWasmApiGenerator.ApiInvokerAssembly]
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
