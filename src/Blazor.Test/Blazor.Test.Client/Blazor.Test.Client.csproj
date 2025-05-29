@@ -4,6 +4,7 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<LangVersion>preview</LangVersion>
 		<NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
 		<StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
 	</PropertyGroup>
@@ -19,6 +20,8 @@
 		<ProjectReference Include="..\..\AutoAopProxyGenerator\AutoAopProxyGenerator.csproj" />
 		<ProjectReference Include="..\..\AutoGenMapper.Roslyn\AutoGenMapper.Roslyn.csproj" OutputItemType="Analyzer" />
 		<ProjectReference Include="..\..\AutoGenMapperGenerator\AutoGenMapperGenerator.csproj" />
+		<ProjectReference Include="..\..\AutoPageStateContainer.Roslyn\AutoPageStateContainer.Roslyn.csproj" OutputItemType="Analyzer"/>
+		<ProjectReference Include="..\..\AutoPageStateContainerGenerator\AutoPageStateContainerGenerator.csproj" />
 		<ProjectReference Include="..\..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" OutputItemType="Analyzer" />
 		<ProjectReference Include="..\..\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj" />
 		<ProjectReference Include="..\..\InjectTest\InjectTest.csproj" />

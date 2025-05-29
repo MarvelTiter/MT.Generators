@@ -16,3 +16,7 @@
 
 [BlazorAutoWasm](./src/AutoWasmApiGenerator/readme.md)
 
+## Blazor组件数据容器生成器
+
+[PageStateContainer](./src/AutoPageStateContainerGenerator/readme.md)
+

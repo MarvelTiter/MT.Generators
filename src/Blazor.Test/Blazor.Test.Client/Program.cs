@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using AutoWasmApiGenerator;
 using Blazor.Test.Client.Models;
+using AutoPageStateContainerGenerator;
 [assembly:AutoWasmApiGenerator.ApiInvokerAssembly]
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.Services.ConfigureHttpClientDefaults(c =>
@@ -10,6 +11,9 @@ builder.Services.ConfigureHttpClientDefaults(c =>
 });
 
 builder.Services.AddScoped<IHelloService, HelloServiceApiInvoker>();
+
+builder.Services.AddStateContainers();
+
 builder.Services.AddAutoWasmErrorResultHandler(config =>
 {
     config.CreateErrorResult<QueryResult>(context =>

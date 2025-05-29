@@ -1,10 +1,10 @@
-using Blazor.Test;
+﻿using Blazor.Test;
 using Blazor.Test.Client.Aop;
 using Blazor.Test.Client.Pages;
 using Blazor.Test.Client.Services;
 using Blazor.Test.Components;
 using Microsoft.AspNetCore.Authentication.Cookies;
-
+using AutoPageStateContainerGenerator;
 
 [assembly: AutoWasmApiGenerator.WebControllerAssembly]
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +22,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddControllers();
 builder.Services.Inject();
 builder.Services.AddHttpClient();
+
+builder.Services.AddStateContainers();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -5,59 +5,83 @@ name: publish
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      [
+        "master",
+      ]
   pull_request:
-    branches: [ "master" ]
+    branches:
+      [
+        "master",
+      ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-    - name: Update Submodule
-      run: git submodule update --init --recursive  
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - name: Build
-      run: |
-        dotnet build ./src -c Release
-    # AutoInjectGenerator
-    - name: Pack
-      run: |
-        dotnet pack ./src/AutoInjectGenerator/AutoInjectGenerator.csproj -c Release -o publish/autoinject
-    - name: Push
-      run: |
-        dotnet nuget push 'publish/autoinject/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.AUTOINJECT}} --skip-duplicate
-    # AutoWasmApiGenerator
-    - name: Pack
-      run: |
-        dotnet pack ./src/AutoWasmApiGenerator/AutoWasmApiGenerator.csproj -c Release -o publish/autowasmapi
-    - name: Push
-      run: |
-        dotnet nuget push 'publish/autowasmapi/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.AUTOWASMAPI}} --skip-duplicate
-    # MT.Generators.Abstraction
-    - name: Pack
-      run: |
-        dotnet pack ./src/MT.Generators.Abstraction/MT.Generators.Abstraction.csproj -c Release -o publish/genabs
-    - name: Push
-      run: |
-        dotnet nuget push 'publish/genabs/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_ABSTRACTION}} --skip-duplicate
-    # AutoGenMapperGenerator
-    - name: Pack
-      run: |
-        dotnet pack ./src/AutoGenMapperGenerator/AutoGenMapperGenerator.csproj -c Release -o publish/genmapper
-    - name: Push
-      run: |
-        dotnet nuget push 'publish/genmapper/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_MAPPER}} --skip-duplicate
-    # AutoAopProxyGenerator
-    - name: Pack
-      run: |
-        dotnet pack ./src/AutoAopProxyGenerator/AutoAopProxyGenerator.csproj -c Release -o publish/genaopproxy
-    - name: Push
-      run: |
-        dotnet nuget push 'publish/genaopproxy/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_AOPPROXY}} --skip-duplicate
-
-        
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Update Submodule
+        run: git submodule update --init --recursive
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build
+        run:
+          |
+          dotnet build ./src -c Release
+      # AutoInjectGenerator
+      - name: Pack
+        run:
+          |
+          dotnet pack ./src/AutoInjectGenerator/AutoInjectGenerator.csproj -c Release -o publish/autoinject
+      - name: Push
+        run:
+          |
+          dotnet nuget push 'publish/autoinject/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.AUTOINJECT}} --skip-duplicate
+      # AutoWasmApiGenerator
+      - name: Pack
+        run:
+          |
+          dotnet pack ./src/AutoWasmApiGenerator/AutoWasmApiGenerator.csproj -c Release -o publish/autowasmapi
+      - name: Push
+        run:
+          |
+          dotnet nuget push 'publish/autowasmapi/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.AUTOWASMAPI}} --skip-duplicate
+      # MT.Generators.Abstraction
+      - name: Pack
+        run:
+          |
+          dotnet pack ./src/MT.Generators.Abstraction/MT.Generators.Abstraction.csproj -c Release -o publish/genabs
+      - name: Push
+        run:
+          |
+          dotnet nuget push 'publish/genabs/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_ABSTRACTION}} --skip-duplicate
+      # AutoGenMapperGenerator
+      - name: Pack
+        run:
+          |
+          dotnet pack ./src/AutoGenMapperGenerator/AutoGenMapperGenerator.csproj -c Release -o publish/genmapper
+      - name: Push
+        run:
+          |
+          dotnet nuget push 'publish/genmapper/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_MAPPER}} --skip-duplicate
+      # AutoAopProxyGenerator
+      - name: Pack
+        run:
+          |
+          dotnet pack ./src/AutoAopProxyGenerator/AutoAopProxyGenerator.csproj -c Release -o publish/genaopproxy
+      - name: Push
+        run:
+          |
+          dotnet nuget push 'publish/genaopproxy/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_AOPPROXY}} --skip-duplicate
+      # AutoPageStateContainerGenerator
+      - name: Pack
+        run:
+          |
+          dotnet pack ./src/AutoPageStateContainerGenerator/AutoPageStateContainerGenerator.csproj -c Release -o publish/pagestate
+      - name: Push
+        run:
+          |
+          dotnet nuget push 'publish/pagestate/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_AOPPROXY}} --skip-duplicate
