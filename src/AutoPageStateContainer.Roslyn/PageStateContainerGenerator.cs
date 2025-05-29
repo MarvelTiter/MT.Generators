@@ -14,7 +14,7 @@ namespace AutoPageStateContainerGenerator;
 public class PageStateContainerGenerator : IIncrementalGenerator
 {
     const string STATE_CONTAINER = "AutoPageStateContainerGenerator.StateContainerAttribute";
-    const string STATE_FIELD = "AutoPageStateContainerGenerator.SaveStateAttribute";
+    const string STATE_FLAG = "AutoPageStateContainerGenerator.SaveStateAttribute";
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var map = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -28,9 +28,9 @@ public class PageStateContainerGenerator : IIncrementalGenerator
     private static void CreateCodeFile(SourceProductionContext context, GeneratorAttributeSyntaxContext source)
     {
         var classSymbol = (INamedTypeSymbol)source.TargetSymbol;
-        var fields = classSymbol.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.HasAttribute(STATE_FIELD)).Cast<IFieldSymbol>().ToArray();
+        var fields = classSymbol.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.HasAttribute(STATE_FLAG)).Cast<IFieldSymbol>().ToArray();
 
-        var props = classSymbol.GetMembers().Where(m => m.Kind == SymbolKind.Property && m.HasAttribute(STATE_FIELD)).Cast<IPropertySymbol>().ToArray();
+        var props = classSymbol.GetAllMembers(_ => true).Where(m => m.Kind == SymbolKind.Property && m.HasAttribute(STATE_FLAG)).Cast<IPropertySymbol>().ToArray();
         // 创建容器类
 
         // TODO 检查字段命名
@@ -58,7 +58,7 @@ public class PageStateContainerGenerator : IIncrementalGenerator
 
             var init = syntax?.Initializer?.Value;
 
-            field.GetAttribute(STATE_FIELD, out var ad);
+            field.GetAttribute(STATE_FLAG, out var ad);
             var initString = ad.GetNamedValue("Init");
 
             var name = field.Name;
@@ -93,7 +93,7 @@ public class PageStateContainerGenerator : IIncrementalGenerator
         {
             var syntax = prop.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as PropertyDeclarationSyntax;
             var init = syntax?.Initializer?.Value;
-            prop.GetAttribute(STATE_FIELD, out var ad);
+            prop.GetAttribute(STATE_FLAG, out var ad);
             var initString = ad.GetNamedValue("Init");
             var pb = PropertyBuilder.Default
                 .PropertyName(prop.Name)
@@ -132,8 +132,6 @@ public class PageStateContainerGenerator : IIncrementalGenerator
         cb.AddMembers(sc);
         foreach (var field in fields)
         {
-
-
             var name = field.Name;
             if (name.StartsWith("_"))
             {
@@ -150,13 +148,20 @@ public class PageStateContainerGenerator : IIncrementalGenerator
 
         foreach (var prop in props)
         {
-
+            if (!EqualityComparer<INamedTypeSymbol>.Default.Equals(prop.ContainingType, classSymbol) && !prop.IsVirtual)
+            {
+                continue;
+            }
             var proxyProp = PropertyBuilder.Default
                 .PropertyName(prop.Name)
                 .Modifiers("public partial")
                 .MemberType(prop.Type.ToDisplayString())
                 .GetLambda($"StateContainer.{prop.Name}")
                 .SetLambda($"StateContainer.{prop.Name} = value");
+            if (prop.IsVirtual)
+            {
+                proxyProp.Modifiers("public override");
+            }
             cb.AddMembers(proxyProp);
         }
 

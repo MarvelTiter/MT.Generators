@@ -3,7 +3,7 @@
 namespace Blazor.Test.Client.Pages;
 
 [StateContainer]
-public partial class Counter : CounterParent
+public partial class Counter2 : CounterParent
 {
     //[SaveState]
     //private string? name1;

@@ -17,6 +17,23 @@ Blazor的组件数据(或者说组件的属性)，如果没有做特殊处理的
 
 注入生成的数据容器
 
+## 父类中使用
+
+必须使用virtual属性
+
+```csharp
+public partial class CounterParent : ComponentBase
+{
+    [SaveState]
+    public virtual string? Type { get; set; } = "CounterParent";
+
+    public void CheckType()
+    {
+        Console.WriteLine(Type);
+    }
+}
+```
+
 ## 示例
 
 `Counter`组件，不能直接在razor文件中添加该Attribute。
