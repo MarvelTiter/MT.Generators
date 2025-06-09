@@ -44,9 +44,23 @@ public class PageStateContainerGenerator : IIncrementalGenerator
 
     private static CodeFile CreateContainerClass(INamedTypeSymbol classSymbol, IFieldSymbol[] fields, IPropertySymbol[] props)
     {
+        classSymbol.GetAttribute(STATE_CONTAINER, out var attributeData);
+        var lifetime = attributeData.GetNamedValue("Lifetime");
+        string generatedAttribute;
+        if (lifetime is int v)
+        {
+            generatedAttribute = $"""
+                AutoPageStateContainerGenerator.GeneratedStateContainerAttribute( Lifetime = {v})
+                """;
+
+        }
+        else
+        {
+            generatedAttribute = "AutoPageStateContainerGenerator.GeneratedStateContainerAttribute";
+        }
         var cb = ClassBuilder.Default
             .ClassName($"{classSymbol.FormatClassName(true)}StateContainer")
-            .Attribute("AutoPageStateContainerGenerator.GeneratedStateContainerAttribute")
+            .Attribute(generatedAttribute)
             .Interface("AutoPageStateContainerGenerator.IGeneratedStateContainer")
             .AddGeneratedCodeAttribute(typeof(PageStateContainerGenerator));
         var changeEvent = FieldBuilder.Default.Modifiers("public").MemberType("event Action?").FieldName("OnChange");

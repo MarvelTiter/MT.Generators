@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,5 +13,8 @@ namespace AutoPageStateContainerGenerator;
 [AttributeUsage(AttributeTargets.Class)]
 public class StateContainerAttribute : Attribute
 {
-
+    /// <summary>
+    /// 生命周期
+    /// </summary>
+    public ServiceLifetime Lifetime { get; set; }
 }

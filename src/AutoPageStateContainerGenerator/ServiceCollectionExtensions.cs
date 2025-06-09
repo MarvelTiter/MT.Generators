@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -14,7 +15,7 @@ namespace AutoPageStateContainerGenerator;
 public class StateContainerOption
 {
     /// <summary>
-    /// 
+    /// 全局配置，优先级低于<see cref="StateContainerAttribute.Lifetime"/>
     /// </summary>
     public ServiceLifetime InjectLifetime { get; set; } = ServiceLifetime.Scoped;
 }
@@ -44,10 +45,25 @@ public static class ServiceCollectionExtensions
         {
             foreach (var type in asm.ExportedTypes)
             {
-                if (type.GetCustomAttribute<GeneratedStateContainerAttribute>() == null)
+                var attributeData = type.GetCustomAttributesData().FirstOrDefault(a => a.AttributeType == typeof(GeneratedStateContainerAttribute));
+                if (attributeData == null)
                     continue;
                 //services.AddScoped(type);
-                services.Add(new ServiceDescriptor(type, type, option.InjectLifetime));
+                //var lifetime = attr.Lifetime.HasValue ? (ServiceLifetime)attr.Lifetime.Value : option.InjectLifetime;
+                var lifetimeArgument = attributeData.NamedArguments
+            .FirstOrDefault(arg => arg.MemberName == "Lifetime");
+                if (lifetimeArgument != default)
+                {
+                    var lifetime = (ServiceLifetime)(int)lifetimeArgument.TypedValue.Value!;
+                    services.Add(new ServiceDescriptor(type, type, lifetime));
+                }
+                else
+                {
+                    services.Add(new ServiceDescriptor(type, type, option.InjectLifetime));
+                }
+                //var lifetime = attr.Lifetime > -1 ? (ServiceLifetime)attr.Lifetime : option.InjectLifetime;
+                //services.Add(new ServiceDescriptor(type, type, lifetime));
+                //Debug.WriteLine($"{type.FullName} -> {lifetime}");
             }
         }
         return services;

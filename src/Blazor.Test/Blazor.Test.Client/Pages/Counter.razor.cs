@@ -2,7 +2,7 @@
 
 namespace Blazor.Test.Client.Pages;
 
-[StateContainer]
+[StateContainer(Lifetime = ServiceLifetime.Singleton)]
 public partial class Counter : CounterParent
 {
     //[SaveState]

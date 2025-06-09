@@ -15,7 +15,7 @@ public enum InjectLifeTime
     /// <summary>
     /// 
     /// </summary>
-    Transient,
+    Singleton,
     /// <summary>
     /// 
     /// </summary>
@@ -23,5 +23,5 @@ public enum InjectLifeTime
     /// <summary>
     /// 
     /// </summary>
-    Singleton
+    Transient,
 }
