@@ -13,4 +13,8 @@ public class GeneratedStateContainerAttribute : Attribute
     /// 生命周期
     /// </summary>
     public int Lifetime { get; set; }
+    /// <summary>
+    /// <see cref="StateContainerAttribute.Name"/>
+    /// </summary>
+    public string? Name { get; set; }
 }

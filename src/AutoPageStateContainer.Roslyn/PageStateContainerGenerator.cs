@@ -46,22 +46,22 @@ public class PageStateContainerGenerator : IIncrementalGenerator
     {
         classSymbol.GetAttribute(STATE_CONTAINER, out var attributeData);
         var lifetime = attributeData.GetNamedValue("Lifetime");
-        string generatedAttribute;
+        var containerName = attributeData.GetNamedValue("Name");
+        var implements = attributeData.GetNamedValue("Implements") as INamedTypeSymbol;
+        List<(string, string?)> attrParameters = [];
         if (lifetime is int v)
         {
-            generatedAttribute = $"""
-                AutoPageStateContainerGenerator.GeneratedStateContainerAttribute( Lifetime = {v})
-                """;
-
+            attrParameters.Add(("Lifetime", $"{v}"));
         }
-        else
+        if (containerName is not null)
         {
-            generatedAttribute = "AutoPageStateContainerGenerator.GeneratedStateContainerAttribute";
+            attrParameters.Add(("Name", $"\"{containerName}\""));
         }
         var cb = ClassBuilder.Default
             .ClassName($"{classSymbol.FormatClassName(true)}StateContainer")
-            .Attribute(generatedAttribute)
+            .Attribute("AutoPageStateContainerGenerator.GeneratedStateContainerAttribute", [..attrParameters])
             .Interface("AutoPageStateContainerGenerator.IGeneratedStateContainer")
+            .InterfaceIf(implements is not null, implements?.ToDisplayString()!)
             .AddGeneratedCodeAttribute(typeof(PageStateContainerGenerator));
         var changeEvent = FieldBuilder.Default.Modifiers("public").MemberType("event Action?").FieldName("OnChange");
         var notifyChangeMethod = MethodBuilder.Default.Modifiers("private").MethodName("NotifyStateChanged").Lambda("OnChange?.Invoke()");

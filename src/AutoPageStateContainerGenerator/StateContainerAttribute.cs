@@ -17,4 +17,13 @@ public class StateContainerAttribute : Attribute
     /// 生命周期
     /// </summary>
     public ServiceLifetime Lifetime { get; set; }
+    /// <summary>
+    /// 容器名称, 用于<see cref="IStateContainerManager.GetStateContainer(string)"/>
+    /// </summary>
+    public string? Name { get; set; }
+
+    /// <summary>
+    /// 自定义实现类型, 配合<see cref="IStateContainerManager.GetStateContainer(string)"/>使用
+    /// </summary>
+    public Type? Implements { get; set; }
 }

@@ -1,7 +1,18 @@
 ﻿@page "/"
+@using AutoPageStateContainerGenerator
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
-
 Welcome to your new app.
+<h3>Counter容器 -> Name1: @counter?.Name1</h3>
+<h3>Counter容器 -> Type: @counter?.Type</h3>
+@code {
+    [Inject, NotNull] IStateContainerManager? ContainerManager { get; set; }
+    ICounter? counter;
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        counter = ContainerManager.GetStateContainer<ICounter>("Counter");
+    }
+}

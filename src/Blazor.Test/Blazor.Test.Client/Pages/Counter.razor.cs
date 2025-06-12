@@ -2,7 +2,14 @@
 
 namespace Blazor.Test.Client.Pages;
 
-[StateContainer(Lifetime = ServiceLifetime.Singleton)]
+public interface ICounter
+{
+    List<string> Values { get; set; }
+    string? Name1 { get; set; }
+    string? Type { get; set; }
+}
+
+[StateContainer(Lifetime = ServiceLifetime.Singleton, Name = "Counter", Implements = typeof(ICounter))]
 public partial class Counter : CounterParent
 {
     //[SaveState]

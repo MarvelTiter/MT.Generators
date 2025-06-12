@@ -38,6 +38,9 @@ public static class ServiceCollectionExtensions
         var refereaces = entry.GetReferencedAssemblies().Select(Assembly.Load);
         Assembly[] all = [entry, .. refereaces];
 
+
+        services.AddSingleton<IStateContainerManager, DefaultStateContainer>();
+
         var option = new StateContainerOption();
         config?.Invoke(option);
 
@@ -50,8 +53,7 @@ public static class ServiceCollectionExtensions
                     continue;
                 //services.AddScoped(type);
                 //var lifetime = attr.Lifetime.HasValue ? (ServiceLifetime)attr.Lifetime.Value : option.InjectLifetime;
-                var lifetimeArgument = attributeData.NamedArguments
-            .FirstOrDefault(arg => arg.MemberName == "Lifetime");
+                var lifetimeArgument = attributeData.NamedArguments.FirstOrDefault(arg => arg.MemberName == "Lifetime");
                 if (lifetimeArgument != default)
                 {
                     var lifetime = (ServiceLifetime)(int)lifetimeArgument.TypedValue.Value!;
@@ -61,9 +63,12 @@ public static class ServiceCollectionExtensions
                 {
                     services.Add(new ServiceDescriptor(type, type, option.InjectLifetime));
                 }
-                //var lifetime = attr.Lifetime > -1 ? (ServiceLifetime)attr.Lifetime : option.InjectLifetime;
-                //services.Add(new ServiceDescriptor(type, type, lifetime));
-                //Debug.WriteLine($"{type.FullName} -> {lifetime}");
+                var namedArgument = attributeData.NamedArguments.FirstOrDefault(arg => arg.MemberName == "Name");
+                if (namedArgument != default)
+                {
+                    DefaultStateContainer.Add($"{namedArgument.TypedValue.Value}", type);
+                }
+
             }
         }
         return services;

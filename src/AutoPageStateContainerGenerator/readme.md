@@ -9,6 +9,14 @@ Blazor的组件数据(或者说组件的属性)，如果没有做特殊处理的
 
 在需要生成数据容器的组件上标注。
 
+#### 属性
+
+| 名称           | 类型                    | 说明                                    |
+| -------------- | ----------------------- | --------------------------------------- |
+| Lifetime         | Microsoft.Extensions.DependencyInjection.ServiceLifetime | 指定容器服务注入的生命周期               |
+| Name          | string?                 | 设置容器名称([用法](#使用istatecontainermanager))     |
+| Implements  | Type?                    | 设置容器自定义实现类型([用法](#使用istatecontainermanager)) |
+
 ### SaveStateAttribute
 
 标注需要保存的字段。
@@ -34,12 +42,53 @@ public partial class CounterParent : ComponentBase
 }
 ```
 
+
+## 在其他地方使用内存数据容器
+
+### 1. 直接从Ioc容器中获取，生成的类型为类型的全名StateContainer
+
+### 2. 使用IStateContainerManager
+
+设计目的：如果使用第一种方式，主要问题是类型名称太长，并且产生了依赖，所以就出现了`IStateContainerManager`
+
+以`Counter`为例
+```csharp
+public interface ICounter
+{
+    // 假如我想在其他地方通过ICounter使用数据容器中的Name1
+    string? Name1 { get; set; }
+}
+[StateContainer(Name = "Counter", Implements = typeof(ICounter))]
+public partial class Counter
+{
+    [SaveState]
+    public partial string? Name1 { get; set; }
+
+    [SaveState]
+    public partial int Index { get; set; }
+
+    [SaveState(Init = "[]")]
+    public partial List<string> Values { get; set; }
+}
+```
+在`Home`组件中使用`Counter`组件的数据容器
+```csharp
+// 注入IStateContainerManager
+[Inject, NotNull] IStateContainerManager? ContainerManager { get; set; }
+ICounter? counter;
+protected override void OnInitialized()
+{
+    base.OnInitialized();
+    // 从IStateContainerManager中获取ICounter
+    counter = ContainerManager.GetStateContainer<ICounter>("Counter");
+}
+```
 ## 示例
 
 `Counter`组件，不能直接在razor文件中添加该Attribute。
 ### 使用字段
 ```csharp
-[StateContainer]
+[StateContainer(Name = "Counter", Implements = typeof(ICounter))]
 public partial class Counter
 {
     [SaveState]
@@ -57,7 +106,7 @@ public partial class Counter
 
 ### 使用分部属性
 ```csharp
-[StateContainer]
+[StateContainer(Name = "Counter", Implements = typeof(ICounter))]
 public partial class Counter
 {
     [SaveState]
@@ -89,6 +138,9 @@ partial class Counter
     public Blazor_Test_Client_Pages_CounterStateContainer StateContainer { get; set; }
 
 
+    public override string? Type { get => StateContainer.Type; set => StateContainer.Type = value; }
+
+
     public partial string? Name1 { get => StateContainer.Name1; set => StateContainer.Name1 = value; }
 
 
@@ -107,12 +159,27 @@ using AutoPageStateContainerGenerator;
 #nullable enable
 namespace Blazor.Test.Client.Pages;
 
-[AutoPageStateContainerGenerator.GeneratedStateContainerAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("AutoPageStateContainerGenerator.PageStateContainerGenerator", "0.0.1.0")]
+[AutoPageStateContainerGenerator.GeneratedStateContainerAttribute(Lifetime = 0, Name = "Counter")]
+[global::System.CodeDom.Compiler.GeneratedCode("AutoPageStateContainerGenerator.PageStateContainerGenerator", "0.0.4.0")]
 /// <inheritdoc/>
-public partial class Blazor_Test_Client_Pages_CounterStateContainer : AutoPageStateContainerGenerator.IGeneratedStateContainer
+public partial class Blazor_Test_Client_Pages_CounterStateContainer : AutoPageStateContainerGenerator.IGeneratedStateContainer, Blazor.Test.Client.Pages.ICounter
 {
     public event Action? OnChange;
+
+    private string? type = "CounterParent";
+
+    public string? Type
+    {
+        get
+        {
+            return type;
+        }
+        set
+        {
+            type = value;
+            NotifyStateChanged(); 
+        }
+    }
 
     private string? name1;
 
@@ -163,5 +230,4 @@ public partial class Blazor_Test_Client_Pages_CounterStateContainer : AutoPageSt
     private void NotifyStateChanged()
       => OnChange?.Invoke();
 }
-
 ```
