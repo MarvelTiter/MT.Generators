@@ -59,7 +59,7 @@ public class PageStateContainerGenerator : IIncrementalGenerator
         }
         var cb = ClassBuilder.Default
             .ClassName($"{classSymbol.FormatClassName(true)}StateContainer")
-            .Attribute("AutoPageStateContainerGenerator.GeneratedStateContainerAttribute", [..attrParameters])
+            .Attribute("AutoPageStateContainerGenerator.GeneratedStateContainerAttribute", [.. attrParameters])
             .Interface("AutoPageStateContainerGenerator.IGeneratedStateContainer")
             .InterfaceIf(implements is not null, implements?.ToDisplayString()!)
             .AddGeneratedCodeAttribute(typeof(PageStateContainerGenerator));
@@ -137,10 +137,13 @@ public class PageStateContainerGenerator : IIncrementalGenerator
 
     private static CodeFile CreatePartialRazorClass(INamedTypeSymbol classSymbol, IFieldSymbol[] fields, IPropertySymbol[] props)
     {
+        classSymbol.GetAttribute(STATE_CONTAINER, out var attributeData);
+        var customName = attributeData.GetNamedValue("Name");
         var cb = ClassBuilder.Default.ClassName($"{classSymbol.FormatClassName()}")
             .Modifiers("partial");
+        var containerName = customName?.ToString() ?? "StateContainer";
         var sc = PropertyBuilder.Default
-             .PropertyName("StateContainer")
+             .PropertyName(containerName)
              .MemberType($"{classSymbol.FormatClassName(true)}StateContainer")
              .Attribute("global::Microsoft.AspNetCore.Components.InjectAttribute");
         cb.AddMembers(sc);
@@ -155,8 +158,8 @@ public class PageStateContainerGenerator : IIncrementalGenerator
             var proxyProp = PropertyBuilder.Default
                 .PropertyName(propName)
                 .MemberType(field.Type.ToDisplayString())
-                .GetLambda($"StateContainer.{propName}")
-                .SetLambda($"StateContainer.{propName} = value");
+                .GetLambda($"{containerName}.{propName}")
+                .SetLambda($"{containerName}.{propName} = value");
             cb.AddMembers(proxyProp);
         }
 
@@ -170,8 +173,8 @@ public class PageStateContainerGenerator : IIncrementalGenerator
                 .PropertyName(prop.Name)
                 .Modifiers("public partial")
                 .MemberType(prop.Type.ToDisplayString())
-                .GetLambda($"StateContainer.{prop.Name}")
-                .SetLambda($"StateContainer.{prop.Name} = value");
+                .GetLambda($"{containerName}.{prop.Name}")
+                .SetLambda($"{containerName}.{prop.Name} = value");
             if (prop.IsVirtual)
             {
                 proxyProp.Modifiers("public override");

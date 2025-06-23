@@ -9,7 +9,7 @@ public interface ICounter
     string? Type { get; set; }
 }
 
-[StateContainer(Lifetime = ServiceLifetime.Singleton, Name = "Counter", Implements = typeof(ICounter))]
+[StateContainer(Lifetime = ServiceLifetime.Singleton, Name = "CounterData", Implements = typeof(ICounter))]
 public partial class Counter : CounterParent
 {
     //[SaveState]

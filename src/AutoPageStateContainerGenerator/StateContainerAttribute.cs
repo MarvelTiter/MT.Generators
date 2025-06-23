@@ -18,7 +18,7 @@ public class StateContainerAttribute : Attribute
     /// </summary>
     public ServiceLifetime Lifetime { get; set; }
     /// <summary>
-    /// 容器名称, 用于<see cref="IStateContainerManager.GetStateContainer(string)"/>
+    /// 容器名称, 用于<see cref="IStateContainerManager.GetStateContainer(string)"/> 和属性命名
     /// </summary>
     public string? Name { get; set; }
 

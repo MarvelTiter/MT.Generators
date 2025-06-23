@@ -2,7 +2,7 @@
 
 namespace Blazor.Test.Client.Pages;
 
-[StateContainer]
+[StateContainer(Name = "Counter2Data")]
 public partial class Counter2 : CounterParent
 {
     //[SaveState]
