@@ -1,4 +1,5 @@
-﻿using Generators.Shared;
+﻿using Generators.Models;
+using Generators.Shared;
 using Generators.Shared.Builder;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -59,6 +60,7 @@ public class PageStateContainerGenerator : IIncrementalGenerator
         }
         var cb = ClassBuilder.Default
             .ClassName($"{classSymbol.FormatClassName(true)}StateContainer")
+            .Generic([.. classSymbol.GetTypeParameters()])
             .Attribute("AutoPageStateContainerGenerator.GeneratedStateContainerAttribute", [.. attrParameters])
             .Interface("AutoPageStateContainerGenerator.IGeneratedStateContainer")
             .InterfaceIf(implements is not null, implements?.ToDisplayString()!)
@@ -139,12 +141,14 @@ public class PageStateContainerGenerator : IIncrementalGenerator
     {
         classSymbol.GetAttribute(STATE_CONTAINER, out var attributeData);
         var customName = attributeData.GetNamedValue("Name");
+        TypeParameterInfo[] typedArgs = [.. classSymbol.GetTypeParameters()];
         var cb = ClassBuilder.Default.ClassName($"{classSymbol.FormatClassName()}")
+            .Generic(typedArgs)
             .Modifiers("partial");
         var containerName = customName?.ToString() ?? "StateContainer";
         var sc = PropertyBuilder.Default
              .PropertyName(containerName)
-             .MemberType($"{classSymbol.FormatClassName(true)}StateContainer")
+             .MemberType($"{classSymbol.FormatClassName(true)}StateContainer",typedArgs)
              .Attribute("global::Microsoft.AspNetCore.Components.InjectAttribute");
         cb.AddMembers(sc);
         foreach (var field in fields)

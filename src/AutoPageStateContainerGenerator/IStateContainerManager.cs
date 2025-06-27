@@ -40,7 +40,7 @@ public static class IStateContainerManagerEx
 }
 
 
-internal class DefaultStateContainer(IServiceProvider services) : IStateContainerManager
+internal sealed class DefaultStateContainer(IServiceProvider services) : IStateContainerManager
 {
     private static readonly ConcurrentDictionary<string, Type> types = [];
     public static void Add(string name, Type type)
