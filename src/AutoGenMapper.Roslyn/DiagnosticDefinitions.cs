@@ -174,5 +174,18 @@ namespace AutoGenMapperGenerator
             category: typeof(AutoMapperGenerator).FullName!,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true), location);
+
+        /// <summary>
+        /// SourceType不能为null
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public static Diagnostic AGM00014(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
+            id: "AGM00014",
+            title: "SourceType不能为null",
+            messageFormat: "SourceType不能为null",
+            category: typeof(AutoMapperGenerator).FullName!,
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true), location);
     }
 }

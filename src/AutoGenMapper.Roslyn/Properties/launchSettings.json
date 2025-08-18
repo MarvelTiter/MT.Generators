@@ -2,7 +2,7 @@
   "profiles": {
     "mapper": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\TestProject1\\TestProject1.csproj"
+      "targetProject": "..\\AutoGenMapper.Test\\AutoGenMapper.Test.csproj"
     }
   }
 }

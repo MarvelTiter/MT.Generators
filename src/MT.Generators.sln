@@ -50,6 +50,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{02EA681E-C7D
 		..\doc\AutoPageState版本日志.md = ..\doc\AutoPageState版本日志.md
 		..\doc\AutoWasm版本日志.md = ..\doc\AutoWasm版本日志.md
 		..\doc\GenMapper版本日志.md = ..\doc\GenMapper版本日志.md
+		..\.github\workflows\push_nuget.yml = ..\.github\workflows\push_nuget.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{115A2B1E-868D-4459-999B-411233152CD3}"
@@ -59,6 +60,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoPageStateContainerGenerator", "AutoPageStateContainerGenerator\AutoPageStateContainerGenerator.csproj", "{D07C8E12-510C-4D21-B1AF-819A42465377}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoPageStateContainer.Roslyn", "AutoPageStateContainer.Roslyn\AutoPageStateContainer.Roslyn.csproj", "{C1046CBB-499B-448E-84B7-8B103311A224}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoGenMapper.Test", "AutoGenMapper.Test\AutoGenMapper.Test.csproj", "{C935D657-62A3-4A05-9B9D-C302F077F7EC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -126,6 +129,10 @@ Global
 		{C1046CBB-499B-448E-84B7-8B103311A224}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C1046CBB-499B-448E-84B7-8B103311A224}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C1046CBB-499B-448E-84B7-8B103311A224}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C935D657-62A3-4A05-9B9D-C302F077F7EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C935D657-62A3-4A05-9B9D-C302F077F7EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C935D657-62A3-4A05-9B9D-C302F077F7EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C935D657-62A3-4A05-9B9D-C302F077F7EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -153,6 +160,7 @@ Global
 		{B83F7AC9-3860-4606-8AB3-3FD47A945E55} = {115A2B1E-868D-4459-999B-411233152CD3}
 		{D07C8E12-510C-4D21-B1AF-819A42465377} = {B83F7AC9-3860-4606-8AB3-3FD47A945E55}
 		{C1046CBB-499B-448E-84B7-8B103311A224} = {B83F7AC9-3860-4606-8AB3-3FD47A945E55}
+		{C935D657-62A3-4A05-9B9D-C302F077F7EC} = {47FB0C42-25F4-49C1-A98C-D6536116B894}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E16846FC-C2B2-43ED-A534-5726B5C9DDEE}
