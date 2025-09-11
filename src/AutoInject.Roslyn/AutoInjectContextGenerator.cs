@@ -7,80 +7,115 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
 using System.Linq;
 using Generators.Shared.Builder;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Threading;
-
+using static AutoInjectGenerator.AutoInjectContextGeneratorHelpers;
 namespace AutoInjectGenerator;
 
-public static class Ex
-{
-    /// <summary>
-    /// symbol 是否可以作为 other的子类
-    /// </summary>
-    /// <param name="symbol"></param>
-    /// <param name="other"></param>
-    /// <returns></returns>
-    public static bool IsSubClassOf(this INamedTypeSymbol symbol, INamedTypeSymbol other)
-    {
-        if (SymbolEqualityComparer.Default.Equals(symbol.BaseType, other))
-        {
-            return true;
-        }
-        else
-        {
-            if (symbol.BaseType is null)
-            {
-                return false;
-            }
-            return symbol.BaseType.IsSubClassOf(other);
-        }
-    }
-}
 
 [Generator(LanguageNames.CSharp)]
 public class AutoInjectContextGenerator : IIncrementalGenerator
 {
-    const string AutoInjectContext = "AutoInjectGenerator.AutoInjectContextAttribute";
-    const string AutoInjectConfiguration = "AutoInjectGenerator.AutoInjectConfiguration";
-    const string AutoInject = "AutoInjectGenerator.AutoInjectAttribute";
-    const string AutoInjectSelf = "AutoInjectGenerator.AutoInjectSelfAttribute";
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         //只能获取到当前程序集的节点
         //var ctx = context.SyntaxProvider.ForAttributeWithMetadataName(
         //    AutoInjectContext
         //    , static (node, _) => node is ClassDeclarationSyntax
-        //    , static (ctx, _) => ctx);
+        //    , CollectContextInfo).Collect();
         //var services = context.SyntaxProvider.ForAttributeWithMetadataName(
         //    AutoInject
         //    , static (node, _) => node is ClassDeclarationSyntax
-        //    , static (ctx, _) => ctx);
-        //context.RegisterSourceOutput(ctx.Combine(services.Collect()), static (context, source) =>
+        //    , CollectInjectInfo).Collect();
+
+        //var ctx = context.CompilationProvider.ForAttributeWithMetadataName(
+        //    AutoInjectContext
+        //    , static (node, _) => true
+        //    , (ctx, _) => CollectContextInfo(ctx)).Collect();
+        //var services = context.CompilationProvider.ForAttributeWithMetadataName(
+        //    AutoInject
+        //    , static (node, _) => true
+        //    , (ctx, _) => CollectInjectInfo(ctx)).Collect();
+
+        //context.RegisterSourceOutput(context.CompilationProvider.Combine(ctx.Combine(services)), static (context, source) =>
         //{
-        //    var injectContext = (INamedTypeSymbol)source.Left.TargetSymbol;
-        //    var all = source.Right.Select(s => s.TargetSymbol).Cast<INamedTypeSymbol>();
-        //    CreateContextFile(context, injectContext, all);
+        //    (Compilation compilation, var Right) = source;
+        //    (var allContext, var services) = Right;
+        //    foreach (var item in allContext)
+        //    {
+        //        if (item is null) continue;
+        //        if (!EqualityComparer<IAssemblySymbol>.Default.Equals(item.TargetSymbol.ContainingAssembly, compilation.SourceModule.ContainingAssembly))
+        //        {
+        //            continue;
+        //        }
+        //        if (item.Diagnostic != null)
+        //        {
+        //            context.ReportDiagnostic(item.Diagnostic);
+        //            return;
+        //        }
+
+        //        foreach (var a in services.Where(a => a?.Diagnostic is not null))
+        //        {
+        //            context.ReportDiagnostic(a!.Diagnostic!);
+        //            return;
+        //        }
+        //        var codefile = CreateContextCodeFile(item, services);
+        //        context.AddSource(codefile);
+        //    }
         //});
+
+
         context.RegisterSourceOutput(context.CompilationProvider, static (context, source) =>
         {
-
-            var allContext = source.GetAllSymbols(AutoInjectContext).ToArray();
-            if (allContext.Length == 0)
-            {
-                return;
-            }
-
+            var allContext = source.FindByAttributeMetadataName(
+                AutoInjectContext
+                , CollectContextInfo).ToArray();
             foreach (var item in allContext)
             {
-                if (!EqualityComparer<IAssemblySymbol>.Default.Equals(item.ContainingAssembly, source.SourceModule.ContainingAssembly))
+                if (!EqualityComparer<IAssemblySymbol>.Default.Equals(item.TargetSymbol.ContainingAssembly, source.SourceModule.ContainingAssembly))
                 {
                     continue;
                 }
-                var all = source.GetAllSymbols(AutoInject, true);
-                CreateContextFile(context, item, all);
+                if (item.Diagnostic != null)
+                {
+                    context.ReportDiagnostic(item.Diagnostic);
+                    return;
+                }
+                var services = source.FindByAttributeMetadataName(
+               AutoInject, CollectInjectInfo, true).ToArray();
+                if (services.Any(a => a?.Diagnostic is not null))
+                {
+                    foreach (var a in services.Where(a => a?.Diagnostic is not null))
+                    {
+                        context.ReportDiagnostic(a!.Diagnostic!);
+                    }
+                    return;
+                }
+                var codefile = CreateContextCodeFile(item, services);
+#if DEBUG
+                var ss = codefile?.ToString();
+#endif
+                context.AddSource(codefile);
             }
         });
+
+        //context.RegisterSourceOutput(context.CompilationProvider, static (context, source) =>
+        //{
+
+        //    var allContext = source.GetAllSymbols(AutoInjectContext).ToArray();
+        //    if (allContext.Length == 0)
+        //    {
+        //        return;
+        //    }
+
+        //    foreach (var item in allContext)
+        //    {
+        //        if (!EqualityComparer<IAssemblySymbol>.Default.Equals(item.ContainingAssembly, source.SourceModule.ContainingAssembly))
+        //        {
+        //            continue;
+        //        }
+        //        var all = source.GetAllSymbols(AutoInject, true);
+        //        CreateContextFile(context, item, all);
+        //    }
+        //});
     }
 
     private static void CreateContextFile(SourceProductionContext context, INamedTypeSymbol classSymbol,

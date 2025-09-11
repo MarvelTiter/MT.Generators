@@ -1,5 +1,9 @@
 ﻿# 版本功能更新记录
 
+## v0.1.4
+- 🐞`AutoAopProxyServiceProviderFactory`服务注册, `Add` -> `TryAdd`
+- 🛠重构生成逻辑, 修复部分bug
+
 ## v0.1.3
 
 - ⚡️优化生成逻辑

@@ -10,6 +10,7 @@ namespace AutoInjectGenerator;
 /// <para>Scoped</para>
 /// <para>Singleton</para>
 /// </summary>
+[Obsolete]
 public enum InjectLifeTime
 {
     /// <summary>

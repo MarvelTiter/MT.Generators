@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -15,7 +16,7 @@ public class AutoInjectAttribute : Attribute
     /// <summary>
     /// 注册实例生命周期，默认Scoped
     /// </summary>
-    public InjectLifeTime LifeTime { get; set; } = InjectLifeTime.Scoped;
+    public ServiceLifetime LifeTime { get; set; } = ServiceLifetime.Scoped;
     /// <summary>
     /// 注册服务对应服务类型，默认是自身
     /// </summary>
@@ -25,12 +26,13 @@ public class AutoInjectAttribute : Attribute
     /// </summary>
     public string? Group { get; set; }
     /// <summary>
-    /// 键值注册
+    /// 键值注册，只支持使用string类型，其他类型不做判断
     /// </summary>
     public string? ServiceKey { get; set; }
     /// <summary>
     /// 是否使用TryAdd
     /// </summary>
+    [Obsolete]
     public bool IsTry { get; set; }
 }
 

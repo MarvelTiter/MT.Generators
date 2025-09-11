@@ -43,7 +43,7 @@ public interface IHelloService
         , [WebMethodParameterBinding(BindingType.FromBody)] RequestTest body);
 }
 
-[GenAspectProxy]
+//[GenAspectProxy]
 public class HelloService : IHelloService
 {
     public async Task<string> TestHeaderParameter(string name)

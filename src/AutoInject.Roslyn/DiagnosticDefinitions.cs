@@ -33,7 +33,7 @@ namespace AutoInjectGenerator
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
         /// <summary>
-        /// 
+        /// 类型错误
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
@@ -41,6 +41,19 @@ namespace AutoInjectGenerator
                         id: "AIG00003",
                         title: "类型错误",
                         messageFormat: $"{implType}不能作为{serviceType}的实现注入",
+                        category: typeof(AutoInjectContextGenerator).FullName!,
+                        defaultSeverity: DiagnosticSeverity.Error,
+                        isEnabledByDefault: true), location);
+
+        /// <summary>
+        /// 多次注入，但是使用了不同的生命周期或者分组
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public static Diagnostic AIG00004(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
+                        id: "AIG00004",
+                        title: "多次注入，但是使用了不同的生命周期或者分组",
+                        messageFormat: "多次注入，但是使用了不同的生命周期或者分组",
                         category: typeof(AutoInjectContextGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);

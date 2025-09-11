@@ -6,6 +6,6 @@
 	</PropertyGroup>
 	<Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
 	<Import Project="..\Shared\Generators.Shared\MT.Generators.props" />
-	<Import Project="..\AutoPageStateContainerGenerator\Versions.props"/>
+	<Import Project="..\AutoPageStateContainerGenerator\Versions.props" />
 
 </Project>

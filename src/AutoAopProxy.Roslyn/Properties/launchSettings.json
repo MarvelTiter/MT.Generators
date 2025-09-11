@@ -2,7 +2,7 @@
   "profiles": {
     "aop": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\TestProject1\\TestProject1.csproj"
+      "targetProject": "..\\InjectTest\\InjectTest.csproj"
     }
   }
 }

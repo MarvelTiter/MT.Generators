@@ -1,18 +1,42 @@
 ﻿@page "/"
 @using AutoPageStateContainerGenerator
+@using InjectTest
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 Welcome to your new app.
+[Inject]
+<h3>Counter容器 -> Name1: @ImplCounter?.Name1</h3>
+<h3>Counter容器 -> Type: @ImplCounter?.Type</h3>
+[Inject]
+<h3>Counter容器 -> Name1: @ItfCounter?.Name1</h3>
+<h3>Counter容器 -> Type: @ItfCounter?.Type</h3>
+[IStateContainerManager]
 <h3>Counter容器 -> Name1: @counter?.Name1</h3>
 <h3>Counter容器 -> Type: @counter?.Type</h3>
+<BlazorTest.Pages.TestPage></BlazorTest.Pages.TestPage>
+<button @onclick="@(_ => Ib.Hello())">click</button>
 @code {
     [Inject, NotNull] IStateContainerManager? ContainerManager { get; set; }
+    [Inject] Blazor_Test_Client_Pages_CounterStateContainer? ImplCounter { get; set; }
+    [Inject] ICounter? ItfCounter { get; set; }
+    [Inject, NotNull] IServiceProvider? Services { get; set; }
+    [Inject, NotNull] IB? Ib { get; set; }
     ICounter? counter;
     protected override void OnInitialized()
     {
         base.OnInitialized();
         counter = ContainerManager.GetStateContainer<ICounter>("CounterData");
+        // var b = Services.GetService<IB>();
+        // _ = b?.Hello();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        var b = Services.GetRequiredService<IB>();
+        var b2 = Services.GetRequiredKeyedService<IB>("Test");
+        await b.Hello();
     }
 }

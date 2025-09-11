@@ -27,7 +27,7 @@ namespace Blazor.Test
 
     [AutoInject]
     //[AutoInject(ServiceType = typeof(IEmpty))]
-    [AutoInject(ServiceType = typeof(Class1))]
+    [AutoInjectSelf]
     public class Class1 : ITest
     {
         public void Log(string message)
@@ -50,20 +50,5 @@ namespace Blazor.Test
             throw new NotImplementedException();
             return Task.FromResult(message.Length > 5);
         }
-    }
-
-
-    [AutoInjectContext]
-    public static partial class AutoInjectContext
-    {
-        [AutoInjectConfiguration(Include = "SERVER")]
-        public static partial void Inject(this IServiceCollection services);
-    }
-
-    [AutoInjectContext]
-    public static partial class AutoWasmInjectContext
-    {
-        [AutoInjectConfiguration(Include = "WASM")]
-        public static partial void AutoWasm(this IServiceCollection services);
     }
 }

@@ -623,10 +623,15 @@ namespace AutoWasmApiGenerator
             //     //var o = data.GetAttributeValue(nameof(ApiInvokerGeneraAttribute.Attribute));
             //     additionalAttribute = interfaceSymbol.GetAttributeInitInfo(ApiInvokerAttributeFullName, data!);
             // }
-
+            var attchAttribute = "AutoWasmApiGenerator.Attributes.GeneratedByAutoWasmApiGeneratorAttribute";
+            (string, string?)[] attrParams = [
+                ("InterfaceType", $"typeof({interfaceSymbol.ToDisplayString()})"),
+                ("Part", "AutoWasmApiGenerator.Attributes.PartType.ApiInvoker")
+                ];
             return ClassBuilder.Default
                 .ClassName($"{FormatClassName(interfaceSymbol.MetadataName)}ApiInvoker")
                 .AddGeneratedCodeAttribute(typeof(ApiInvokerGenerator))
+                .Attribute(attchAttribute, attrParams)
                 // .Attribute([.. additionalAttribute.Select(i => i.ToString())])
                 .BaseType(interfaceSymbol.ToDisplayString());
         }

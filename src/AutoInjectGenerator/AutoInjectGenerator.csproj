@@ -9,13 +9,12 @@
 		<IsRoslynComponent>true</IsRoslynComponent>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Authors>MarvelTiter</Authors>
-		<Version>0.1.0</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<RootNamespace>AutoInjectGenerator</RootNamespace>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
-
+	<Import Project="Versions.props" />
 	<ItemGroup>
 		<!-- Package the generator in the analyzer directory of the nuget package -->
 		<None Include="..\AutoInject.Roslyn\bin\$(Configuration)\netstandard2.0\AutoInject.Roslyn.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
@@ -23,6 +22,10 @@
 	
 	<ItemGroup>
 		<None Include=".\readme.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
 	</ItemGroup>
 
 </Project>

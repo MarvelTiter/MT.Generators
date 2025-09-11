@@ -9,17 +9,9 @@ public interface ICounter
     string? Type { get; set; }
 }
 
-[StateContainer(Lifetime = ServiceLifetime.Singleton, Name = "CounterData", Implements = typeof(ICounter))]
+[StateContainer( Name = "CounterData", Implements = typeof(ICounter))]
 public partial class Counter : CounterParent
 {
-    //[SaveState]
-    //private string? name1;
-
-    //[SaveState]
-    //private int index;
-
-    //[SaveState]
-    //private List<string> values = [];
     [SaveState]
     public partial string? Name1 { get; set; }
 

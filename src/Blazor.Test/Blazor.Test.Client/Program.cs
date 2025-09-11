@@ -13,7 +13,8 @@ builder.Services.ConfigureHttpClientDefaults(c =>
 builder.Services.AddScoped<IHelloService, HelloServiceApiInvoker>();
 
 builder.Services.AddStateContainers();
-
+//builder.Services.AddGeneratedContainerServices();
+builder.Services.AddGeneratedApiInvokerServices();
 builder.Services.AddAutoWasmErrorResultHandler(config =>
 {
     config.CreateErrorResult<QueryResult>(context =>

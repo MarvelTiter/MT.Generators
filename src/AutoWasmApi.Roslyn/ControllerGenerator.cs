@@ -292,7 +292,11 @@ public class ControllerGenerator : IIncrementalGenerator
         var route = controllerAttribute.GetNamedValue("Route") ?? "[controller]";
         var needAuth = controllerAttribute.GetNamedValue("Authorize") ?? false;
         //var additionalAttribute = source.TargetSymbol.GetAttributeInitInfo<ControllerGenerator>();
-
+        var attchAttribute = "AutoWasmApiGenerator.Attributes.GeneratedByAutoWasmApiGeneratorAttribute";
+        (string, string?)[] attrParams = [
+            ("InterfaceType", $"typeof({interfaceSymbol.ToDisplayString()})"),
+            ("Part", "AutoWasmApiGenerator.Attributes.PartType.Controller")
+            ];
         return ClassBuilder.Default
             .ClassName($"{FormatClassName(interfaceSymbol.FormatClassName())}Controller")
             .Modifiers("public")
@@ -301,7 +305,8 @@ public class ControllerGenerator : IIncrementalGenerator
             .Attribute($"global::Microsoft.AspNetCore.Mvc.Route(\"api/{route}\")")
             .AttributeIf((bool)needAuth, "global::Microsoft.AspNetCore.Authorization.Authorize")
             //.Attribute([..additionalAttribute.Select(i => i.ToString())])
-            .AddGeneratedCodeAttribute(typeof(ControllerGenerator));
+            .AddGeneratedCodeAttribute(typeof(ControllerGenerator))
+            .Attribute(attchAttribute, attrParams);
     }
 
     private static string TryGetHttpMethod((IMethodSymbol, AttributeData?) data)

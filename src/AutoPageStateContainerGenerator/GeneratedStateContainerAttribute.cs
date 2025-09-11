@@ -17,4 +17,8 @@ public class GeneratedStateContainerAttribute : Attribute
     /// <see cref="StateContainerAttribute.Name"/>
     /// </summary>
     public string? Name { get; set; }
+    /// <summary>
+    /// 自定义接口实现
+    /// </summary>
+    public Type? Implements { get; set; }
 }

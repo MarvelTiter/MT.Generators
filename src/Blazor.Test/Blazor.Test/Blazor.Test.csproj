@@ -9,6 +9,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\AutoInject.Roslyn\AutoInject.Roslyn.csproj" OutputItemType="Analyzer" />
+		<ProjectReference Include="..\..\AutoPageStateContainer.Roslyn\AutoPageStateContainer.Roslyn.csproj" OutputItemType="Analyzer"/>
+		<ProjectReference Include="..\..\AutoPageStateContainerGenerator\AutoPageStateContainerGenerator.csproj" />
 		<ProjectReference Include="..\..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" OutputItemType="Analyzer" />
 		<ProjectReference Include="..\..\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj" />
 		<ProjectReference Include="..\..\InjectTest\InjectTest.csproj" />

@@ -7,45 +7,66 @@ using System.Collections.Generic;
 using System.Diagnostics.SymbolStore;
 using System.Linq;
 using System.Text;
-
+using static AutoAopProxyGenerator.GeneratorHelper;
 namespace AutoAopProxyGenerator;
 
 [Generator(LanguageNames.CSharp)]
 public class AutoAopProxyClassGenerator : IIncrementalGenerator
 {
-    public const string Aspectable = "AutoAopProxyGenerator.GenAspectProxyAttribute";
-    public const string AspectHandler = "AutoAopProxyGenerator.AddAspectHandlerAttribute";
-    public const string IgnoreAspect = "AutoAopProxyGenerator.IgnoreAspectAttribute";
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var source = context.SyntaxProvider.ForAttributeWithMetadataName(
             Aspectable
             , static (node, _) => node is ClassDeclarationSyntax
-            , static (ctx, _) => ctx);
+            , static (ctx, _) => CollectContextInfo(ctx)).Collect();
+
         context.RegisterSourceOutput(source, static (context, source) =>
         {
-            var targetSymbol = (INamedTypeSymbol)source.TargetSymbol;
-            //INamedTypeSymbol[] needToCheckSymbol = [targetSymbol, .. targetSymbol.AllInterfaces];
-
-            var allInterfaces = targetSymbol.AllInterfaces.Where(a =>
+            foreach (var item in source)
             {
-                // 接口上标注了AddAspectHandlerAttribute，或者接口中有方法标注了AddAspectHandlerAttribute
-                return a.HasAttribute(AspectHandler) || a.GetMethods().Where(m => m.MethodKind != MethodKind.Constructor).Any(m => m.HasAttribute(AspectHandler));
-            }).ToArray();
-
-            if (!CheckAttributeEnable(context, source, allInterfaces, out var handlers))
-            {
-                return;
-            }
-            var file = CreateGeneratedProxyClassFile(targetSymbol, handlers);
-            if (file != null)
-            {
+                if (item.Diagnostic is not null)
+                {
+                    context.ReportDiagnostic(item.Diagnostic);
+                    continue;
+                }
+                var file = CreateCodeFile(item);
 #if DEBUG
                 var ss = file.ToString();
 #endif
                 context.AddSource(file);
             }
         });
+
+
+        //        var source = context.SyntaxProvider.ForAttributeWithMetadataName(
+        //            Aspectable
+        //            , static (node, _) => node is ClassDeclarationSyntax
+        //            , static (ctx, _) => (ctx));
+        //        context.RegisterSourceOutput(source, static (context, source) =>
+        //        {
+        //            var targetSymbol = (INamedTypeSymbol)source.TargetSymbol;
+        //            //INamedTypeSymbol[] needToCheckSymbol = [targetSymbol, .. targetSymbol.AllInterfaces];
+
+        //            var allInterfaces = targetSymbol.AllInterfaces.Where(a =>
+        //            {
+        //                // 接口上标注了AddAspectHandlerAttribute，或者接口中有方法标注了AddAspectHandlerAttribute
+        //                return a.HasAttribute(AspectHandler) || a.GetMethods().Where(m => m.MethodKind != MethodKind.Constructor).Any(m => m.HasAttribute(AspectHandler));
+        //            }).ToArray();
+
+        //            if (!CheckAttributeEnable(context, source, allInterfaces, out var handlers))
+        //            {
+        //                return;
+        //            }
+        //            var file = CreateGeneratedProxyClassFile(targetSymbol, handlers);
+        //            if (file != null)
+        //            {
+        //#if DEBUG
+        //                var ss = file.ToString();
+        //#endif
+        //                context.AddSource(file);
+        //            }
+        //        });
     }
 
     private static bool CheckAttributeEnable(SourceProductionContext context
@@ -103,6 +124,7 @@ public class AutoAopProxyClassGenerator : IIncrementalGenerator
         var ctor = ConstructorBuilder.Default.MethodName($"{classSymbol.FormatClassName()}GeneratedProxy")
             .AddParameter([$"{classSymbol.ToDisplayString()} proxy", .. allHandlers.Select(n => $"{n.ToDisplayString()} {n.MetadataName}")]).AddBody([.. ctorbody]);
         members.Add(ctor);
+
         var enableInterfaces = GetInterfacesIncludeBaseType(classSymbol);
         // 接口方法
         //List<INamedTypeSymbol> outterHandlers = [];

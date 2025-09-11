@@ -23,7 +23,7 @@ public class StateContainerAttribute : Attribute
     public string? Name { get; set; }
 
     /// <summary>
-    /// 自定义实现类型, 配合<see cref="IStateContainerManager.GetStateContainer(string)"/>使用
+    /// 自定义实现类型, 配合<see cref="IStateContainerManager.GetStateContainer(string)"/>使用, 或者直接注入使用
     /// </summary>
     public Type? Implements { get; set; }
 }

@@ -2,7 +2,7 @@
   "profiles": {
     "autoinject": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\Blazor.Test\\Blazor.Test\\Blazor.Test.csproj"
+      "targetProject": "..\\InjectTest\\InjectTest.csproj"
     }
   }
 }

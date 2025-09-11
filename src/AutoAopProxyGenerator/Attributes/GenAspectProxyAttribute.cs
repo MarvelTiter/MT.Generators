@@ -5,7 +5,7 @@ namespace AutoAopProxyGenerator;
 /// <summary>
 /// 标记需要生成代理类的类型
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public sealed class GenAspectProxyAttribute : Attribute
 {
 

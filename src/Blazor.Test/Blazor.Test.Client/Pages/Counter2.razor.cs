@@ -5,14 +5,6 @@ namespace Blazor.Test.Client.Pages;
 [StateContainer(Name = "Counter2Data")]
 public partial class Counter2 : CounterParent
 {
-    //[SaveState]
-    //private string? name1;
-
-    //[SaveState]
-    //private int index;
-
-    //[SaveState]
-    //private List<string> values = [];
     [SaveState]
     public partial string? Name1 { get; set; }
 

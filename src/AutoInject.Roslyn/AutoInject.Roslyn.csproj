@@ -3,8 +3,8 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>AutoInjectGenerator</RootNamespace>
-		<Version>0.1.0</Version>
 	</PropertyGroup>
 	<Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
 	<Import Project="..\Shared\Generators.Shared\MT.Generators.props" />
+	<Import Project="..\AutoInjectGenerator\Versions.props"/>
 </Project>

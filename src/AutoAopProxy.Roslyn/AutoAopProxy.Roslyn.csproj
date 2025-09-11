@@ -3,10 +3,10 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>AutoAopProxyGenerator</RootNamespace>
-		<Version>0.1.3</Version>
 	</PropertyGroup>
 
 	<Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
 	<Import Project="..\Shared\Generators.Shared\MT.Generators.props" />
+	<Import Project="..\AutoAopProxyGenerator\Versions.props" />
 
 </Project>

@@ -1,9 +1,11 @@
-﻿using AutoInjectGenerator;
+﻿using AutoAopProxyGenerator;
+using AutoInjectGenerator;
 using AutoWasmApiGenerator;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace InjectTest
 {
-    [AutoInject(Group = "SERVER")]
+    [AutoInject(Group = "SERVER", LifeTime = ServiceLifetime.Singleton)]
     public class InjectTestClass
     {
 
@@ -21,24 +23,31 @@ namespace InjectTest
     {
         public void Dispose()
         {
-            throw new NotImplementedException();
+
         }
     }
 
-    public interface IEmpty { }
-
-    [WebController]
-    public interface IB : IEmpty
+    public interface IEmpty
     {
         Task Hello();
     }
 
-    [AutoInject(Group = "SERVER", ServiceKey = "Test", IsTry = true)]
+    [WebController]
+    [AddAspectHandler(AspectType = typeof(InjectTestAspectHandler))]
+    public interface IB : IEmpty
+    {
+    }
+
+    [AutoInject(ServiceKey = "Test")]
+    [AutoInject]
+    [AutoInject(ServiceType = typeof(IEmpty))]
+    [GenAspectProxy]
     public class Class2 : Base, IB
     {
         public Task Hello()
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Hello World");
+            return Task.CompletedTask;
         }
     }
 }

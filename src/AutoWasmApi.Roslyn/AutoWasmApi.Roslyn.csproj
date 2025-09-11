@@ -4,10 +4,9 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>AutoWasmApiGenerator</RootNamespace>
 		<LangVersion>latest</LangVersion>
-		<Version>0.1.2</Version>
 	</PropertyGroup>
 
 	<Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
 	<Import Project="..\Shared\Generators.Shared\MT.Generators.props" />
-
+	<Import Project="..\AutoWasmApiGenerator\Versions.props" />
 </Project>

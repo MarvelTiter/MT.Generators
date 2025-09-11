@@ -13,4 +13,8 @@ internal class MethodContext(IMethodSymbol symbol, INamedTypeSymbol declared)
 
 }
 
-internal record HandlerInfo(bool IsSelf, INamedTypeSymbol DeclaredType, INamedTypeSymbol Handler);
+internal record HandlerInfo(bool IsSelf, INamedTypeSymbol DeclaredType, INamedTypeSymbol Handler)
+{
+    public string Type { get; } = Handler.ToDisplayString();
+    public string Name { get; } = Handler.MetadataName;
+}

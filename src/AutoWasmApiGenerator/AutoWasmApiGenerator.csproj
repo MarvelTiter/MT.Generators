@@ -9,12 +9,11 @@
 		<IsRoslynComponent>true</IsRoslynComponent>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Authors>MarvelTiter</Authors>
-		<Version>0.1.3</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
-
+	<Import Project="Versions.props"/>
 	<ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
 		<ProjectReference Include="..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" ReferenceOutputAssembly="false" />
 	</ItemGroup>

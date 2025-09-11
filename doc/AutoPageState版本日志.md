@@ -1,5 +1,9 @@
 ﻿# 版本功能更新记录
 
+## v0.0.7
+- ⚡️为`StateContainerAttribute.Implements`添加注入
+- ⚡️修改`IStateContainerManager`的注入周期为`Scoped`
+
 ## v0.0.6
 - ⚡️`StateContainerAttribute.Name`属性，适用于注入的数据容器属性的名称（默认为StateContainer）
 - ⚡️支持泛型

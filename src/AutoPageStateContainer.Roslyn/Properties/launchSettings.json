@@ -2,7 +2,7 @@
   "profiles": {
     "pagestate": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\Blazor.Test\\Blazor.Test.Client\\Blazor.Test.Client.csproj"
+      "targetProject": "..\\Blazor.Test\\Blazor.Test\\Blazor.Test.csproj"
     }
   }
 }
