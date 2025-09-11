@@ -1,4 +1,4 @@
-# This workflow will build a .NET project
+﻿# This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
 name: publish
@@ -39,7 +39,7 @@ jobs:
       - name: Push
         run:
           |
-          dotnet nuget push 'publish/autoinject/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.AUTOINJECT}} --skip-duplicate
+          dotnet nuget push 'publish/autoinject/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}} --skip-duplicate
       # AutoWasmApiGenerator
       - name: Pack
         run:
@@ -48,7 +48,7 @@ jobs:
       - name: Push
         run:
           |
-          dotnet nuget push 'publish/autowasmapi/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.AUTOWASMAPI}} --skip-duplicate
+          dotnet nuget push 'publish/autowasmapi/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}} --skip-duplicate
       # MT.Generators.Abstraction
       - name: Pack
         run:
@@ -57,7 +57,7 @@ jobs:
       - name: Push
         run:
           |
-          dotnet nuget push 'publish/genabs/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_ABSTRACTION}} --skip-duplicate
+          dotnet nuget push 'publish/genabs/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}} --skip-duplicate
       # AutoGenMapperGenerator
       - name: Pack
         run:
@@ -66,7 +66,7 @@ jobs:
       - name: Push
         run:
           |
-          dotnet nuget push 'publish/genmapper/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_MAPPER}} --skip-duplicate
+          dotnet nuget push 'publish/genmapper/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}} --skip-duplicate
       # AutoAopProxyGenerator
       - name: Pack
         run:
@@ -75,7 +75,7 @@ jobs:
       - name: Push
         run:
           |
-          dotnet nuget push 'publish/genaopproxy/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_AOPPROXY}} --skip-duplicate
+          dotnet nuget push 'publish/genaopproxy/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}} --skip-duplicate
       # AutoPageStateContainerGenerator
       - name: Pack
         run:
@@ -84,4 +84,4 @@ jobs:
       - name: Push
         run:
           |
-          dotnet nuget push 'publish/pagestate/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.GEN_AOPPROXY}} --skip-duplicate
+          dotnet nuget push 'publish/pagestate/*.nupkg' -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}} --skip-duplicate
