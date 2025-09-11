@@ -1,3 +1,4 @@
 [submodule "src/Shared"]
 	path = src/Shared
 	url = https://github.com/MarvelTiter/MT.Generators.Shared.git
+	branch = master

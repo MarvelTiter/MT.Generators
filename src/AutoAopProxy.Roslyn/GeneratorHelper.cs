@@ -35,7 +35,17 @@ internal static class GeneratorHelper
         List<AspectMethodContext> methodContexts = [];
         foreach (INamedTypeSymbol item in proxyInterfaces)
         {
-            ScanSymbolMethodsRecursive(item, e => CheckExplicit(methodContexts, e));
+            ScanSymbolMethodsRecursive(item, e =>
+            {
+                CheckExplicit(methodContexts, e);
+                foreach (var mh in e.MethodHandlers)
+                {
+                    if (!allHandlers.Any(h => EqualityComparer<INamedTypeSymbol>.Default.Equals(h.Handler, mh)))
+                    {
+                        allHandlers.Add(new HandlerInfo(false, e.DeclaredType, mh));
+                    }
+                }
+            });
         }
 
         return new(targetSymbol)
@@ -264,7 +274,9 @@ internal static class GeneratorHelper
         }
         statements.Add("var _job_gen = _builder_gen.Build()");
         var ptypes = method.Parameters.Length > 0 ? $"[{string.Join(", ", method.Parameters.Select(SelectParameterType))}]" : "Type.EmptyTypes";
-        statements.Add($"var _context_gen = ContextHelper<{iSymbol.ToDisplayString()}, {cSymbol.ToDisplayString()}>.GetOrCreate(nameof({method.Name}), {ptypes})");
+        statements.Add($"""
+            var _context_gen = ContextHelper<{iSymbol.ToDisplayString()}, {cSymbol.ToDisplayString()}>.GetOrCreate("{method.Name}", {ptypes})
+            """);
 
         statements.Add($"_context_gen.Parameters = new object?[] {{{string.Join(", ", method.Parameters.Select(p => p.Name))}}};");
         if (IsTask)
