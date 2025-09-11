@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace InjectTest
 {
-    [AutoInject(Group = "SERVER", LifeTime = ServiceLifetime.Singleton)]
+    [AutoInject(Group = "SERVER", LifeTime = InjectLifeTime.Singleton)]
     public class InjectTestClass
     {
 

@@ -16,7 +16,7 @@ public class AutoInjectAttribute : Attribute
     /// <summary>
     /// 注册实例生命周期，默认Scoped
     /// </summary>
-    public ServiceLifetime LifeTime { get; set; } = ServiceLifetime.Scoped;
+    public InjectLifeTime LifeTime { get; set; } = InjectLifeTime.Scoped;
     /// <summary>
     /// 注册服务对应服务类型，默认是自身
     /// </summary>
