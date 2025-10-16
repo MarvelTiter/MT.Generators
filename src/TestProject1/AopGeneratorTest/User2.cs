@@ -52,7 +52,7 @@ public class UserBase : IUser
 
 }
 
-[AutoAopProxyGenerator.GenAspectProxy(InheritBaseType = true)]
+[AutoAopProxyGenerator.GenAspectProxy]
 public class User2 : UserBase, IUser3
 {
 
