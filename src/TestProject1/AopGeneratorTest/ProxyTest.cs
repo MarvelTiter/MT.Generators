@@ -46,8 +46,8 @@ namespace TestProject1.AopGeneratorTest
             var provider = providerFactory.CreateServiceProvider(services);
             var u1 = provider.GetService<IUser1>();
             var u2 = provider.GetService<IUser2>();
-            var r1 = u1?.Hello("Marvel1");
-            var r2 = u2?.Hello("Marvel2");
+            var r1 = u1?.Hello1("Marvel1");
+            var r2 = u2?.Hello2("Marvel2");
             Assert.IsTrue(r1 == "Hello Marvel1 From IUser1");
             Assert.IsTrue(r2 == "Hello Marvel2 From IUser2");
         }

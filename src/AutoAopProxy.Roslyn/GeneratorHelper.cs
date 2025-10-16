@@ -17,6 +17,7 @@ internal static class GeneratorHelper
     public static GenerateContext CollectContextInfo(GeneratorAttributeSyntaxContext context)
     {
         var targetSymbol = (INamedTypeSymbol)context.TargetSymbol;
+        targetSymbol.GetAttribute(Aspectable, out var attributeData);
         var allHandlerInterfaces = targetSymbol.AllInterfaces.Where(a =>
         {
             // 接口上标注了AddAspectHandlerAttribute，或者接口中有方法标注了AddAspectHandlerAttribute
@@ -25,14 +26,14 @@ internal static class GeneratorHelper
         var error = CheckAttributeEnable();
         if (error is not null)
         {
-            return new GenerateContext(targetSymbol)
+            return new GenerateContext(targetSymbol, attributeData!)
             {
                 Diagnostic = error
             };
         }
         var allHandlers = CollectClassHandlerInfo(allHandlerInterfaces);
         var proxyInterfaces = GetInterfacesIncludeBaseType(targetSymbol);
-        List<AspectMethodContext> methodContexts = [];
+        List<AspectMemberContext> methodContexts = [];
         foreach (INamedTypeSymbol item in proxyInterfaces)
         {
             ScanSymbolMethodsRecursive(item, e =>
@@ -42,13 +43,40 @@ internal static class GeneratorHelper
                 {
                     if (!allHandlers.Any(h => EqualityComparer<INamedTypeSymbol>.Default.Equals(h.Handler, mh)))
                     {
-                        allHandlers.Add(new HandlerInfo(false, e.DeclaredType, mh));
+                        allHandlers.Add(new HandlerInfo(true, e.DeclaredType, mh));
                     }
                 }
             });
         }
 
-        return new(targetSymbol)
+        //if (targetSymbol.BaseType is not null && attributeData.GetNamedValue<bool>("InheritBaseType", out var b) && b)
+        //{
+        //    foreach (var m in targetSymbol.GetMembers())
+        //    {
+        //        if (m is IMethodSymbol method && method.MethodKind == MethodKind.Ordinary)
+        //        {
+        //            if (!method.IsOverride)
+        //                continue;
+        //        }
+        //        else if (m is IPropertySymbol prop)
+        //        {
+        //            if (!prop.IsOverride)
+        //                continue;
+        //        }
+        //        else
+        //        {
+        //            continue;
+        //        }
+        //        var ctx = new AspectMemberContext(m, targetSymbol.BaseType)
+        //        {
+        //            IsOverride = true,
+        //            Type = m is IMethodSymbol ? HandlerType.Method : HandlerType.Property
+        //        };
+        //        methodContexts.Add(ctx);
+        //    }
+        //}
+
+        return new(targetSymbol, attributeData!)
         {
             AllHandlers = allHandlers,
             AllMethods = methodContexts,
@@ -107,7 +135,7 @@ internal static class GeneratorHelper
             return [.. all.Distinct(EqualityComparer<INamedTypeSymbol>.Default)];
         }
 
-        static AspectMethodContext GetMethodEnableHandlers(IMethodSymbol methodSymbol, INamedTypeSymbol owner)
+        static AspectMemberContext GetMethodEnableHandlers(IMethodSymbol methodSymbol, INamedTypeSymbol owner)
         {
             var methodHandlers = methodSymbol.GetAttributes(AspectHandler).Select(a => a.GetNamedValue("AspectType")).OfType<INamedTypeSymbol>();
             if (!methodSymbol.GetAttribute(IgnoreAspect, out var ignoreInfo))
@@ -136,17 +164,27 @@ internal static class GeneratorHelper
         }
 
         static void ScanSymbolMethodsRecursive(INamedTypeSymbol owner
-            , Action<AspectMethodContext> checkIsExplicit
+            , Action<AspectMemberContext> checkIsExplicit
             , HashSet<INamedTypeSymbol>? visitedSymbol = null)
         {
             visitedSymbol ??= new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
             // 防止循环引用
             if (!visitedSymbol.Add(owner))
                 return;
-            foreach (var m in owner.GetMethods())
+            foreach (var m in owner.GetMembers())
             {
-                var ctx = GetMethodEnableHandlers(m, owner);
-                checkIsExplicit(ctx);
+                if (m is IMethodSymbol method && method.MethodKind == MethodKind.Ordinary)
+                {
+                    var ctx = GetMethodEnableHandlers(method, owner);
+                    ctx.Type = HandlerType.Method;
+                    checkIsExplicit(ctx);
+                }
+                else if (m is IPropertySymbol prop)
+                {
+                    var ctx = new AspectMemberContext(prop, owner);
+                    ctx.Type = HandlerType.Property;
+                    checkIsExplicit(ctx);
+                }
             }
             // 检查继承的接口
             var iparents = owner.GetInterfaces().ToArray();
@@ -156,15 +194,31 @@ internal static class GeneratorHelper
             }
         }
 
-        static void CheckExplicit(List<AspectMethodContext> methodContexts, AspectMethodContext newCtx)
+        static void CheckExplicit(List<AspectMemberContext> methodContexts, AspectMemberContext newCtx)
         {
             // 检查签名是否冲突
             for (int i = 0; i < methodContexts.Count; i++)
             {
-                if (newCtx.Symbol.AreMethodsSignatureEqual(methodContexts[i].Symbol))
+                var other = methodContexts[i];
+                if (newCtx.Type != other.Type)
                 {
-                    newCtx.IsExplicit = true;
-                    methodContexts[i].IsExplicit = true;
+                    continue;
+                }
+                if (newCtx.Type == HandlerType.Method)
+                {
+                    if (newCtx.MethodSymbol.AreMethodsSignatureEqual(other.MethodSymbol))
+                    {
+                        newCtx.IsExplicit = true;
+                        other.IsExplicit = true;
+                    }
+                }
+                if (newCtx.Type == HandlerType.Property)
+                {
+                    if (newCtx.PropertySymbol.Name == other.PropertySymbol.Name)
+                    {
+                        newCtx.IsExplicit = true;
+                        other.IsExplicit = true;
+                    }
                 }
             }
             methodContexts.Add(newCtx);
@@ -193,32 +247,53 @@ internal static class GeneratorHelper
 
         foreach (var item in context.AllMethods)
         {
-            MethodBuilder methodBuilder;
-            if (item.IsIgnoreAll)
+            //if (item.IsOverride)
+            //{
+            //    var node = CreateOverrideMember(context, item);
+            //    members.Add(node);
+            //    continue;
+            //}
+            if (item.Type == HandlerType.Method)
             {
-                methodBuilder = CreateDirectInvokeMethod(item);
+                MethodBuilder methodBuilder;
+                var methodHandlers = GetMethodEnableHandles(context, item);
+                if (item.IsIgnoreAll || methodHandlers.Length == 0)
+                {
+                    methodBuilder = CreateDirectInvokeMethod(item);
+                }
+                else
+                {
+                    methodBuilder = CreateProxyMethod(context, item, methodHandlers);
+                }
+                members.Add(methodBuilder);
             }
-            else
+            else if (item.Type == HandlerType.Property)
             {
-                methodBuilder = CreateProxyMethod(context, item);
+                PropertyBuilder propertyBuilder = CreateProxyProperty(context, item);
+                members.Add(propertyBuilder);
             }
-            members.Add(methodBuilder);
         }
 
-        proxyClass.ClassName($"{classSymbol.FormatClassName()}GeneratedProxy")
-            .AddMembers([.. members])
-            .Generic([.. classSymbol.GetTypeParameters()])
-            .Interface([.. context.ProxyInterfaces.Select(i => i.ToDisplayString())])
-            .AddGeneratedCodeAttribute(typeof(AutoAopProxyClassGenerator));
+        var pc = proxyClass.ClassName($"{classSymbol.FormatClassName()}GeneratedProxy")
+             .AddMembers([.. members])
+             .Generic([.. classSymbol.GetTypeParameters()])
+             .Interface([.. context.ProxyInterfaces.Select(i => i.ToDisplayString())])
+             .AddGeneratedCodeAttribute(typeof(AutoAopProxyClassGenerator));
+
+        //if (context.AttributeData.GetNamedValue<bool>("InheritBaseType", out var b) && b
+        //    && classSymbol.BaseType is not null)
+        //{
+        //    pc.BaseType(classSymbol.BaseType.ToDisplayString());
+        //}
 
         return CodeFile.New($"{classSymbol.FormatFileName()}GeneratedProxyClass.g.cs")
             .AddUsings("using AutoAopProxyGenerator;")
             .AddMembers(np.AddMembers(proxyClass));
     }
 
-    private static MethodBuilder CreateDirectInvokeMethod(AspectMethodContext context)
+    private static MethodBuilder CreateDirectInvokeMethod(AspectMemberContext context)
     {
-        var symbol = context.Symbol;
+        var symbol = context.MethodSymbol;
         var builder = MethodBuilder.Default
             .MethodName(symbol.Name)
             .Generic([.. symbol.GetTypeParameters()])
@@ -237,12 +312,11 @@ internal static class GeneratorHelper
         return builder;
     }
 
-    private static MethodBuilder CreateProxyMethod(GenerateContext gCtx, AspectMethodContext context)
+    private static MethodBuilder CreateProxyMethod(GenerateContext gCtx, AspectMemberContext context, INamedTypeSymbol[] methodHandlers)
     {
-        var methodSymbol = context.Symbol;
+        var methodSymbol = context.MethodSymbol;
         var cSymbol = gCtx.TargetSymbol;
         var method = methodSymbol.IsGenericMethod ? methodSymbol.ConstructedFrom : methodSymbol;
-        var methodHandlers = GetMethodEnableHandles(gCtx, context);
         var iSymbol = context.DeclaredType;
         var (IsTask, HasReturn, ReturnType) = method.GetReturnTypeInfo();
         //var isAsync = method.IsAsync || method.ReturnType.ToDisplayString().StartsWith("System.Threading.Tasks.Task");
@@ -300,7 +374,82 @@ internal static class GeneratorHelper
         return builder;
     }
 
-    private static INamedTypeSymbol[] GetMethodEnableHandles(GenerateContext gCtx, AspectMethodContext mCtx)
+    private static PropertyBuilder CreateProxyProperty(GenerateContext gCtx, AspectMemberContext context)
+    {
+        var symbol = context.PropertySymbol;
+        var iSymbol = context.DeclaredType;
+        var pb = PropertyBuilder.Default.PropertyName(symbol.Name);
+        pb.MemberType(symbol.Type.ToDisplayString());
+        var obj = context.IsExplicit ? $"(({iSymbol.ToDisplayString()})proxy)" : "proxy";
+        if (symbol.SetMethod is not null)
+        {
+            pb.SetLambda($"{obj}.{symbol.Name} = value");
+        }
+        else
+        {
+            pb.CanWrite = false;
+        }
+        if (symbol.GetMethod is not null)
+        {
+            pb.GetLambda($"{obj}.{symbol.Name}");
+        }
+        else
+        {
+            pb.CanRead = false;
+        }
+        if (context.IsExplicit)
+        {
+            pb.ExplicitFor(iSymbol.ToDisplayString());
+        }
+        return pb;
+    }
+
+    //private static Node CreateOverrideMember(GenerateContext gCtx, AspectMemberContext context)
+    //{
+    //    if (context.Type == HandlerType.Method)
+    //    {
+    //        var symbol = context.MethodSymbol;
+    //        var m = MethodBuilder.Default;
+    //        m.Modifiers(symbol.DeclaredAccessibility.ToString().ToLower());
+    //        m.IsOverride = true;
+    //        m.MethodName(symbol.Name)
+    //            .Generic([.. symbol.GetTypeParameters()])
+    //            .AddParameter([.. symbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}")])
+    //            .ReturnType(symbol.ReturnType.ToDisplayString())
+    //            .AddGeneratedCodeAttribute(typeof(AutoAopProxyClassGenerator));
+    //        m.Lambda($"proxy.{symbol.Name}({string.Join(", ", symbol.Parameters.Select(p => p.Name))})");
+    //        return m;
+    //    }
+    //    else if (context.Type == HandlerType.Property)
+    //    {
+    //        var symbol = context.PropertySymbol;
+    //        var p = PropertyBuilder.Default;
+    //        p.Modifiers(symbol.DeclaredAccessibility.ToString().ToLower());
+    //        p.PropertyName(symbol.Name);
+    //        p.MemberType(symbol.Type.ToDisplayString());
+    //        p.IsOverride = true;
+    //        if (symbol.SetMethod is not null)
+    //        {
+    //            p.SetLambda($"proxy.{symbol.Name} = value");
+    //        }
+    //        else
+    //        {
+    //            p.CanWrite = false;
+    //        }
+    //        if (symbol.GetMethod is not null)
+    //        {
+    //            p.GetLambda($"proxy.{symbol.Name}");
+    //        }
+    //        else
+    //        {
+    //            p.CanRead = false;
+    //        }
+    //        return p;
+    //    }
+    //    throw new NotSupportedException();
+    //}
+
+    private static INamedTypeSymbol[] GetMethodEnableHandles(GenerateContext gCtx, AspectMemberContext mCtx)
     {
         var comparer = EqualityComparer<INamedTypeSymbol>.Default;
         HashSet<INamedTypeSymbol> enables = new(comparer);
@@ -324,7 +473,7 @@ internal static class GeneratorHelper
             }
             enables.Add(item);
         }
-        return enables.ToArray();
+        return [.. enables];
     }
 
     private static object SelectParameterType(IParameterSymbol p)

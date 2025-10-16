@@ -1,5 +1,9 @@
 ﻿# 版本功能更新记录
 
+## v0.1.5
+- 🐞支持处理属性(不拦截，只代理)
+- 🐞修复定义在方法上的`AspectHandler`只对当前方法生效
+
 ## v0.1.4
 - 🐞`AutoAopProxyServiceProviderFactory`服务注册, `Add` -> `TryAdd`
 - 🛠重构生成逻辑, 修复部分bug

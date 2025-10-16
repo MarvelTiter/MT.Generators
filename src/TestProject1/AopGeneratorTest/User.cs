@@ -27,6 +27,7 @@ public interface IHello<T> : IHello2
     [AddAspectHandler(AspectType = typeof(MethodTestAop2))]
     [IgnoreAspect]
     Task RunJobAsync(string message);
+    string Age { get; }
 }
 
 [AddAspectHandler(AspectType = typeof(LogAop))]
@@ -35,16 +36,19 @@ public interface IHello<T> : IHello2
 public interface IWrapHello : IHello<int>
 {
     //void Hello(string? message);
+    int Age { get; set; }
 }
 
 public interface IWrapHello2
 {
-    
+
 }
 
 [GenAspectProxy]
 public class User : IWrapHello
 {
+    int IWrapHello.Age { get; set; }
+    string IHello<int>.Age => "";
     public void Hello(int? i)
     {
         Console.WriteLine("Hello world");
@@ -54,6 +58,7 @@ public class User : IWrapHello
     {
         throw new NotImplementedException();
     }
+
     public Task<int> CountAsync()
     {
         return Task.FromResult(3);
