@@ -105,13 +105,8 @@ internal static class AutoInjectContextGeneratorHelpers
                 injectType = 1;
             }
             var scoped = FormatInjectType(injectType);
-            info.Scoped ??= scoped;
-            if (info.Scoped != scoped)
-            {
-                // 有不同的生命周期
-                info.Diagnostic = DiagnosticDefinitions.AIG00004(context.GetDiagnosticLocation());
-                return info;
-            }
+            //info.Scoped ??= scoped;
+
             string serviceType;
             //var services = classSymbol.GetInterfaces().ToArray();
             if (IsInjectSelf(a))
@@ -140,20 +135,35 @@ internal static class AutoInjectContextGeneratorHelpers
             }
 
             _ = a.GetNamedValue<string>("ServiceKey", out var serviceKey);
-            if (a.GetNamedValue<string>("Group", out var group))
-            {
-                info.MemberShip ??= group;
-                if (info.MemberShip != group)
-                {
-                    // 有不同的Group
-                    info.Diagnostic = DiagnosticDefinitions.AIG00004(context.GetDiagnosticLocation());
-                    return info;
-                }
-            }
+            _ = a.GetNamedValue<string>("Group", out var group);
+            //if (a.GetNamedValue<string>("Group", out var group))
+            //{
+            //    info.MemberShip ??= group;
+            //    if (info.MemberShip != group)
+            //    {
+            //        // 有不同的Group
+            //        info.Diagnostic = DiagnosticDefinitions.AIG00004(context.GetDiagnosticLocation());
+            //        return info;
+            //    }
+            //}
+
             //_ = a.GetNamedValue<bool>("IsTry", out var tryAdd);
-            info.Services.Add(new RegisterServiceInfo(serviceType, serviceKey));
+            info.Services.Add(new RegisterServiceInfo(scoped, serviceType, serviceKey, group));
         }
+
+        if (HasDifferentScopedInSameMemberShip())
+        {
+            info.Diagnostic = DiagnosticDefinitions.AIG00004(context.GetDiagnosticLocation());
+        }
+
         return info;
+
+        bool HasDifferentScopedInSameMemberShip()
+        {
+            return info.Services.Where(s => s.MemberShip != null)
+                          .GroupBy(s => s.MemberShip)
+                          .Any(g => g.Select(s => s.Scoped).Distinct().Count() > 1);
+        }
     }
 
     public static CodeFile? CreateContextCodeFile(AutoInjectContextInfo context, IEnumerable<AutoInjectInfo?> items)
@@ -198,64 +208,68 @@ internal static class AutoInjectContextGeneratorHelpers
 
     //const string SD = "global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor";
     const string SD = "AutoInjectServiceDescriptor";
-    private static IEnumerable<string> CreateRegisterStatement(AutoInjectContextInfo context, string serviceName, AutoInjectInfo? item)
+    private static IEnumerable<string> CreateRegisterStatement(AutoInjectContextInfo context, string serviceName, AutoInjectInfo? info)
     {
-        if (item is null || item.Services.Count == 0)
+        if (info is null || info.Services.Count == 0)
         {
             yield return "// No services to register";
             yield break;
         }
-        if (!ShouldRegister(context, item.MemberShip))
+        yield return $"// {info.Implement} 类型的相关注册";
+        string implement = $"typeof({info.Implement})";
+        var groups = info.Services.GroupBy(r => r.MemberShip)
+            .Select(g => new { g.Key, Values = g.Select(gi => gi).ToArray() }).ToArray();
+        foreach (var group in groups)
         {
-            yield return $"// Skipped registering {item.Implement} due to configuration.";
-            yield break;
-        }
-        yield return $"// {item.Implement} 类型的相关注册";
-        string implement = $"typeof({item.Implement})";
-
-        //foreach (var r in item.Services)
-        //{
-        //    yield return DoCreate(context, serviceName, r.ServiceType, implement, item.Scoped!, r.Key);
-        //}
-
-        if (item.Services.Count == 1)
-        {
-            var r = item.Services[0];
-            yield return DoCreate(context, serviceName, r.ServiceType, implement, item.Scoped!, r.Key);
-        }
-        else
-        {
-            // 多次注入同一个服务，但是没有注入自身
-            var self = item.Services.FirstOrDefault(s => s.ServiceType == item.Implement);
-            if (self is null)
+            var groupName = group.Key;
+            var item = group.Values;
+            if (!ShouldRegister(context, groupName))
             {
-                // 提供默认的自身注入
-                yield return DoCreate(context, serviceName, item.Implement, implement, item.Scoped!, null, true);
+                yield return $"// Skipped registering [{groupName}] Group due to configuration.";
+                continue;
             }
-            foreach (var r in item.Services)
+            // 每个分组中的Scoped是一样的，前面已经处理过
+            if (item.Length == 1)
             {
-                if (r.ServiceType == item.Implement)
+                var r = item[0];
+                yield return DoCreate(context, serviceName, r.ServiceType, implement, r.Scoped, r.Key);
+            }
+            else
+            {
+                // 多次注入同一个服务，但是没有注入自身
+                var self = item.FirstOrDefault(s => s.ServiceType == info.Implement);
+                if (self is null)
                 {
-                    // 显式注入自身，说明前面的self不为null
-                    yield return DoCreate(context, serviceName, r.ServiceType, implement, item.Scoped!, r.Key, true);
+                    // 提供默认的自身注入
+                    yield return DoCreate(context, serviceName, info.Implement, implement, item[0].Scoped, null, true);
                 }
-                else
+                foreach (var r in item)
                 {
-                    var factoryExpression = $"p => p.GetRequiredService<{item.Implement}>()";
-                    if (r.Key is not null)
+                    if (r.ServiceType == info.Implement)
                     {
-                        factoryExpression = $"(p, k) => p.GetRequiredKeyedService<{item.Implement}>(k)";
-                        if (self is null || r.Key != self.Key)
-                        {
-                            // 注入自身
-                            yield return DoCreate(context, serviceName, item.Implement, implement, item.Scoped!, r.Key);
-                        }
+                        // 显式注入自身，说明前面的self不为null
+                        yield return DoCreate(context, serviceName, r.ServiceType, implement, r.Scoped, r.Key, true);
                     }
-                    // 注入接口
-                    yield return DoCreate(context, serviceName, r.ServiceType, factoryExpression, item.Scoped!, r.Key, factoryReturnType: $", {implement}");
+                    else
+                    {
+                        var factoryExpression = $"p => p.GetRequiredService<{info.Implement}>()";
+                        if (r.Key is not null)
+                        {
+                            factoryExpression = $"(p, k) => p.GetRequiredKeyedService<{info.Implement}>(k)";
+                            if (self is null || r.Key != self.Key)
+                            {
+                                // 注入自身
+                                yield return DoCreate(context, serviceName, info.Implement, implement, r.Scoped, r.Key);
+                            }
+                        }
+                        // 注入接口
+                        yield return DoCreate(context, serviceName, r.ServiceType, factoryExpression, r.Scoped, r.Key, factoryReturnType: $", {implement}");
+                    }
                 }
             }
         }
+
+        
 
         yield return "";
         static bool ShouldRegister(AutoInjectContextInfo context, string? group)

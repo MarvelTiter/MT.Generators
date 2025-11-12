@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace AutoInjectGenerator.Models;
@@ -27,8 +28,13 @@ public class AutoInjectServiceDescriptor : ServiceDescriptor
     /// <param name="serviceType"></param>
     /// <param name="implementationType"></param>
     /// <param name="lifetime"></param>
-    public AutoInjectServiceDescriptor(Type serviceType, Type implementationType, ServiceLifetime lifetime) : base(serviceType, implementationType, lifetime)
+    public AutoInjectServiceDescriptor(Type serviceType,
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] 
+#endif
+    Type implementationType, ServiceLifetime lifetime) : base(serviceType, implementationType, lifetime)
     {
+        
     }
 
     /// <summary>
@@ -60,7 +66,11 @@ public class AutoInjectServiceDescriptor : ServiceDescriptor
     /// <param name="serviceKey"></param>
     /// <param name="implementationType"></param>
     /// <param name="lifetime"></param>
-    public AutoInjectServiceDescriptor(Type serviceType, object? serviceKey, Type implementationType, ServiceLifetime lifetime) : base(serviceType, serviceKey, implementationType, lifetime)
+    public AutoInjectServiceDescriptor(Type serviceType, object? serviceKey,
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] 
+#endif
+        Type implementationType, ServiceLifetime lifetime) : base(serviceType, serviceKey, implementationType, lifetime)
     {
     }
 

@@ -50,4 +50,11 @@ namespace InjectTest
             return Task.CompletedTask;
         }
     }
+
+    [AutoInject(Group = "SERVER", LifeTime = InjectLifeTime.Singleton)]
+    [AutoInject(Group = "HYBRID", LifeTime = InjectLifeTime.Singleton)]
+    public class FileService
+    {
+
+    }
 }

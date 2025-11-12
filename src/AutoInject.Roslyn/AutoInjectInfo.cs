@@ -9,14 +9,16 @@ public class AutoInjectInfo(INamedTypeSymbol targetSymbol)
     public List<RegisterServiceInfo> Services { get; set; } = [];
     public string Implement { get; set; } = targetSymbol.ToDisplayString();
     public Diagnostic? Diagnostic { get; set; }
-    public string? Scoped { get; set; }
-    public string? MemberShip { get; set; }
+    //public string? Scoped { get; set; }
+    //public string? MemberShip { get; set; }
 }
 
-public class RegisterServiceInfo(string serviceType, string? key)
+public class RegisterServiceInfo(string scoped, string serviceType, string? key, string? group)
 {
     public string ServiceType { get; set; } = serviceType;
     public string? Key { get; set; } = key;
+    public string Scoped { get; set; } = scoped;
+    public string? MemberShip { get; set; } = group;
 }
 
 //namespace AutoInjectGenerator

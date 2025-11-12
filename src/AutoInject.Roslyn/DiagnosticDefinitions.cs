@@ -46,14 +46,14 @@ namespace AutoInjectGenerator
                         isEnabledByDefault: true), location);
 
         /// <summary>
-        /// 多次注入，但是使用了不同的生命周期或者分组
+        /// 多次注入，相同的分组中使用了不同的生命周期
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
         public static Diagnostic AIG00004(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
                         id: "AIG00004",
-                        title: "多次注入，但是使用了不同的生命周期或者分组",
-                        messageFormat: "多次注入，但是使用了不同的生命周期或者分组",
+                        title: "多次注入，相同的分组中使用了不同的生命周期",
+                        messageFormat: "多次注入，相同的分组中使用了不同的生命周期",
                         category: typeof(AutoInjectContextGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);

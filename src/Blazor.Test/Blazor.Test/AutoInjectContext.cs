@@ -8,6 +8,13 @@ namespace Blazor.Test
         [AutoInjectConfiguration(Include = "SERVER")]
         public static partial void Inject(this IServiceCollection services);
     }
+
+    [AutoInjectContext]
+    public static partial class AutoInjectContextHybrid
+    {
+        [AutoInjectConfiguration(Include = "HYBRID")]
+        public static partial void InjectHybrid(this IServiceCollection services);
+    }
 }
 
 //namespace Blazor.Test

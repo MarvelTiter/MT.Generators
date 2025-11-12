@@ -21,6 +21,7 @@ builder.Host.UseServiceProviderFactory(new AutoAopProxyGenerator.AutoAopProxySer
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
 builder.Services.AddControllers();
 builder.Services.Inject();
+builder.Services.InjectHybrid();
 builder.Services.AddHttpClient();
 builder.Services.AddStateContainers();
 //builder.Services.();

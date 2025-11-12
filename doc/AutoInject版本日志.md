@@ -1,5 +1,8 @@
 ﻿# 版本功能更新记录
 
+## v0.1.3
+- 🛠优化分组判断，现在可以配置在不同的分组中注入相同的实例
+
 ## v0.1.2
 - 🛠`AutoInjectAttribute.LifeTime`修改为`InjectLifeTime`类型
 
