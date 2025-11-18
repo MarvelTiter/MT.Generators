@@ -1,14 +1,29 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace AutoAopProxyGenerator;
 
 /// <summary></summary>
-public static class ContextHelper<TService, TImpl>
+public static class ContextHelper<
+#if NET8_0_OR_GREATER
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
+#endif
+TService,
+#if NET8_0_OR_GREATER
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
+#endif
+TImpl>
 {
     private static readonly ConcurrentDictionary<string, ProxyContext> caches = [];
+#if NET8_0_OR_GREATER
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
+#endif
     private static readonly Type ServiceType = typeof(TService);
+#if NET8_0_OR_GREATER
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
+#endif
     private static readonly Type ImplType = typeof(TImpl);
     /// <summary></summary>
     public static ProxyContext GetOrCreate(string methodName, Type[] types)

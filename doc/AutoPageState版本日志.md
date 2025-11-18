@@ -1,5 +1,8 @@
 ﻿# 版本功能更新记录
 
+## v0.0.8
+- ⚡️升级`.NET10`
+
 ## v0.0.7
 - ⚡️为`StateContainerAttribute.Implements`添加注入
 - ⚡️修改`IStateContainerManager`的注入周期为`Scoped`

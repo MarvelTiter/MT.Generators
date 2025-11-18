@@ -11,12 +11,14 @@ public class AutoWasmApiGeneratorJsonHelper
     /// <summary>
     /// 
     /// </summary>
-    public static readonly JsonSerializerOptions Option = new JsonSerializerOptions()
+    public static readonly JsonSerializerOptions Option = new()
     {
         PropertyNameCaseInsensitive = true,
     };
-
-    public static readonly JsonSerializerOptions TupleOption = new JsonSerializerOptions()
+    /// <summary>
+    /// 
+    /// </summary>
+    public static readonly JsonSerializerOptions TupleOption = new()
     {
         PropertyNameCaseInsensitive = true,
         IncludeFields = true,

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,6 +12,7 @@ using System.Text;
 namespace AutoAopProxyGenerator;
 
 /// <summary></summary>
+
 public class AutoAopProxyServiceProviderFactory : IServiceProviderFactory<IServiceCollection>
 {
     private enum ImplType
@@ -31,30 +33,57 @@ public class AutoAopProxyServiceProviderFactory : IServiceProviderFactory<IServi
         public ServiceLifetime Lifetime => ServiceDescriptor.Lifetime;
     }
 
+    private readonly record struct SDInfoKey
+    {
+        public SDInfoKey(
+#if NET8_0_OR_GREATER
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        Type originType,
+#if NET8_0_OR_GREATER
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+    Type proxyType)
+        {
+            OriginType = originType;
+            ProxyType = proxyType;
+        }
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        public Type OriginType { get; }
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        public Type ProxyType { get; }
+    }
+
     /// <summary></summary>
     public IServiceCollection CreateBuilder(IServiceCollection services)
     {
         return services;
     }
     /// <summary></summary>
+
     public IServiceProvider CreateServiceProvider(IServiceCollection containerBuilder)
     {
-        Dictionary<(Type, Type), List<SDInfo>> needToHandle = [];
+        Dictionary<SDInfoKey, List<SDInfo>> needToHandle = [];
         IServiceCollection serviceCollection = new ServiceCollection();
         foreach (var sd in containerBuilder)
         {
             //service.
-            var implType = GetImplType(sd);
-            if (implType.type?.GetCustomAttribute<GenAspectProxyAttribute>() is not null
-               && implType.type.Assembly.GetType($"{implType.type.FullName}GeneratedProxy") is { } proxyType)
+            var implType = GetImplType(sd, out var it);
+            if (implType?.GetCustomAttribute<GenAspectProxyAttribute>() is not null
+               && implType?.Assembly.GetType($"{implType.FullName}GeneratedProxy") is { } proxyType)
             {
                 //AddServiceDescriptors(serviceCollection, sd, implType, proxyType);
-                if (!needToHandle.TryGetValue((implType.type, proxyType), out var list))
+                var key = new SDInfoKey(implType, proxyType);
+                if (!needToHandle.TryGetValue(key, out var list))
                 {
                     list = [];
-                    needToHandle[(implType.type, proxyType)] = list;
+                    needToHandle[key] = list;
                 }
-                list.Add(new(sd, implType.implType));
+                list.Add(new(sd, it));
                 continue;
             }
             serviceCollection.Add(sd);
@@ -62,52 +91,70 @@ public class AutoAopProxyServiceProviderFactory : IServiceProviderFactory<IServi
 
         foreach (var kv in needToHandle)
         {
-            AddServiceDescriptors(serviceCollection, kv.Key.Item1, kv.Key.Item2, kv.Value);
+            AddServiceDescriptors(serviceCollection, kv.Key.OriginType, kv.Key.ProxyType, kv.Value);
         }
 
         return serviceCollection.BuildServiceProvider();
+#if NET8_0_OR_GREATER
+        [RequiresUnreferencedCode("Uses reflection to load types and attributes.")]
+        [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
 
-        (Type? type, ImplType implType) GetImplType(ServiceDescriptor sd)
+        Type? GetImplType(ServiceDescriptor sd, out ImplType implType)
         {
 #if NET8_0_OR_GREATER
             if (sd.IsKeyedService)
             {
                 if (sd.KeyedImplementationType != null)
                 {
-                    return (sd.KeyedImplementationType, ImplType.Default);
+                    implType = ImplType.Default;
+                    return sd.KeyedImplementationType;
                 }
                 else if (sd.KeyedImplementationInstance != null)
                 {
-                    return (sd.KeyedImplementationInstance.GetType(), ImplType.Instance);
+                    implType = ImplType.Instance;
+                    return sd.KeyedImplementationInstance.GetType();
                 }
                 else if (sd.KeyedImplementationFactory != null)
                 {
                     //var typeArguments = sd.KeyedImplementationFactory.GetType().GenericTypeArguments;
-                    var realType = TryGetRealFactoryReturnType(sd);
-                    return (realType, ImplType.Factory);
+                    implType = ImplType.Factory;
+                    return TryGetRealFactoryReturnType(sd);
                 }
-                return (null, ImplType.None);
+                implType = ImplType.None;
+                return null;
             }
 #endif
             if (sd.ImplementationType != null)
             {
-                return (sd.ImplementationType, ImplType.Default);
+                implType = ImplType.Default;
+                return sd.ImplementationType;
             }
             else if (sd.ImplementationInstance != null)
             {
-                return (sd.ImplementationInstance.GetType(), ImplType.Instance);
+                implType = ImplType.Instance;
+                return sd.ImplementationInstance.GetType();
             }
             else if (sd.ImplementationFactory != null)
             {
                 //var typeArguments = sd.ImplementationFactory.GetType().GenericTypeArguments;
-                var realType = TryGetRealFactoryReturnType(sd);
-                return (realType, ImplType.Factory);
+                implType = ImplType.Factory;
+                return TryGetRealFactoryReturnType(sd);
             }
-            return (null, ImplType.None);
+            implType = ImplType.None;
+            return null;
         }
     }
 
-    private void AddServiceDescriptors(IServiceCollection serviceCollection, Type originType, Type proxyType, List<SDInfo> infos)
+    private void AddServiceDescriptors(IServiceCollection serviceCollection,
+#if NET8_0_OR_GREATER
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        Type originType,
+#if NET8_0_OR_GREATER
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+    Type proxyType, List<SDInfo> infos)
     {
         if (!infos.Any(s => s.ImplementationType == s.ServiceType && s.ImplementationType == originType))
         {
@@ -145,6 +192,9 @@ public class AutoAopProxyServiceProviderFactory : IServiceProviderFactory<IServi
     }
 
     private static void HandleTypeRegistration(IServiceCollection serviceCollection, ServiceDescriptor sd,
+#if NET8_0_OR_GREATER
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
          Type proxyType)
     {
         // 注册代理类型
@@ -155,7 +205,11 @@ public class AutoAopProxyServiceProviderFactory : IServiceProviderFactory<IServi
         serviceCollection.TryAdd(proxyServiceDescriptor);
     }
 
-    private void HandleFactoryRegistration(IServiceCollection serviceCollection, ServiceDescriptor sd, Type proxyType)
+    private void HandleFactoryRegistration(IServiceCollection serviceCollection, ServiceDescriptor sd,
+#if NET8_0_OR_GREATER
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        Type proxyType)
     {
         if (sd.IsKeyedService)
         {
@@ -215,6 +269,10 @@ public class AutoAopProxyServiceProviderFactory : IServiceProviderFactory<IServi
     }
 
     private Func<object, Type>? getAutoInjectFactoryRealReturnType;
+
+#if NET8_0_OR_GREATER
+    [RequiresUnreferencedCode("Uses reflection to load types and attributes.")]
+#endif
     private Type? TryGetRealFactoryReturnType(ServiceDescriptor sd)
     {
         var realType = sd.GetType();

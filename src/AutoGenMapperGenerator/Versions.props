@@ -1,9 +1,8 @@
-﻿<Project>
+<Project>
 	<PropertyGroup>
-		<BuildVersion>0.1.6</BuildVersion>
+		<BuildVersion>0.1.0</BuildVersion>
 		<Version>$(BuildVersion)</Version>
 		<!--<AssemblyVersion>$(BuildVersion)</AssemblyVersion>-->
 		<FileVersion>$(BuildVersion)</FileVersion>
-		<IsAotCompatible Condition="$('Configuration') == 'net8.0'">true</IsAotCompatible>
 	</PropertyGroup>
 </Project>

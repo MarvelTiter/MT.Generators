@@ -3,9 +3,10 @@
     <PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
         <RootNamespace>AutoGenMapperGenerator</RootNamespace>
-		<Version>0.0.9</Version>
+		<LangVersion>latest</LangVersion>
     </PropertyGroup>
 
     <Import Project="..\Shared\Generators.Shared\Generators.Shared.projitems" Label="Shared" />
 	<Import Project="..\Shared\Generators.Shared\MT.Generators.props" />
+	<Import Project="..\AutoGenMapperGenerator\Versions.props" />
 </Project>

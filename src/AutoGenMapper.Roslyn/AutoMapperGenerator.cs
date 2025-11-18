@@ -244,7 +244,7 @@ namespace AutoGenMapperGenerator
                 {
                     return (context, DiagnosticDefinitions.AGM00011(target.Locations.FirstOrDefault()));
                 }
-                string[] ps = ctorSymbol.Parameters.Select(p => source.GetAllMembers(_ => true).FirstOrDefault(s => string.Equals(p.Name, s.Name, StringComparison.OrdinalIgnoreCase))?.Name).Where(s => !string.IsNullOrEmpty(s)).ToArray();
+                string[] ps = [.. ctorSymbol.Parameters.Select(p => source.GetAllMembers(_ => true).FirstOrDefault(s => string.Equals(p.Name, s.Name, StringComparison.OrdinalIgnoreCase))?.Name).Where(s => !string.IsNullOrEmpty(s))!];
                 if (ps.Length != ctorSymbol.Parameters.Length)
                 {
                     return (context, DiagnosticDefinitions.AGM00013(source.Locations.FirstOrDefault()));

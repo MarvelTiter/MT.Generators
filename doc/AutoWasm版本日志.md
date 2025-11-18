@@ -1,5 +1,8 @@
 ﻿# 版本功能更新记录
 
+## v0.1.5
+- ⚡️升级`.NET10`
+
 ## v0.1.4
 - ⚡️为生成的Controller和对应的Controller调用类添加`GeneratedByAutoWasmApiGeneratorAttribute`标识
 - ⚡️添加`AddGeneratedApiInvokerServices`扩展方法，用于反射注册生成器生成的Controller调用类

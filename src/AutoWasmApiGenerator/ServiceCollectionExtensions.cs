@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -33,6 +34,9 @@ public static class ServiceCollectionExtensions
     /// <param name="services"></param>
     /// <param name="overrideLifetime"></param>
     /// <returns></returns>
+#if NET8_0_OR_GREATER
+    [RequiresUnreferencedCode("Uses reflection to load types and attributes.")]
+#endif
     public static IServiceCollection AddGeneratedApiInvokerServices(this IServiceCollection services
         , Func<Type, ServiceLifetime>? overrideLifetime = null)
     {
@@ -61,7 +65,9 @@ public static class ServiceCollectionExtensions
         }
         return services;
     }
-
+#if NET8_0_OR_GREATER
+    [RequiresUnreferencedCode("Uses reflection to load types and attributes.")]
+#endif
     private static IEnumerable<Assembly> GetAllReferencedAssemblies(Assembly entryAssembly)
     {
         var visited = new HashSet<string>();

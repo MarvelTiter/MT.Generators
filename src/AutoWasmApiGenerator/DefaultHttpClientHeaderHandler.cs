@@ -7,6 +7,7 @@ namespace AutoWasmApiGenerator;
 /// <summary>
 /// <see cref="IHttpClientHeaderHandler"/>的空实现
 /// </summary>
+[Obsolete]
 public class DefaultHttpClientHeaderHandler : IHttpClientHeaderHandler
 {
     private DefaultHttpClientHeaderHandler()

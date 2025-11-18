@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -40,6 +41,9 @@ public static class ServiceCollectionExtensions
     /// <param name="services"></param>
     /// <param name="config"></param>
     /// <returns></returns>
+#if NET8_0_OR_GREATER
+    [RequiresUnreferencedCode("Uses reflection to load types and attributes.")]
+#endif
     public static IServiceCollection AddStateContainers(this IServiceCollection services, Action<StateContainerOption>? config = null)
     {
         var entry = Assembly.GetEntryAssembly();
@@ -97,7 +101,9 @@ public static class ServiceCollectionExtensions
         var lambda = Expression.Lambda<Func<IServiceProvider, object>>(Expression.Call(RS, pe, proxyE),pe);
         return lambda.Compile();
     }
-
+#if NET8_0_OR_GREATER
+    [RequiresUnreferencedCode("Uses reflection to load types and attributes.")]
+#endif
     private static IEnumerable<Assembly> GetAllReferencedAssemblies(Assembly entryAssembly)
     {
         var visited = new HashSet<string>();
