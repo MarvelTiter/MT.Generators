@@ -1,0 +1,43 @@
+<Solution>
+  <Folder Name="/doc/">
+    <File Path="../.github/workflows/push_nuget.yml" />
+    <File Path="../doc/AopProxy版本日志.md" />
+    <File Path="../doc/AutoInject版本日志.md" />
+    <File Path="../doc/AutoPageState版本日志.md" />
+    <File Path="../doc/AutoWasm版本日志.md" />
+    <File Path="../doc/GenMapper版本日志.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="MT.Generators.Abstraction/MT.Generators.Abstraction.csproj" />
+  </Folder>
+  <Folder Name="/src/AutoAopProxy/">
+    <Project Path="AutoAopProxy.Roslyn/AutoAopProxy.Roslyn.csproj" />
+    <Project Path="AutoAopProxyGenerator/AutoAopProxyGenerator.csproj" />
+  </Folder>
+  <Folder Name="/src/AutoGenMapper/">
+    <Project Path="AutoGenMapper.Roslyn/AutoGenMapper.Roslyn.csproj" />
+    <Project Path="AutoGenMapperGenerator/AutoGenMapperGenerator.csproj" />
+  </Folder>
+  <Folder Name="/src/AutoInject/">
+    <Project Path="AutoInject.Roslyn/AutoInject.Roslyn.csproj" />
+    <Project Path="AutoInjectGenerator/AutoInjectGenerator.csproj" />
+  </Folder>
+  <Folder Name="/src/AutoPageStateContainer/">
+    <Project Path="AutoPageStateContainer.Roslyn/AutoPageStateContainer.Roslyn.csproj" />
+    <Project Path="AutoPageStateContainerGenerator/AutoPageStateContainerGenerator.csproj" />
+  </Folder>
+  <Folder Name="/src/AutoWasm/">
+    <Project Path="AutoWasmApi.Roslyn/AutoWasmApi.Roslyn.csproj" />
+    <Project Path="AutoWasmApiGenerator/AutoWasmApiGenerator.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="Shared/Generators.Shared/Generators.Shared.shproj" />
+  </Folder>
+  <Folder Name="/Test/">
+    <Project Path="Blazor.Test/Blazor.Test.Client/Blazor.Test.Client.csproj" />
+    <Project Path="Blazor.Test/Blazor.Test/Blazor.Test.csproj" />
+    <Project Path="Blazor.Test/BlazorTest.Pages/BlazorTest.Pages.csproj" />
+    <Project Path="InjectTest/InjectTest.csproj" />
+    <Project Path="TestProject1/TestProject1.csproj" />
+  </Folder>
+</Solution>

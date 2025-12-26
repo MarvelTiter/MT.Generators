@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 namespace AutoGenMapperGenerator;
 
@@ -11,8 +12,9 @@ public enum MappingType
 
 public enum DeclarePosition
 {
+    Property,
     Class,
-    Property
+    Method,
 }
 
 public class MapInfo
@@ -28,6 +30,8 @@ public class MapInfo
     public DeclarePosition Position { get; set; }
     public bool CanReverse { get; set; }
 }
+
+[Obsolete]
 public class GenMapperContext
 {
     public INamedTypeSymbol SourceType { get; set; } = default!;

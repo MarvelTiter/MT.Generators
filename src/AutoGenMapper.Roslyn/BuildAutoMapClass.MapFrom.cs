@@ -8,11 +8,11 @@ namespace AutoGenMapperGenerator;
 
 public static partial class BuildAutoMapClass
 {
-    internal static MethodBuilder GenerateMapFromMethod(GenMapperContext context)
+    internal static MethodBuilder GenerateMapFromMethod(INamedTypeSymbol sourceType, MapperTarget context)
     {
         var statements = new List<Statement>();
-        const string SOURCE_OBJECT = "_target_gen";
-
+        const string SOURCE_OBJECT = "_source_gen";
+        //const string TARGET_OBJECT = "_target_gen";
         foreach (var item in context.Maps)
         {
             if (item.MappingType == MappingType.SingleToSingle)
@@ -25,7 +25,7 @@ public static partial class BuildAutoMapClass
             else if (item.MappingType == MappingType.MultiToSingle)
             {
                 if (!item.CanReverse) continue;
-                var invoker = item.ReverseBy!.TryGetMethodInvoker() ?? "this";
+                var invoker = item.ReverseBy!.TryGetMethodInvoker(sourceType);
                 var sourceParam = item.TargetProp[0].Name;
                 var tempArray = $"_{sourceParam}_arr_gen";
                 var line = $"var {tempArray} = {invoker}.{item.ReverseBy!.Name}({string.Join(", ", $"{SOURCE_OBJECT}.{sourceParam}")})";
@@ -41,7 +41,7 @@ public static partial class BuildAutoMapClass
             else if (item.MappingType == MappingType.SingleToMulti)
             {
                 if (!item.CanReverse) continue;
-                var invoker = item.ReverseBy!.TryGetMethodInvoker() ?? "this";
+                var invoker = item.ReverseBy!.TryGetMethodInvoker(sourceType);
                 var targetName = item.SourceName.First();
                 var pnames = string.Join(", ", item.TargetName.Select(s => $"{SOURCE_OBJECT}.{s}"));
                 var line = $"this.{targetName} = {invoker}.{item.ReverseBy!.Name}({pnames})";
@@ -138,7 +138,7 @@ public static partial class BuildAutoMapClass
                         else
                         {
                             line = $"""
-                                    throw new AutoGenMapperGenerator.AutoGenMapperException("{context.SourceType.ToDisplayString()}.{sp.Name}和{context.TargetType.ToDisplayString()}.{tp.Name}尝试自动类型转换失败，请自定义{sp.Type.ToDisplayString()}和{tp.Type.ToDisplayString()}之间的转换")
+                                    throw new AutoGenMapperGenerator.AutoGenMapperException("{sourceType.ToDisplayString()}.{sp.Name}和{context.TargetType.ToDisplayString()}.{tp.Name}尝试自动类型转换失败，请自定义{sp.Type.ToDisplayString()}和{tp.Type.ToDisplayString()}之间的转换")
                                     """;
                         }
                     }

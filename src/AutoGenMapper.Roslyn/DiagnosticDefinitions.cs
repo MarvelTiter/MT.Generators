@@ -48,14 +48,14 @@ namespace AutoGenMapperGenerator
                         isEnabledByDefault: true), location);
 
         /// <summary>
-        /// 该MapBetweenAttribute的构造只能用于属性
+        /// 该MapBetweenAttribute的构造只能用于属性/方法
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
         public static Diagnostic AGM00004(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
                         id: "AGM00004",
-                        title: "该MapBetweenAttribute的构造只能用于属性",
-                        messageFormat: "该MapBetweenAttribute的构造只能用于属性",
+                        title: "该MapBetweenAttribute的构造只能用于属性/方法",
+                        messageFormat: "该MapBetweenAttribute的构造只能用于属性/方法",
                         category: typeof(AutoMapperGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
@@ -161,7 +161,7 @@ namespace AutoGenMapperGenerator
             category: typeof(AutoMapperGenerator).FullName!,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true), location);
-        
+
         /// <summary>
         /// 自动匹配构造函数参数失败
         /// </summary>
