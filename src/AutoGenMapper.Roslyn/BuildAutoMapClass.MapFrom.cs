@@ -80,7 +80,7 @@ public static partial class BuildAutoMapClass
                     var sourceElement = sp.Type.GetElementType();
                     var targetElement = tp.Type.GetElementType();
                     var fin = sp.Type is IArrayTypeSymbol ? "ToArray()" : "ToList()";
-                    if (sourceElement.HasAttribute(AutoMapperGenerator.GenMapperAttributeFullName))
+                    if (sourceElement.HasAttribute(Helper.GenMapperAttributeFullName))
                     {
                         var na = sp.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
                         var localFuncName = $"Map_{sourceElement.Name}_From_{targetElement.Name}";

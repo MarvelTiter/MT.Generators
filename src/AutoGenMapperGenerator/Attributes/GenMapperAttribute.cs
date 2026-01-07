@@ -3,7 +3,7 @@
 namespace AutoGenMapperGenerator;
 
 /// <summary>
-/// 生成MapToXXX方法
+/// 实现<see cref="IAutoMap"/>, 生成MapToXXX方法
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
 public class GenMapperAttribute : Attribute

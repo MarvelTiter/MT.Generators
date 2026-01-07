@@ -12,18 +12,11 @@ namespace AutoGenMapperGenerator;
 [Generator(LanguageNames.CSharp)]
 public class AutoMapperGenerator : IIncrementalGenerator
 {
-    internal const string GenMapperAttributeFullName = "AutoGenMapperGenerator.GenMapperAttribute";
-    internal const string GenMapFromAttributeFullName = "AutoGenMapperGenerator.MapFromAttribute";
-    internal const string GenMapToAttributeFullName = "AutoGenMapperGenerator.MapToAttribute";
-    internal const string GenMapableInterface = "AutoGenMapperGenerator.IAutoMap";
-    internal const string GenMapIgnoreAttribute = "AutoGenMapperGenerator.MapIgnoreAttribute";
-    internal const string GenMapBetweenAttributeFullName = "AutoGenMapperGenerator.MapBetweenAttribute";
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var map = context.SyntaxProvider.ForAttributeWithMetadataName(GenMapperAttributeFullName
             , static (node, _) => node is ClassDeclarationSyntax
-            , static (source, _) => CollectMapperContextFromClass(source));
+            , static (source, _) => CollectMapperContext(source));
 
         context.RegisterSourceOutput(map, static (context, source) =>
         {
@@ -40,7 +33,44 @@ public class AutoMapperGenerator : IIncrementalGenerator
             context.AddSource(file);
         });
     }
+    static (MapperContext?, Diagnostic?) CollectMapperContext(GeneratorAttributeSyntaxContext context)
+    {
+        var location = context.TargetNode.GetLocation();
+        var mapBetweens = CollectSpecificBetweenInfo(context.TargetSymbol).ToArray();
+        var mapperTargets = CollectMapTargets(context.TargetSymbol);
+        var mapContext = new MapperContext(context.TargetSymbol)
+        {
+            Targets = mapperTargets
+        };
+        var error = Helper.CollectMapperContext(mapContext, mapBetweens, location);
+        return (mapContext, error);
+    }
 
+    static CodeFile? CreateCodeFile(MapperContext context)
+    {
+        INamedTypeSymbol source = context.SourceType;
+        var cb = ClassBuilder.Default.Modifiers("partial").ClassName(source.Name)
+            .Interface(GenMapableInterface)
+            .AddGeneratedCodeAttribute(typeof(AutoMapperGenerator));
+        List<MethodBuilder> methods = [];
+        foreach (var ctx in context.Targets)
+        {
+            var m = BuildAutoMapClass.GenerateMapToMethod(source, ctx);
+            methods.Add(m);
+            var f = BuildAutoMapClass.GenerateMapFromMethod(source, ctx);
+            methods.Add(f);
+        }
+
+        var im = BuildAutoMapClass.GenerateInterfaceMethod(context.Targets);
+        methods.AddRange(im);
+        cb.AddMembers([.. methods]);
+        var ns = NamespaceBuilder.Default.Namespace(source.ContainingNamespace.ToDisplayString());
+        return CodeFile.New($"{source.FormatFileName()}.AutoMap.g.cs")
+            //.AddUsings("using System.Linq;")
+            //.AddUsings("using AutoGenMapperGenerator;")
+            .AddUsings(source.GetTargetUsings())
+            .AddMembers(ns.AddMembers(cb));
+    }
     //[Obsolete]
     //private static CodeFile? CreateCodeFile(SourceProductionContext context, GeneratorAttributeSyntaxContext gasc)
     //{

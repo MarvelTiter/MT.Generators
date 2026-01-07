@@ -19,8 +19,8 @@ public enum DeclarePosition
 
 public class MapInfo
 {
-    public List<string> SourceName { get; set; } = [];
-    public List<string> TargetName { get; set; } = [];
+    public string[] SourceName { get; set; } = [];
+    public string[] TargetName { get; set; } = [];
     public List<IPropertySymbol> SourceProp { get; set; } = [];
     public List<IPropertySymbol> TargetProp { get; set; } = [];
     public IMethodSymbol? ForwardBy { get; set; }

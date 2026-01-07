@@ -1,7 +1,7 @@
 ﻿namespace AutoGenMapperGenerator;
 
 /// <summary>
-/// 
+/// 由生成器动态实现<see cref="GenMapperAttribute"/>
 /// </summary>
 public interface IAutoMap
 {

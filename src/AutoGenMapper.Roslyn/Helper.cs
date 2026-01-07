@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Generators.Shared;
+using Generators.Shared.Builder;
+using Microsoft.CodeAnalysis;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
-using Generators.Shared;
-using Generators.Shared.Builder;
+using System.Reflection;
 namespace AutoGenMapperGenerator;
 
 internal partial class Helper
@@ -16,44 +17,8 @@ internal partial class Helper
     internal const string GenMapBetweenAttributeFullName = "AutoGenMapperGenerator.MapBetweenAttribute";
     internal const string GenMapConstructorAttributeFullName = "AutoGenMapperGenerator.MapConstructorAttribute";
 
-    public static CodeFile? CreateCodeFile(MapperContext context)
-    {
-        INamedTypeSymbol source = context.SourceType;
-        var cb = ClassBuilder.Default.Modifiers("partial").ClassName(source.Name)
-            .Interface(GenMapableInterface)
-            .AddGeneratedCodeAttribute(typeof(AutoMapperGenerator));
-        List<MethodBuilder> methods = [];
-        foreach (var ctx in context.Targets)
-        {
-            var m = BuildAutoMapClass.GenerateMapToMethod(source, ctx);
-            methods.Add(m);
-            var f = BuildAutoMapClass.GenerateMapFromMethod(source, ctx);
-            methods.Add(f);
-        }
-
-        var im = BuildAutoMapClass.GenerateInterfaceMethod(context.Targets);
-        methods.AddRange(im);
-        cb.AddMembers([.. methods]);
-        var ns = NamespaceBuilder.Default.Namespace(source.ContainingNamespace.ToDisplayString());
-        return CodeFile.New($"{source.FormatFileName()}.AutoMap.g.cs")
-            //.AddUsings("using System.Linq;")
-            //.AddUsings("using AutoGenMapperGenerator;")
-            .AddUsings(source.GetTargetUsings())
-            .AddMembers(ns.AddMembers(cb));
-    }
-
-    public static (MapperContext?, Diagnostic?) CollectMapperContextFromClass(GeneratorAttributeSyntaxContext context)
-    {
-        var source = (INamedTypeSymbol)context.TargetSymbol;
-        var location = context.TargetNode.GetLocation();
-        var mapBetweens = CollectSpecificBetweenInfo(source).ToArray();
-        var mapperTargets = CollectMapTargets(source);
-        return CollectMapperContext(mapperTargets, mapBetweens, source, location);
-    }
-
-    private static (MapperContext?, Diagnostic?) CollectMapperContext(List<MapperTarget> mapperTargets
+    public static Diagnostic? CollectMapperContext(MapperContext context
         , MapBetweenInfo[] mapBetweens
-        , INamedTypeSymbol source
         , Location? location)
     {
         //var hasDefaultCtor = source.Constructors.Any(c => c.Parameters.Length == 0);
@@ -61,97 +26,52 @@ internal partial class Helper
         //{
         //    return (default, DiagnosticDefinitions.AGM00011(location));
         //}
-        var mapCtx = new MapperContext(source);
-
+        Diagnostic? error = null;
+        var source = context.SourceType;
+        var containType = context.ContainingType;
         var sourceProperties = source.GetAllMembers(_ => true).Where(i => i.Kind == SymbolKind.Property)
                 .Cast<IPropertySymbol>().ToArray();
 
-        foreach (var mapTarget in mapperTargets)
+        foreach (var mapTarget in context.Targets)
         {
             var target = mapTarget.TargetType;
-            foreach (var map in mapBetweens.Where(t => EqualityComparer<INamedTypeSymbol>.Default.Equals(target, t.Target)))
+            var targetProperties = target.GetAllMembers(_ => true).Where(i => i.Kind == SymbolKind.Property)
+                .Cast<IPropertySymbol>().ToArray();
+            var specificBetweens = mapBetweens.Where(t => EqualityComparer<INamedTypeSymbol>.Default.Equals(target, t.Target)).ToList();
+            foreach (var map in specificBetweens)
             {
-
+                var mapInfo = new MapInfo()
+                {
+                    Position = map.Position,
+                    MappingType = map.MapType,
+                    SourceName = map.Sources,
+                    TargetName = map.Targets
+                };
+                mapInfo.SourceProp = [.. sourceProperties.Where(p => mapInfo.SourceName.Contains(p.Name))];
+                mapInfo.TargetProp = [.. targetProperties.Where(p => mapInfo.TargetName.Contains(p.Name))];
+                if (map.By is not null)
+                {
+                    error = HandleByMethod(containType, map.By, mapInfo, location);
+                    if (error is not null)
+                    {
+                        return error;
+                    }
+                }
+                mapTarget.Maps.Add(mapInfo);
             }
 
-            //var targetProperties = a.TargetType.GetAllMembers(_ => true).Where(i => i.Kind == SymbolKind.Property).Cast<IPropertySymbol>().ToArray();
-
-            var mapInfos = mapTarget.Maps;
-
-
-            mapCtx.Targets.Add(mapTarget);
-        }
-
-
-
-        return (mapCtx, null);
-    }
-
-    private static Diagnostic? HandleMapBetweens(List<MapInfo> maps
-        , IPropertySymbol[] sourceProperties
-        , IPropertySymbol[] targetProperties
-        , INamedTypeSymbol declared
-        , Location? location)
-    {
-        var mi = new MapInfo() { Position = DeclarePosition.Class };
-        var type = CheckMapType(item, 1);
-        item.GetConstructorValue(0, out var tar);
-        switch (type)
-        {
-            case MappingType.SingleToSingle:
-                {
-                    item.GetConstructorValue(1, out var sp);
-                    item.GetConstructorValue(2, out var tp);
-                    mi.SourceName = [sp!.ToString()];
-                    mi.SourceProp = [.. sourceProperties.Where(p => mi.SourceName.Contains(p.Name))];
-                    mi.TargetName = [tp!.ToString()];
-                    mi.TargetProp = [.. targetProperties.Where(p => mi.TargetName.Contains(p.Name))];
-                    mi.MappingType = MappingType.SingleToSingle;
-                    break;
-                }
-            case MappingType.SingleToMulti:
-                {
-                    item.GetConstructorValue(1, out var sp);
-                    item.GetConstructorValues(2, out var tps);
-                    mi.SourceName = [sp!.ToString()];
-                    mi.SourceProp = [.. sourceProperties.Where(p => mi.SourceName.Contains(p.Name))];
-                    mi.TargetName = [.. tps.Select(tp => tp!.ToString())];
-                    mi.TargetProp = [.. targetProperties.Where(p => mi.TargetName.Contains(p.Name))];
-                    mi.MappingType = MappingType.SingleToMulti;
-                    break;
-                }
-            case MappingType.MultiToSingle:
-                {
-                    item.GetConstructorValues(1, out var sps);
-                    item.GetConstructorValue(2, out var tp);
-                    mi.SourceName = [.. sps.Select(sp => sp!.ToString())];
-                    mi.SourceProp = [.. sourceProperties.Where(p => mi.SourceName.Contains(p.Name))];
-                    mi.TargetName = [tp!.ToString()];
-                    mi.TargetProp = [.. targetProperties.Where(p => mi.TargetName.Contains(p.Name))];
-                    mi.MappingType = MappingType.MultiToSingle;
-                    break;
-                }
-            default:
-                throw new Exception();
-        }
-
-        if (item.GetNamedValue("By", out var by))
-        {
-            var methodName = by!.ToString();
-            var error = HandleByMethod(declared, methodName, mi, location);
+            error = HandleAutoMapProperties(mapTarget.Maps
+               , source
+               , target
+               , sourceProperties
+               , targetProperties
+               , location);
             if (error is not null)
             {
                 return error;
             }
         }
-
-        if (type != MappingType.SingleToSingle && mi.ForwardBy is null)
-        {
-            return DiagnosticDefinitions.AGM00006(location);
-        }
-        maps.Add(mi);
-
-        return default;
+        return error;
     }
 
     private static Diagnostic? HandleAutoMapProperties(List<MapInfo> mapInfos
@@ -206,6 +126,10 @@ internal partial class Helper
             }
             else
             {
+                if (sp.HasAttribute(GenMapIgnoreAttribute))
+                {
+                    continue;
+                }
                 var tp = targetProperties.FirstOrDefault(tp => tp.Name == sp.Name);
                 if (tp is null)
                 {
@@ -238,52 +162,19 @@ internal partial class Helper
 
         return null;
     }
-    private static (AttributeData[] AttrDatas, Diagnostic? Error) GetSpecificDatas(INamedTypeSymbol type, INamedTypeSymbol matchSymbol)
-    {
-        var attrs = type.GetAttributes(GenMapBetweenAttributeFullName);
-        List<AttributeData> result = [];
-        foreach (var item in attrs)
-        {
-            if (item.ConstructorArguments.Length == 2)
-            {
-                return ([], DiagnosticDefinitions.AGM00004(type.Locations.FirstOrDefault()));
-            }
 
-            item.GetConstructorValue(0, out var t);
-            var symbol = (INamedTypeSymbol)t!;
-            if (EqualityComparer<INamedTypeSymbol>.Default.Equals(symbol, matchSymbol))
-            {
-                result.Add(item);
-            }
-        }
-
-        return ([.. result], null);
-    }
-    // 如果是定义在方法上的，应该检查第一和第二个参数，如果是定义在类上的，应该检查第二和第三个参数
-    private static MappingType CheckMapType(AttributeData data, int offset)
-    {
-        var s = data.ConstructorArguments[offset + 0];
-        var t = data.ConstructorArguments[offset + 1];
-        if (s.Type is IArrayTypeSymbol)
-        {
-            return MappingType.MultiToSingle;
-        }
-        else if (t.Type is IArrayTypeSymbol)
-        {
-            return MappingType.SingleToMulti;
-        }
-        else
-        {
-            return MappingType.SingleToSingle;
-        }
-    }
-
-    private static Diagnostic? HandleByMethod(INamedTypeSymbol declared
+    private static Diagnostic? HandleByMethod(ISymbol declared
         , string methodName
         , MapInfo mi
         , Location? location)
     {
-        var methods = declared.GetAllMembers(_ => true).Where(i => i.Kind == SymbolKind.Method && i.Name == methodName).Cast<IMethodSymbol>().ToArray();
+        var declaredType = declared switch
+        {
+            INamedTypeSymbol nts => nts,
+            IMethodSymbol ms => ms.ContainingType,
+            _ => throw new InvalidOperationException("Unsupported symbol type for 'declared'.")
+        };
+        var methods = declaredType.GetAllMembers(_ => true).Where(i => i.Kind == SymbolKind.Method && i.IsStatic && i.Name == methodName).Cast<IMethodSymbol>().ToArray();
         if (methods.Length == 0)
         {
             return DiagnosticDefinitions.AGM00003(location);
@@ -296,7 +187,7 @@ internal partial class Helper
 
         var forward = methods.FirstOrDefault(m => CheckParameters(m, spts));
         if (!CheckMappingMethodReturnType(forward
-                , declared.Locations.FirstOrDefault()
+                , location
                 , spts
                 , tpts
                 , out var error))
@@ -312,7 +203,7 @@ internal partial class Helper
 
         var reverse = methods.FirstOrDefault(m => CheckParameters(m, tpts));
         if (CheckMappingMethodReturnType(reverse
-                , declared.Locations.FirstOrDefault()
+                , location
                 , tpts
                 , spts
                 , out error))

@@ -8,7 +8,7 @@ namespace AutoGenMapperGenerator;
 /// <para>定义在属性上，需要使用2个参数的构造函数，用于单对单的映射</para>
 /// <para>定义在方法上，需要使用2个参数的构造函数</para>
 /// </summary>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
 public class MapBetweenAttribute : Attribute
 {
     /// <summary>
@@ -33,26 +33,26 @@ public class MapBetweenAttribute : Attribute
     private string? Target { get; set; }
 
     /// <summary>
-    /// 自定义映射方法
+    /// 自定义映射方法，必须是静态方法
     /// <para>单对单</para>
     /// <code>
-    /// <![CDATA[TReturn {By}(TMember val)]]>
+    /// <![CDATA[static TReturn {By}(TMember val)]]>
     /// </code>
     /// <para>多对单</para>
     /// <code>
-    /// <![CDATA[TReturn {By}(TMember1 val1, TMember2 val2, ...)]]>
+    /// <![CDATA[static TReturn {By}(TMember1 val1, TMember2 val2, ...)]]>
     /// </code>
     /// <para>单对多</para>
     /// <code>
-    /// <![CDATA[object[] {By}(TMember1 val)]]>
-    /// </code>
-    /// <para>使用<see cref="MappingContext{TSource, TTarget}"/>作为参数</para>
-    /// <code>
-    /// <![CDATA[void {By}(MappingContext<TSource, TTarget> context)]]>
+    /// <![CDATA[static (field1, field2, ...) {By}(TMember1 val)]]>
     /// </code>
     /// </summary>
+    // <para>使用<see cref="MappingContext{TSource, TTarget}"/>作为参数</para>
+    // <code>
+    // <![CDATA[void {By}(MappingContext<TSource, TTarget> context)]]>
+    // </code>
     public string? By { get; set; }
-        
+
     /// <summary>
     /// (属性适用)自定义属性映射
     /// </summary>
