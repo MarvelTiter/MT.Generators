@@ -2,6 +2,29 @@
 
 ## v0.1.0
 - ⚡️升级`.NET10`
+- 🛠优化生成器代码
+- ⚡️支持生成扩展方法
+
+```csharp
+internal static partial class MapperExtensions
+{
+    [GenMapper]
+    [MapBetween([nameof(Product.Name), nameof(Product.Category)], nameof(ProductDto.Name), By = nameof(MapToDtoName))]
+    [MapBetween(nameof(Product.SplitValue), [nameof(ProductDto.S1), nameof(ProductDto.S2)], By = nameof(MapOneToMultiTest))]
+    public static partial ProductDto ToDto(this Product product, Action<Product, ProductDto>? action = null);
+
+    public static string MapToDtoName(string name, string category)
+    {
+        return $"{name}-{category}";
+    }
+
+    public static (string, string) MapOneToMultiTest(string value)
+    {
+        var val = value.Split(',');
+        return (val[0], val[1]);
+    }
+}
+```
 
 ## v0.0.9
 
