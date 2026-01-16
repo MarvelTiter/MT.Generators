@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 namespace AutoGenMapperGenerator;
 
@@ -11,14 +12,15 @@ public enum MappingType
 
 public enum DeclarePosition
 {
+    Property,
     Class,
-    Property
+    Method,
 }
 
 public class MapInfo
 {
-    public List<string> SourceName { get; set; } = [];
-    public List<string> TargetName { get; set; } = [];
+    public string[] SourceName { get; set; } = [];
+    public string[] TargetName { get; set; } = [];
     public List<IPropertySymbol> SourceProp { get; set; } = [];
     public List<IPropertySymbol> TargetProp { get; set; } = [];
     public IMethodSymbol? ForwardBy { get; set; }
@@ -28,6 +30,8 @@ public class MapInfo
     public DeclarePosition Position { get; set; }
     public bool CanReverse { get; set; }
 }
+
+[Obsolete]
 public class GenMapperContext
 {
     public INamedTypeSymbol SourceType { get; set; } = default!;

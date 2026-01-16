@@ -11,12 +11,12 @@ namespace AutoGenMapperGenerator;
 
 public static partial class BuildAutoMapClass
 {
-    internal static IEnumerable<MethodBuilder> GenerateInterfaceMethod(GenMapperContext[] contexts)
+    internal static IEnumerable<MethodBuilder> GenerateInterfaceMethod(List<MapperTarget> contexts)
     {
         #region map to method
         {
             var statements = new List<Statement>();
-            if (contexts.Length == 1)
+            if (contexts.Count == 1)
             {
                 statements.Add($"return MapTo{contexts[0].TargetType!.Name}()");
             }
@@ -44,7 +44,7 @@ public static partial class BuildAutoMapClass
         #region map from method
         {
             var statements = new List<Statement>();
-            if (contexts.Length == 1)
+            if (contexts.Count == 1)
             {
                 var ctx = contexts[0];
                 statements.Add(IfStatement.Default.If($"value is {ctx.TargetType.ToDisplayString()} source").AddStatement($"MapFrom{contexts[0].TargetType.Name}(source)"));
@@ -76,21 +76,25 @@ public static partial class BuildAutoMapClass
     }
     static bool IsMapableObject(this IPropertySymbol target)
     {
-        return target.Type.HasAttribute(AutoMapperGenerator.GenMapperAttributeFullName) == true;
+        return target.Type.HasAttribute(Helper.GenMapperAttributeFullName) == true;
     }
-    static string? TryGetMethodInvoker(this IMethodSymbol method)
+    static string TryGetMethodInvoker(this IMethodSymbol method, INamedTypeSymbol source)
     {
-        return method.IsStatic ?
-            method.ReceiverType?.ToDisplayString() ?? method.ContainingType?.ToDisplayString()
-            : null;
+        //return method.IsStatic ?
+        //    method.ReceiverType?.ToDisplayString() ?? method.ContainingType?.ToDisplayString()
+        //    : null;
+        return method.ContainingType.ToDisplayString();
     }
 
-    internal static MethodBuilder GenerateMapToMethod(GenMapperContext context)
+    private static List<Statement> BuildMapToMethodStatements(string tarEntityName
+        , string souEntityName
+        , INamedTypeSymbol sourceType
+        , MapperTarget context
+        , Func<IEnumerable<Statement>>? beforeReturn = null)
     {
-        const string TARGET_OBJECT = "_result_gen";
         var statements = new List<Statement>()
         {
-            $"var {TARGET_OBJECT} = new {context.TargetType.ToDisplayString()}({string.Join(", ", context.ConstructorParameters)})"
+            $"var {tarEntityName} = new {context.TargetType.ToDisplayString()}({string.Join(", ", context.ConstructorParameters.Select(n => $"{souEntityName}.{n}"))})"
         };
 
         foreach (var item in context.Maps)
@@ -102,38 +106,36 @@ public static partial class BuildAutoMapClass
             }
             else if (item.MappingType == MappingType.MultiToSingle)
             {
-                var invoker = item.ForwardBy!.TryGetMethodInvoker() ?? "this";
+                var invoker = item.ForwardBy!.TryGetMethodInvoker(sourceType);
                 var targetName = item.TargetName.First();
-                var pnames = string.Join(", ", item.SourceName.Select(s => $"this.{s}"));
-                var line = $"{TARGET_OBJECT}.{targetName} = {invoker}.{item.ForwardBy!.Name}({pnames})";
+                var pnames = string.Join(", ", item.SourceName.Select(s => $"{souEntityName}.{s}"));
+                var line = $"{tarEntityName}.{targetName} = {invoker}.{item.ForwardBy!.Name}({pnames})";
                 statements.Add(line);
             }
             else if (item.MappingType == MappingType.SingleToMulti)
             {
-                var invoker = item.ForwardBy!.TryGetMethodInvoker() ?? "this";
+                var invoker = item.ForwardBy!.TryGetMethodInvoker(sourceType);
                 var sourceParam = item.SourceName[0];
                 var tempArray = $"_{sourceParam}_arr_gen";
-                var line = $"var {tempArray} = {invoker}.{item.ForwardBy!.Name}({string.Join(", ", $"this.{sourceParam}")})";
+                var line = $"var {tempArray} = {invoker}.{item.ForwardBy!.Name}({string.Join(", ", $"{souEntityName}.{sourceParam}")})";
                 statements.Add(line);
                 //var checkArrResult = IfStatement.Default.If($"{tempArray} is not null");
                 for (int i = 0; i < item.TargetProp.Count; i++)
                 {
                     var tar = item.TargetProp[i];
-                    statements.Add($"{TARGET_OBJECT}.{tar.Name} = {tempArray}.Item{i + 1}");
+                    statements.Add($"{tarEntityName}.{tar.Name} = {tempArray}.Item{i + 1}");
                 }
                 //statements.Add(checkArrResult);
             }
         }
+        if (beforeReturn is not null)
+        {
+            var sss = beforeReturn();
+            statements.AddRange(sss);
+        }
+        statements.Add($"return {tarEntityName};");
 
-        statements.Add($"return {TARGET_OBJECT};");
-
-        var builder = MethodBuilder.Default
-            .MethodName($"MapTo{context.TargetType.Name}")
-            .ReturnType(context.TargetType.ToDisplayString())
-            .AddGeneratedCodeAttribute(typeof(AutoMapperGenerator))
-            .AddBody([.. statements]);
-
-        return builder;
+        return statements;
 
         Statement HandleForwardSingleToSingle(MapInfo item)
         {
@@ -142,9 +144,9 @@ public static partial class BuildAutoMapClass
             IPropertySymbol tp = item.TargetProp.First();
             if (item.ForwardBy is not null)
             {
-                var invoker = item.ForwardBy.IsStatic ? item.ForwardBy.ReceiverType?.ToDisplayString() ?? item.ForwardBy.ContainingType?.ToDisplayString() : "this";
+                var invoker = item.ForwardBy.TryGetMethodInvoker(sourceType);
                 // 使用自定义映射
-                line = $"{TARGET_OBJECT}.{tp.Name} = {invoker}.{item.ForwardBy.Name}(this.{sp.Name})";
+                line = $"{tarEntityName}.{tp.Name} = {invoker}.{item.ForwardBy.Name}(this.{sp.Name})";
             }
             else
             {
@@ -157,16 +159,16 @@ public static partial class BuildAutoMapClass
                     var sourceElement = sp.Type.GetElementType();
                     var targetElement = tp.Type.GetElementType();
                     var fin = sp.Type is IArrayTypeSymbol ? "ToArray()" : "ToList()";
-                    if (sourceElement.HasAttribute(AutoMapperGenerator.GenMapperAttributeFullName))
+                    if (sourceElement.HasAttribute(Helper.GenMapperAttributeFullName))
                     {
                         var na = sp.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
                         line = $"""
-{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}{na}.Where(i => i is not null).Select(i => i.MapTo<{targetElement.ToDisplayString()}>("{targetElement.MetadataName}")).{fin}
+{tarEntityName}.{tp.Name} = {souEntityName}.{sp.Name}{na}.Where(i => i is not null).Select(i => i.MapTo<{targetElement.ToDisplayString()}>("{targetElement.MetadataName}")).{fin}
 """;
                     }
                     else
                     {
-                        line = $"{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}";
+                        line = $"{tarEntityName}.{tp.Name} = {souEntityName}.{sp.Name}";
                     }
                 }
                 else if (sp.Type.TypeKind == TypeKind.Class && sp.Type.SpecialType == SpecialType.None)
@@ -176,37 +178,37 @@ public static partial class BuildAutoMapClass
                     {
                         var na = sp.Type.NullableAnnotation == NullableAnnotation.Annotated ? "?" : "";
                         line = $"""
-{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}{na}.MapTo<{tp.Type.ToDisplayString()}>("{tp.Type.MetadataName}")
+{tarEntityName}.{tp.Name} = {souEntityName}.{sp.Name}{na}.MapTo<{tp.Type.ToDisplayString()}>("{tp.Type.MetadataName}")
 """;
                     }
                     else
                     {
-                        line = $"{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}";
+                        line = $"{tarEntityName}.{tp.Name} = {souEntityName}.{sp.Name}";
                     }
                 }
                 else
                 {
                     if (EqualityComparer<ITypeSymbol>.Default.Equals(sp.Type, tp.Type))
                     {
-                        line = $"{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}";
+                        line = $"{tarEntityName}.{tp.Name} = {souEntityName}.{sp.Name}";
                     }
                     else
                     {
                         // 处理类型转换
                         if (tp.Type.SpecialType == SpecialType.System_String)
                         {
-                            line = $"{TARGET_OBJECT}.{tp.Name} = this.{sp.Name}.ToString()";
+                            line = $"{tarEntityName}.{tp.Name} = {souEntityName}.{sp.Name}.ToString()";
                         }
                         else if (tp.Type.GetMembers().FirstOrDefault(m => m.Name == "TryParse") is IMethodSymbol tryParse
                             && sp.Type.SpecialType == SpecialType.System_String)
                         {
-                            line = IfStatement.Default.If($"{tp.Type.ToDisplayString()}.{tryParse.Name}(this.{sp.Name}.ToString(), out var _{tp.Name}_out_gen)")
-                                .AddStatement($"{TARGET_OBJECT}.{tp.Name} = _{tp.Name}_out_gen");
+                            line = IfStatement.Default.If($"{tp.Type.ToDisplayString()}.{tryParse.Name}({souEntityName}.{sp.Name}.ToString(), out var _{tp.Name}_out_gen)")
+                                .AddStatement($"{tarEntityName}.{tp.Name} = _{tp.Name}_out_gen");
                         }
                         else
                         {
                             line = $"""
-                                    throw new AutoGenMapperGenerator.AutoGenMapperException("{context.SourceType.ToDisplayString()}.{sp.Name}和{context.TargetType.ToDisplayString()}.{tp.Name}尝试自动类型转换失败，请自定义{sp.Type.ToDisplayString()}和{tp.Type.ToDisplayString()}之间的转换")
+                                    throw new AutoGenMapperGenerator.AutoGenMapperException("{sourceType.ToDisplayString()}.{sp.Name}和{context.TargetType.ToDisplayString()}.{tp.Name}尝试自动类型转换失败，请自定义{sp.Type.ToDisplayString()}和{tp.Type.ToDisplayString()}之间的转换")
                                     """;
                         }
                     }
@@ -215,5 +217,22 @@ public static partial class BuildAutoMapClass
 
             return line;
         }
+
+    }
+
+    const string TARGET_OBJECT = "_result_gen";
+    internal static MethodBuilder GenerateMapToMethod(INamedTypeSymbol sourceType, MapperTarget context)
+    {
+        var statements = BuildMapToMethodStatements(TARGET_OBJECT, "this", sourceType, context);
+        var builder = MethodBuilder.Default
+            .MethodName($"MapTo{context.TargetType.Name}")
+            //.Modifiers("private static")
+            //.AddParameter($"{sourceType.ToDisplayString()} {SOURCE_OBJECT}")
+            .ReturnType(context.TargetType.ToDisplayString())
+            .AddGeneratedCodeAttribute(typeof(AutoMapperGenerator))
+            .AddBody([.. statements]);
+
+        return builder;
+
     }
 }

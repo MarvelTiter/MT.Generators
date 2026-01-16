@@ -1,11 +1,8 @@
-﻿# 版本功能更新记录
+﻿using AutoGenMapperGenerator;
+using System.Xml.Linq;
 
-## v0.1.0
-- ⚡️升级`.NET10`
-- 🛠优化生成器代码
-- ⚡️支持生成扩展方法
+namespace TestProject1.Models;
 
-```csharp
 internal static partial class MapperExtensions
 {
     [GenMapper]
@@ -24,9 +21,11 @@ internal static partial class MapperExtensions
         return (val[0], val[1]);
     }
 }
-```
 
-## v0.0.9
-
-- ⚡️重新定义自定义映射规则，删除`MapToAttribute`和`MapFromAttribute`，统一在需要映射的类型上使用`MapBetweenAttribute`，并且支持反向映射功能AutoMap.MapFrom
-- ⚡️`IAutoMap`新增`MapFrom`
+//static partial class MapperExtensions
+//{
+//    static partial ProductDto ToDto(Product product)
+//    {
+//        throw new NotImplementedException();
+//    }
+//}
