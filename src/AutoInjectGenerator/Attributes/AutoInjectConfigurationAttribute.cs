@@ -6,7 +6,7 @@ namespace AutoInjectGenerator;
 /// 自动注入分组配置
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
-public class AutoInjectConfiguration : Attribute
+public class AutoInjectConfigurationAttribute : Attribute
 {
     /// <summary>
     /// 忽略<see cref="AutoInjectAttribute.Group"/>的值等于<see cref="Exclude"/>的项

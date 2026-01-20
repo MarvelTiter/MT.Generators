@@ -22,7 +22,7 @@ public class AutoInjectAttribute : Attribute
     /// </summary>
     public Type? ServiceType { get; set; }
     /// <summary>
-    /// 配置所属组别, 适用于<see cref="AutoInjectConfiguration.Exclude"/>或者<see cref="AutoInjectConfiguration.Include"/>
+    /// 配置所属组别, 适用于<see cref="AutoInjectConfigurationAttribute.Exclude"/>或者<see cref="AutoInjectConfigurationAttribute.Include"/>
     /// </summary>
     public string? Group { get; set; }
     /// <summary>

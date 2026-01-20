@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoInjectGenerator;
 
 namespace TestProject1.Models
 {
@@ -24,6 +25,7 @@ namespace TestProject1.Models
     }
 
     // [GenMapper]
+    [AutoInject]
     public partial class Power : IPower
     {
         public string? PowerId { get; set; }

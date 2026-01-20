@@ -26,6 +26,7 @@
 		<ProjectReference Include="..\..\AutoWasmApi.Roslyn\AutoWasmApi.Roslyn.csproj" OutputItemType="Analyzer" />
 		<ProjectReference Include="..\..\AutoWasmApiGenerator\AutoWasmApiGenerator.csproj" />
 		<ProjectReference Include="..\..\InjectTest\InjectTest.csproj" />
+		<ProjectReference Include="..\..\TestProject1\TestProject1.csproj" />
 		<ProjectReference Include="..\BlazorTest.Pages\BlazorTest.Pages.csproj" />
 	</ItemGroup>
 

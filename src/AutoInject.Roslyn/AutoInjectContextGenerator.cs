@@ -11,58 +11,11 @@ using static AutoInjectGenerator.AutoInjectContextGeneratorHelpers;
 namespace AutoInjectGenerator;
 
 
-[Generator(LanguageNames.CSharp)]
-public class AutoInjectContextGenerator : IIncrementalGenerator
+//[Generator(LanguageNames.CSharp)]
+public class AutoInjectContextGenerator //: IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        //只能获取到当前程序集的节点
-        //var ctx = context.SyntaxProvider.ForAttributeWithMetadataName(
-        //    AutoInjectContext
-        //    , static (node, _) => node is ClassDeclarationSyntax
-        //    , CollectContextInfo).Collect();
-        //var services = context.SyntaxProvider.ForAttributeWithMetadataName(
-        //    AutoInject
-        //    , static (node, _) => node is ClassDeclarationSyntax
-        //    , CollectInjectInfo).Collect();
-
-        //var ctx = context.CompilationProvider.ForAttributeWithMetadataName(
-        //    AutoInjectContext
-        //    , static (node, _) => true
-        //    , (ctx, _) => CollectContextInfo(ctx)).Collect();
-        //var services = context.CompilationProvider.ForAttributeWithMetadataName(
-        //    AutoInject
-        //    , static (node, _) => true
-        //    , (ctx, _) => CollectInjectInfo(ctx)).Collect();
-
-        //context.RegisterSourceOutput(context.CompilationProvider.Combine(ctx.Combine(services)), static (context, source) =>
-        //{
-        //    (Compilation compilation, var Right) = source;
-        //    (var allContext, var services) = Right;
-        //    foreach (var item in allContext)
-        //    {
-        //        if (item is null) continue;
-        //        if (!EqualityComparer<IAssemblySymbol>.Default.Equals(item.TargetSymbol.ContainingAssembly, compilation.SourceModule.ContainingAssembly))
-        //        {
-        //            continue;
-        //        }
-        //        if (item.Diagnostic != null)
-        //        {
-        //            context.ReportDiagnostic(item.Diagnostic);
-        //            return;
-        //        }
-
-        //        foreach (var a in services.Where(a => a?.Diagnostic is not null))
-        //        {
-        //            context.ReportDiagnostic(a!.Diagnostic!);
-        //            return;
-        //        }
-        //        var codefile = CreateContextCodeFile(item, services);
-        //        context.AddSource(codefile);
-        //    }
-        //});
-
-
         context.RegisterSourceOutput(context.CompilationProvider, static (context, source) =>
         {
             var allContext = source.FindByAttributeMetadataName(

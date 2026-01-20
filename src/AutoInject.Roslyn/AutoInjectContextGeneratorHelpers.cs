@@ -12,9 +12,10 @@ namespace AutoInjectGenerator;
 internal static class AutoInjectContextGeneratorHelpers
 {
     public const string AutoInjectContext = "AutoInjectGenerator.AutoInjectContextAttribute";
-    public const string AutoInjectConfiguration = "AutoInjectGenerator.AutoInjectConfiguration";
+    public const string AutoInjectConfiguration = "AutoInjectGenerator.AutoInjectConfigurationAttribute";
     public const string AutoInject = "AutoInjectGenerator.AutoInjectAttribute";
     public const string AutoInjectSelf = "AutoInjectGenerator.AutoInjectSelfAttribute";
+    public const string AutoInjectModule = "AutoInjectGenerator.AutoInjectModuleAttribute";
     private static bool IsInjectSelf(AttributeData data) => data.AttributeClass?.ToDisplayString() == AutoInjectSelf;
 
     // new ServiceDescriptor()
@@ -165,7 +166,62 @@ internal static class AutoInjectContextGeneratorHelpers
                           .Any(g => g.Select(s => s.Scoped).Distinct().Count() > 1);
         }
     }
+    public static AutoInjectInfo CollectInjectInfo(INamedTypeSymbol classSymbol, SyntaxNode targetNode)
+    {
+        var info = new AutoInjectInfo(classSymbol);
+        foreach (var a in classSymbol.GetAttributes(AutoInject, true))
+        {
+            if (!a.GetNamedValue("LifeTime", out var injectType))
+            {
+                injectType = 1;
+            }
+            var scoped = FormatInjectType(injectType);
 
+            string serviceType;
+            if (IsInjectSelf(a))
+            {
+                serviceType = info.Implement;
+            }
+            else if(a.GetNamedValue("ServiceType", out var t) && t is INamedTypeSymbol type)
+            {
+                serviceType = type.ToDisplayString();
+                if (!classSymbol.AllInterfaces.Contains(type)
+                    && !SymbolEqualityComparer.Default.Equals(classSymbol, type)
+                    && !classSymbol.IsSubClassOf(type))
+                {
+                    info.Diagnostic = DiagnosticDefinitions.AIG00003(serviceType, info.Implement, targetNode.GetLocation());
+                    return info;
+                }
+            }
+            // 获取到的Interfaces跟AllInterfaces一样
+            else if (classSymbol.Interfaces.Length >= 1)
+            {
+                serviceType = classSymbol.Interfaces[0].ToDisplayString();
+            }
+            else
+            {
+                serviceType = info.Implement;
+            }
+
+            _ = a.GetNamedValue<string>("ServiceKey", out var serviceKey);
+            _ = a.GetNamedValue<string>("Group", out var group);
+            info.Services.Add(new RegisterServiceInfo(scoped, serviceType, serviceKey, group));
+        }
+
+        if (HasDifferentScopedInSameMemberShip())
+        {
+            info.Diagnostic = DiagnosticDefinitions.AIG00004(targetNode.GetLocation());
+        }
+
+        return info;
+
+        bool HasDifferentScopedInSameMemberShip()
+        {
+            return info.Services.Where(s => s.MemberShip != null)
+                          .GroupBy(s => s.MemberShip)
+                          .Any(g => g.Select(s => s.Scoped).Distinct().Count() > 1);
+        }
+    }
     public static CodeFile? CreateContextCodeFile(AutoInjectContextInfo context, IEnumerable<AutoInjectInfo?> items)
     {
         var classSymbol = context.TargetSymbol;
@@ -269,7 +325,7 @@ internal static class AutoInjectContextGeneratorHelpers
             }
         }
 
-        
+
 
         yield return "";
         static bool ShouldRegister(AutoInjectContextInfo context, string? group)
