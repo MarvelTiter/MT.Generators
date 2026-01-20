@@ -30,7 +30,7 @@ jobs:
       - name: Build
         run:
           |
-          dotnet build ./src -c Release
+          dotnet build ./src/MT.Generators.slnx -c Release
       # AutoInjectGenerator
       - name: Pack
         run:
