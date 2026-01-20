@@ -5,14 +5,14 @@ namespace Blazor.Test
     [AutoInjectContext]
     public static partial class AutoInjectContext
     {
-        [AutoInjectConfiguration(Include = "SERVER")]
+        [AutoInjectConfigurationAttribute(Include = "SERVER")]
         public static partial void Inject(this IServiceCollection services);
     }
 
     [AutoInjectContext]
     public static partial class AutoInjectContextHybrid
     {
-        [AutoInjectConfiguration(Include = "HYBRID")]
+        [AutoInjectConfigurationAttribute(Include = "HYBRID")]
         public static partial void InjectHybrid(this IServiceCollection services);
     }
 }
