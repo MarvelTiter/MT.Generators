@@ -33,6 +33,7 @@ internal static class AutoInjectContextGeneratorHelpers
     public static AutoInjectContextInfo CollectContextInfo(GeneratorAttributeSyntaxContext context, CancellationToken _)
     {
         var classSymbol = (INamedTypeSymbol)context.TargetSymbol;
+        //context.TargetSymbol.GetAttribute(AutoInjectContext, out var contextAttr);
         var ctxInfo = new AutoInjectContextInfo(classSymbol);
         if (classSymbol.GetMembers().FirstOrDefault(m => m is IMethodSymbol
             {
@@ -49,7 +50,10 @@ internal static class AutoInjectContextGeneratorHelpers
             var e = c.GetNamedValue("Exclude")?.ToString() ?? "";
             return (i, e);
         }).ToArray();
-
+        //if (contextAttr?.GetNamedValue<bool>("ContainSelf", out var containSelf) == true)
+        //{
+        //    ctxInfo.ContainSelf = containSelf;
+        //}
         ctxInfo.Includes = [.. allConfig.Select(t => t.i).Where(s => !string.IsNullOrEmpty(s))];
 
         ctxInfo.Excludes = [.. allConfig.Select(t => t.e).Where(s => !string.IsNullOrEmpty(s))];

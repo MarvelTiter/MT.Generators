@@ -9,6 +9,7 @@ public class AutoInjectContextInfo(INamedTypeSymbol targetSymbol)
     public IMethodSymbol? MethodSymbol { get; set; }
     public string[] Includes { get; set; } = [];
     public string[] Excludes { get; set; } = [];
+    public bool? ContainSelf { get; set; }
     public Diagnostic? Diagnostic { get; set; }
 }
 

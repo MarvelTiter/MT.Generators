@@ -128,14 +128,14 @@ public class AutoInjectModuleGenerator : IIncrementalGenerator
                 if (self is null)
                 {
                     // 提供默认的自身注入
-                    yield return (DoCreate(serviceName, info.Implement, implement, item[0].Scoped, null, true));
+                    yield return (DoCreate(serviceName, info.Implement, implement, item[0].Scoped, null));
                 }
                 foreach (var r in item)
                 {
                     if (r.ServiceType == info.Implement)
                     {
                         // 显式注入自身，说明前面的self不为null
-                        yield return (DoCreate(serviceName, r.ServiceType, implement, r.Scoped, r.Key, true));
+                        yield return (DoCreate(serviceName, r.ServiceType, implement, r.Scoped, r.Key));
                     }
                     else
                     {

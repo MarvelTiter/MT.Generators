@@ -21,10 +21,8 @@ public class AutoInjectEntryGenerator : IIncrementalGenerator
             var target = source.TargetSymbol;
             var asm = target.ContainingAssembly;
             var modules = new List<INamedTypeSymbol>();
-            if (asm.GlobalNamespace is not null)
-            {
-                modules.AddRange(asm.GlobalNamespace.GetAllMembers<INamedTypeSymbol>(i => i is INamedTypeSymbol m && m.HasAttribute(AutoInjectModule)));
-            }
+            source.ContainSelf = asm.GlobalNamespace?.GetAllMembers<INamedTypeSymbol>(i => i is INamedTypeSymbol m && m.HasAttribute(AutoInject, true)).Any();
+
             foreach (var item in asm.Modules)
             {
                 foreach (var referencedAssembly in item.ReferencedAssemblySymbols)
@@ -76,6 +74,10 @@ public class AutoInjectEntryGenerator : IIncrementalGenerator
                 "var config = new global::AutoInjectGenerator.AutoInjectConfiguration(_excludes, _includes)",
                 //$"global::AutoInjectGenerator.AutoInjectManager.ApplyProjectServices({serviceName}, config)"
                 ];
+            if (context.ContainSelf == true)
+            {
+                methodBody.Add($"global::{context.TargetSymbol.ContainingAssembly.Name}.AutoInjectModuleServices.InjectModuleServices({serviceName}, config)");
+            }
             foreach (var item in modules)
             {
                 methodBody.Add($"global::{item.ContainingAssembly.Name}.AutoInjectModuleServices.InjectModuleServices({serviceName}, config)");
