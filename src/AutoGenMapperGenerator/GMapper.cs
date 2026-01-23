@@ -1,4 +1,8 @@
-﻿namespace AutoGenMapperGenerator;
+﻿using AutoGenMapperGenerator.ReflectMapper;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace AutoGenMapperGenerator;
 
 /// <summary>
 /// <para>G -> Generator</para>
@@ -20,14 +24,5 @@ public static class GMapper
             return m.MapTo<TTarget>();
         }
         return ExpressionMapper<TSource, TTarget>.Map(source);
-    }
-}
-
-internal static class ExpressionMapper<TSource, TTarget>
-{
-    public static TTarget Map(TSource source)
-    {
-        // TODO
-        throw new System.NotImplementedException();
     }
 }
