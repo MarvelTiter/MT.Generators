@@ -1,15 +1,16 @@
-﻿using AutoGenMapperGenerator.ReflectMapper;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace AutoGenMapperGenerator;
+namespace AutoGenMapperGenerator.ReflectMapper;
 
 /// <summary>
-/// <para>G -> Generator</para>
+/// 
 /// </summary>
-public static class GMapper
+public interface IMapperService
 {
     /// <summary>
     /// <para>首先检查是否<see cref="IAutoMap"/>，如果是，则直接调用接口</para>
@@ -19,15 +20,37 @@ public static class GMapper
     /// <typeparam name="TTarget"></typeparam>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static TTarget Map<
+    TTarget Map<
 #if NET8_0_OR_GREATER
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+   [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
     TSource,
 #if NET8_0_OR_GREATER
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+   [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 #endif
-    TTarget>(this TSource source)
+    TTarget>(TSource source);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <param name="entity"></param>
+    /// <returns></returns>
+    IDictionary<string, object?> ToDictionary<TEntity>(TEntity entity);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <param name="dict"></param>
+    /// <returns></returns>
+    TEntity ToEntity<TEntity>(IDictionary<string, object?> dict);
+}
+
+
+internal sealed class MapperService : IMapperService
+{
+    public TTarget Map<[DynamicallyAccessedMembers((DynamicallyAccessedMemberTypes)(-1))] TSource, [DynamicallyAccessedMembers((DynamicallyAccessedMemberTypes)(-1))] TTarget>(TSource source)
     {
         if (source is null)
         {
@@ -49,13 +72,7 @@ public static class GMapper
         return ExpressionMapper<TSource, TTarget>.Map(source);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <param name="entity"></param>
-    /// <returns></returns>
-    public static IDictionary<string, object?> ToDictionary<TEntity>(this TEntity entity)
+    public IDictionary<string, object?> ToDictionary<TEntity>(TEntity entity)
     {
         if (entity is null)
         {
@@ -64,13 +81,7 @@ public static class GMapper
         return ExpressionMapper<TEntity>.MapToDictionary(entity);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
-    /// <param name="dict"></param>
-    /// <returns></returns>
-    public static TEntity ToEntity<TEntity>(this IDictionary<string, object?> dict)
+    public TEntity ToEntity<TEntity>(IDictionary<string, object?> dict)
     {
         return ExpressionMapper<TEntity>.MapFromDictionary(dict);
     }
