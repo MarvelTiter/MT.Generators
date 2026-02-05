@@ -5,6 +5,8 @@ using Blazor.Test.Client.Services;
 using Blazor.Test.Components;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using AutoPageStateContainerGenerator;
+using AutoGenMapperGenerator.ReflectMapper;
+using Blazor.Test.Client.Models;
 
 [assembly: AutoWasmApiGenerator.WebControllerAssembly]
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +26,13 @@ builder.Services.Inject();
 builder.Services.InjectHybrid();
 builder.Services.AddHttpClient();
 builder.Services.AddStateContainers();
+builder.Services.AddMapperService(o =>
+{
+    o.ConfigProfile<User, UserDto>(profile =>
+    {
+        
+    });
+});
 //builder.Services.();
 var app = builder.Build();
 

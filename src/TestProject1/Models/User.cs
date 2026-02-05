@@ -95,4 +95,36 @@ namespace TestProject1.Models
         public ProductDto? SubProduct { get; set; }
         public IEnumerable<ProductDto> Products { get; set; } = [];
     }
+
+
+    internal partial class Product2
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public string? Category { get; set; }
+        public DateTime? ProductDate { get; set; }
+        public Product2? SubProduct { get; set; }
+        public IEnumerable<Product2> Products { get; set; } = [];
+        public string? SplitValue { get; set; }
+
+    }
+
+    internal class Product2Dto
+    {
+        public Product2Dto()
+        {
+            
+        }
+        public Product2Dto(int id)
+        {
+            Id = id;
+        }
+        public int Id { get; set; }
+
+        public string? Name { get; set; }
+        //[MapFrom(Source = typeof(Product), Name = nameof(Product.ProductDate))]
+        public DateTime? Date { get; set; }
+        public Product2Dto? SubProduct { get; set; }
+        public IEnumerable<Product2Dto> Products { get; set; } = [];
+    }
 }

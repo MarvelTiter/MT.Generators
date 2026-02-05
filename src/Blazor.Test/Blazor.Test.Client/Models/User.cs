@@ -29,3 +29,11 @@ public partial class UserDto
 
     public string Display { get; set; }
 }
+
+public class UserProfile : AutoGenMapperGenerator.ReflectMapper.MapperProfile<User, UserDto>
+{
+    public UserProfile()
+    {
+        //ForMember();
+    }
+}
