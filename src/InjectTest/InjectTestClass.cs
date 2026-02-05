@@ -23,7 +23,7 @@ namespace InjectTest
     {
         public void Dispose()
         {
-            
+
         }
     }
 
@@ -41,6 +41,8 @@ namespace InjectTest
     [AutoInject(ServiceKey = "Test")]
     [AutoInject]
     [AutoInject(ServiceType = typeof(IEmpty))]
+    [AutoInject(ServiceType = typeof(IEmpty), ServiceKey = "G1")]
+    [AutoInject(ServiceType = typeof(IEmpty), ServiceKey = "G2")]
     [GenAspectProxy]
     public class Class2 : Base, IB
     {
