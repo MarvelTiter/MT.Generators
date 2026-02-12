@@ -120,7 +120,7 @@ namespace AutoWasmApiGenerator
             var authorize = (bool)(methodAttribute.GetNamedValue("Authorize") ?? false);
             needAuth = !allowsAnonymous && (authorize || controllerAuth);
 
-            if (methodSymbol.HasAttribute(ApiNotSupported))
+            if (methodSymbol.HasAttribute(ApiNotSupported) || methodSymbol.HasAttribute(ControllerNotSupported))
             {
                 var b = MethodBuilder.Default
                     .MethodName(methodSymbol.Name)

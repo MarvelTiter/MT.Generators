@@ -74,7 +74,7 @@ public class ControllerGenerator : IIncrementalGenerator
         [NotNullWhen(true)] out CodeFile? file)
     {
         var methods = interfaceSymbol.GetAllMethodWithAttribute(WebMethodAttributeFullName).ToArray();
-        if (methods.Any(a => !a.Symbol.HasAttribute(ApiNotSupported) && (a.Symbol.IsGenericMethod) || interfaceSymbol.IsGenericType))
+        if (methods.Any(a => (!a.Symbol.HasAttribute(ApiNotSupported) && !a.Symbol.HasAttribute(ControllerNotSupported)) && (a.Symbol.IsGenericMethod) || interfaceSymbol.IsGenericType))
         {
             file = null;
             context.ReportDiagnostic(DiagnosticDefinitions.WAG00004(interfaceSymbol.Locations.FirstOrDefault()));

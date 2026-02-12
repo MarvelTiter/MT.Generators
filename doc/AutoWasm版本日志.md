@@ -1,5 +1,8 @@
 ﻿# 版本功能更新记录
 
+## v2026.02.12
+- ⚡️方法标注`WebMethodNotSupportedAttribute`时，理应同时处理为`ApiInvokeNotSupported`
+
 ## v0.1.5
 - ⚡️升级`.NET10`
 
