@@ -51,7 +51,7 @@ internal partial class Helper
                 mapInfo.TargetProp = [.. targetProperties.Where(p => mapInfo.TargetName.Contains(p.Name))];
                 if (map.By is not null)
                 {
-                    error = HandleByMethod(containType, map.By, mapInfo, location);
+                    error = HandleByMethod(containType, context.SourceType, target, map.By, mapInfo, location);
                     if (error is not null)
                     {
                         return error;
@@ -87,7 +87,10 @@ internal partial class Helper
             {
                 continue;
             }
-
+            if (mapInfos.Any(m => m.SourceName.Contains(sp.Name)))
+            {
+                continue;
+            }
             var mi = new MapInfo()
             {
                 SourceName = [sp.Name],
@@ -104,20 +107,20 @@ internal partial class Helper
                 }
 
                 AttrData.GetConstructorValue(1, out var tarName);
-                // 已经在Class上定义了MapBetween，就跳过
-                if (mapInfos.Any(m => m.Position == DeclarePosition.Class
-                                      && m.SourceName.Contains(sp.Name)
-                                      && m.TargetName.Contains(tarName!.ToString())))
-                {
-                    continue;
-                }
+                //// 已经在Class上定义了MapBetween，就跳过
+                //if (mapInfos.Any(m => m.Position == DeclarePosition.Class
+                //                      && m.SourceName.Contains(sp.Name)
+                //                      && m.TargetName.Contains(tarName!.ToString())))
+                //{
+                //    continue;
+                //}
 
                 mi.TargetName = [tarName!.ToString()];
                 mi.TargetProp = [.. targetProperties.Where(p => mi.TargetName.Contains(p.Name))];
                 if (AttrData.GetNamedValue("By", out var by))
                 {
                     var methodName = by!.ToString();
-                    var error = HandleByMethod(source, methodName, mi, location);
+                    var error = HandleByMethod(source, source, target, methodName, mi, location);
                     if (error is not null)
                     {
                         return error;
@@ -164,6 +167,8 @@ internal partial class Helper
     }
 
     private static Diagnostic? HandleByMethod(ISymbol declared
+        , ITypeSymbol source
+        , ITypeSymbol target
         , string methodName
         , MapInfo mi
         , Location? location)
@@ -174,7 +179,7 @@ internal partial class Helper
             IMethodSymbol ms => ms.ContainingType,
             _ => throw new InvalidOperationException("Unsupported symbol type for 'declared'.")
         };
-        var methods = declaredType.GetAllMembers(_ => true).Where(i => i.Kind == SymbolKind.Method && i.IsStatic && i.Name == methodName).Cast<IMethodSymbol>().ToArray();
+        var methods = declaredType.GetAllMembers(_ => true).Where(i => i.Kind == SymbolKind.Method && i.Name == methodName).Cast<IMethodSymbol>().ToArray();
         if (methods.Length == 0)
         {
             return DiagnosticDefinitions.AGM00003(location);
@@ -185,8 +190,8 @@ internal partial class Helper
 
         #region 正向映射
 
-        var forward = methods.FirstOrDefault(m => CheckParameters(m, spts));
-        if (!CheckMappingMethodReturnType(forward
+        var forward = methods.Select(m => CheckParameters(source, m, spts)).FirstOrDefault(a => a.Item1);
+        if (!CheckMappingMethodReturnType(forward.Item2
                 , location
                 , spts
                 , tpts
@@ -194,24 +199,25 @@ internal partial class Helper
         {
             return error;
         }
-
-        mi.ForwardBy = forward;
+        mi.IsForwardMethodContainSelf = forward.Item3;
+        mi.ForwardBy = forward.Item2;
 
         #endregion
 
         #region 反向映射
 
-        var reverse = methods.FirstOrDefault(m => CheckParameters(m, tpts));
-        if (CheckMappingMethodReturnType(reverse
+        var reverse = methods.Select(m => CheckParameters(target, m, tpts)).FirstOrDefault(a => a.Item1);
+        if (CheckMappingMethodReturnType(reverse.Item2
                 , location
                 , tpts
                 , spts
                 , out error))
         {
             mi.CanReverse = true;
-            mi.ReverseBy = reverse;
+            mi.IsReverseMethodContainSelf = reverse.Item3;
+            mi.ReverseBy = reverse.Item2;
         }
-        else if (reverse != null)
+        else if (reverse.Item2 != null)
         {
             return error;
         }
@@ -221,19 +227,35 @@ internal partial class Helper
         return null;
     }
 
-    private static bool CheckParameters(IMethodSymbol method, ITypeSymbol[] paramTypes)
+    private static (bool, IMethodSymbol?, bool) CheckParameters(
+        ITypeSymbol source,
+        IMethodSymbol method,
+        ITypeSymbol[] paramTypes)
     {
         // 检查参数类型
-        if (method.Parameters.Length != paramTypes.Length) return false;
-        for (int i = 0; i < method.Parameters.Length; i++)
+        var parameterLengthEqual = method.Parameters.Length == paramTypes.Length;
+        var addition = method.Parameters.Length == paramTypes.Length + 1;
+
+        if (!parameterLengthEqual && !addition)
         {
-            var mpt = method.Parameters[i].Type;
+            return (false, null, false);
+        }
+
+        if (addition && !EqualityComparer<ITypeSymbol>.Default.Equals(method.Parameters[0].Type, source))
+        {
+            return (false, null, false);
+        }
+
+        int indexFix = addition ? 1 : 0;
+        for (int i = 0; i < paramTypes.Length; i++)
+        {
+            var mpt = method.Parameters[i + indexFix].Type;
             if (!EqualityComparer<ITypeSymbol>.Default.Equals(mpt, paramTypes[i]))
             {
-                return false;
+                return (false, null, false);
             }
         }
-        return true;
+        return (true, method, addition);
     }
 
     private static bool CheckMappingMethodReturnType(IMethodSymbol? method
@@ -252,7 +274,7 @@ internal partial class Helper
         // 检查返回值
         if (returnTypes.Length > 1)
         {
-            // 一对多的情况，返回值需要是object[]类型
+            // 一对多的情况，返回值需要是元组类型
             if (!method.ReturnType.IsTupleType)
             {
                 error = DiagnosticDefinitions.AGM00009(location);

@@ -60,10 +60,10 @@ public class AutoMapperExtensionGenerator : IIncrementalGenerator
             var m = BuildAutoMapClass.GenerateExtensionMethod(context, ctx);
             methods.Add(m);
         }
-
+        
         cb.AddMembers([.. methods]);
         var ns = NamespaceBuilder.Default.Namespace(classSymbol.ContainingNamespace.ToDisplayString());
-        return CodeFile.New($"{classSymbol.FormatFileName()}.AutoMap.Ex.g.cs")
+        return CodeFile.New($"{classSymbol.FormatFileName()}.AutoMap.{context.TargetSymbol.SafeMetaName()}.Ex.g.cs")
             //.AddUsings("using System.Linq;")
             //.AddUsings("using AutoGenMapperGenerator;")
             .AddUsings(classSymbol.GetTargetUsings())

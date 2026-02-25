@@ -35,14 +35,14 @@ namespace AutoGenMapperGenerator
                         isEnabledByDefault: true), location);
 
         /// <summary>
-        /// 无法找到自定义的映射方法，请检查是否定义在自己的类中，是否是静态方法
+        /// 无法找到自定义的映射方法，请检查是否定义在自己的类中
         /// </summary>
         /// <param name="location"></param>
         /// <returns></returns>
         public static Diagnostic AGM00003(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
                         id: "AGM00003",
-                        title: "无法找到自定义的映射方法，请检查是否定义在自己的类中，是否是静态方法",
-                        messageFormat: "无法找到自定义的映射方法，请检查是否定义在自己的类中，是否是静态方法",
+                        title: "无法找到自定义的映射方法，请检查是否定义在自己的类中",
+                        messageFormat: "无法找到自定义的映射方法，请检查是否定义在自己的类中",
                         category: typeof(AutoMapperGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);

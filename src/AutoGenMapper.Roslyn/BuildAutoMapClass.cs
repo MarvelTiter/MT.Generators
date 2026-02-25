@@ -78,12 +78,12 @@ public static partial class BuildAutoMapClass
     {
         return target.Type.HasAttribute(Helper.GenMapperAttributeFullName) == true;
     }
-    static string TryGetMethodInvoker(this IMethodSymbol method, INamedTypeSymbol source)
+    static string TryGetMethodInvoker(this IMethodSymbol method, INamedTypeSymbol source, string instanceName)
     {
-        //return method.IsStatic ?
-        //    method.ReceiverType?.ToDisplayString() ?? method.ContainingType?.ToDisplayString()
-        //    : null;
-        return method.ContainingType.ToDisplayString();
+        return method.IsStatic ?
+             method.ContainingType.ToDisplayString()
+            : instanceName;
+        //return method.ContainingType.ToDisplayString();
     }
 
     private static List<Statement> BuildMapToMethodStatements(string tarEntityName
@@ -99,6 +99,7 @@ public static partial class BuildAutoMapClass
 
         foreach (var item in context.Maps)
         {
+            var self = item.IsForwardMethodContainSelf ? $"{souEntityName}, " : "";
             if (item.MappingType == MappingType.SingleToSingle)
             {
                 var line = HandleForwardSingleToSingle(item);
@@ -106,18 +107,18 @@ public static partial class BuildAutoMapClass
             }
             else if (item.MappingType == MappingType.MultiToSingle)
             {
-                var invoker = item.ForwardBy!.TryGetMethodInvoker(sourceType);
+                var invoker = item.ForwardBy!.TryGetMethodInvoker(sourceType, souEntityName);
                 var targetName = item.TargetName.First();
                 var pnames = string.Join(", ", item.SourceName.Select(s => $"{souEntityName}.{s}"));
-                var line = $"{tarEntityName}.{targetName} = {invoker}.{item.ForwardBy!.Name}({pnames})";
+                var line = $"{tarEntityName}.{targetName} = {invoker}.{item.ForwardBy!.Name}({self}{pnames})";
                 statements.Add(line);
             }
             else if (item.MappingType == MappingType.SingleToMulti)
             {
-                var invoker = item.ForwardBy!.TryGetMethodInvoker(sourceType);
+                var invoker = item.ForwardBy!.TryGetMethodInvoker(sourceType, souEntityName);
                 var sourceParam = item.SourceName[0];
                 var tempArray = $"_{sourceParam}_arr_gen";
-                var line = $"var {tempArray} = {invoker}.{item.ForwardBy!.Name}({string.Join(", ", $"{souEntityName}.{sourceParam}")})";
+                var line = $"var {tempArray} = {invoker}.{item.ForwardBy!.Name}({self}{string.Join(", ", $"{souEntityName}.{sourceParam}")})";
                 statements.Add(line);
                 //var checkArrResult = IfStatement.Default.If($"{tempArray} is not null");
                 for (int i = 0; i < item.TargetProp.Count; i++)
@@ -144,9 +145,10 @@ public static partial class BuildAutoMapClass
             IPropertySymbol tp = item.TargetProp.First();
             if (item.ForwardBy is not null)
             {
-                var invoker = item.ForwardBy.TryGetMethodInvoker(sourceType);
+                var invoker = item.ForwardBy.TryGetMethodInvoker(sourceType, souEntityName);
                 // 使用自定义映射
-                line = $"{tarEntityName}.{tp.Name} = {invoker}.{item.ForwardBy.Name}(this.{sp.Name})";
+                var self = item.IsForwardMethodContainSelf ? $"{souEntityName}, " : "";
+                line = $"{tarEntityName}.{tp.Name} = {invoker}.{item.ForwardBy.Name}({self}{souEntityName}.{sp.Name})";
             }
             else
             {

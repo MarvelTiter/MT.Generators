@@ -29,6 +29,11 @@ public class MapInfo
     public MappingType MappingType { get; set; }
     public DeclarePosition Position { get; set; }
     public bool CanReverse { get; set; }
+    /// <summary>
+    /// 自定义转换方法的第一个参数，是否需要传入整个对象
+    /// </summary>
+    public bool IsForwardMethodContainSelf { get; set; }
+    public bool IsReverseMethodContainSelf { get; set; }
 }
 
 [Obsolete]

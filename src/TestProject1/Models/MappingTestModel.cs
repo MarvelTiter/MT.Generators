@@ -11,7 +11,7 @@ public partial class MappingTestModel
     public string Name { get; set; }
     public string Level { get; set; }
     public DateTime Deadline { get; set; }
-    [MapBetween(typeof(MappingTestModelDto), nameof(Last),By = nameof(DTL))]
+    [MapBetween(typeof(MappingTestModelDto), nameof(Last), By = nameof(DTL))]
     public DateTime Last { get; set; }
 
     private static long DTL(DateTime dt)
@@ -24,11 +24,11 @@ public partial class MappingTestModel
         return new DateTime(tick);
     }
 
-    private static string FormatLabel(int id, string name, string level)
+    private static string FormatLabel(MappingTestModel self, int id, string name, string level)
     {
         return $"{id + 1}-{name}-{level}";
     }
-    
+
     //可选反向映射方法
     private static (int, string, string) FormatLabel(string label)
     {

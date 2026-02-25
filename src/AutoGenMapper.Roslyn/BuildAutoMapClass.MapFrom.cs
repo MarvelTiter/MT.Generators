@@ -15,6 +15,7 @@ public static partial class BuildAutoMapClass
         //const string TARGET_OBJECT = "_target_gen";
         foreach (var item in context.Maps)
         {
+            var self = item.IsReverseMethodContainSelf ? $"{SOURCE_OBJECT}, " : "";
             if (item.MappingType == MappingType.SingleToSingle)
             {
                 var line = HandleReverseSingleToSingle(item, out var extra);
@@ -25,10 +26,10 @@ public static partial class BuildAutoMapClass
             else if (item.MappingType == MappingType.MultiToSingle)
             {
                 if (!item.CanReverse) continue;
-                var invoker = item.ReverseBy!.TryGetMethodInvoker(sourceType);
+                var invoker = item.ReverseBy!.TryGetMethodInvoker(sourceType, SOURCE_OBJECT);
                 var sourceParam = item.TargetProp[0].Name;
                 var tempArray = $"_{sourceParam}_arr_gen";
-                var line = $"var {tempArray} = {invoker}.{item.ReverseBy!.Name}({string.Join(", ", $"{SOURCE_OBJECT}.{sourceParam}")})";
+                var line = $"var {tempArray} = {invoker}.{item.ReverseBy!.Name}({self}{string.Join(", ", $"{SOURCE_OBJECT}.{sourceParam}")})";
                 statements.Add(line);
                 //var checkArrResult = IfStatement.Default.If($"{tempArray} is not null");
                 for (int i = 0; i < item.SourceProp.Count; i++)
@@ -41,10 +42,10 @@ public static partial class BuildAutoMapClass
             else if (item.MappingType == MappingType.SingleToMulti)
             {
                 if (!item.CanReverse) continue;
-                var invoker = item.ReverseBy!.TryGetMethodInvoker(sourceType);
+                var invoker = item.ReverseBy!.TryGetMethodInvoker(sourceType, SOURCE_OBJECT);
                 var targetName = item.SourceName.First();
                 var pnames = string.Join(", ", item.TargetName.Select(s => $"{SOURCE_OBJECT}.{s}"));
-                var line = $"this.{targetName} = {invoker}.{item.ReverseBy!.Name}({pnames})";
+                var line = $"this.{targetName} = {invoker}.{item.ReverseBy!.Name}({self}{pnames})";
                 statements.Add(line);
             }
         }
@@ -67,7 +68,8 @@ public static partial class BuildAutoMapClass
             {
                 var invoker = item.ReverseBy.IsStatic ? item.ReverseBy.ReceiverType?.ToDisplayString() ?? item.ReverseBy.ContainingType?.ToDisplayString() : "this";
                 // 使用自定义映射
-                line = $"this.{sp.Name} = {invoker}.{item.ReverseBy.Name}({SOURCE_OBJECT}.{tp.Name})";
+                var self = item.IsReverseMethodContainSelf ? $"{SOURCE_OBJECT}, " : "";
+                line = $"this.{sp.Name} = {invoker}.{item.ReverseBy.Name}({self}{SOURCE_OBJECT}.{tp.Name})";
             }
             else
             {
