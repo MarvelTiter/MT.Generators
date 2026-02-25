@@ -53,7 +53,8 @@ public class AutoMapperExtensionGenerator : IIncrementalGenerator
     {
         INamedTypeSymbol classSymbol = context.ContainingType!;
         var cb = ClassBuilder.Default.Modifiers("static partial").ClassName(classSymbol.Name)
-            .AddGeneratedCodeAttribute(typeof(AutoMapperGenerator));
+            //.AddGeneratedCodeAttribute(typeof(AutoMapperGenerator))
+            ;
         List<MethodBuilder> methods = [];
         foreach (var ctx in context.Targets)
         {
