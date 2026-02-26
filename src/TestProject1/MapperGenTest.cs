@@ -124,5 +124,19 @@ namespace TestProject1
 
             var dict = p.ToDictionary();
         }
+
+        [TestMethod]
+        public void TestCustomProfile()
+        {
+            MapperOptions.Instance.AddProfile<UserProfile>();
+            var u = new TestProject1.Models.User()
+            {
+                Product = "Pro",
+                Category = "P"
+            };
+            var dto = u.Map<Models.User, UserDto>();
+            Assert.AreEqual(u.Product, dto.Product1);
+            Assert.AreEqual(u.Category, dto.Display);
+        }
     }
 }

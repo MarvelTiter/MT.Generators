@@ -34,6 +34,7 @@ public class UserProfile : AutoGenMapperGenerator.ReflectMapper.MapperProfile<Us
 {
     public UserProfile()
     {
-        //ForMember();
+        ForMember(d => d.Product1, s => s.Product);
+        ForMember(d => d.Display, s => s.Category);
     }
 }

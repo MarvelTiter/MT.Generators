@@ -11,7 +11,8 @@ public class Contact
 {
     public string? Name { get; set; }
     public string? PhoneNumber { get; set; }
-
+    //[MapIgnore]
+    public bool Checked { get; set; }
     public List<MissionContact> Missions { get; set; } = [];
 }
 
@@ -23,12 +24,13 @@ public class MissionContact
 
     public List<Contact> Contacts { get; set; } = [];
 }
-public class ContactDto
+public class ContactDto(string name)
 {
-    public string? Name { get; set; }
+    public string? Name { get; set; } = name;
     public string? PhoneNumber { get; set; }
 
     public string? Missions { get; set; }
+    public bool Checked { get; set; }
 }
 public static partial class ContactMap
 {
@@ -38,6 +40,7 @@ public static partial class ContactMap
 
     [GenMapper]
     [MapBetween(nameof(Contact.Missions), nameof(ContactDto.Missions), By = nameof(MissionsTrans))]
+    [MapIgnore(nameof(Contact.Checked))]
     public static partial ContactDto ToDto(this Contact contact);
 
     private static List<MissionContact> MissionsTransBack(ContactDto dto, string? missions)

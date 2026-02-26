@@ -60,7 +60,7 @@ internal partial class Helper
                 mapTarget.Maps.Add(mapInfo);
             }
 
-            error = HandleAutoMapProperties(mapTarget.Maps
+            error = HandleAutoMapProperties(mapTarget
                , source
                , target
                , sourceProperties
@@ -74,7 +74,7 @@ internal partial class Helper
         return error;
     }
 
-    private static Diagnostic? HandleAutoMapProperties(List<MapInfo> mapInfos
+    private static Diagnostic? HandleAutoMapProperties(MapperTarget mapperTarget
         , INamedTypeSymbol source
         , INamedTypeSymbol target
         , IPropertySymbol[] sourceProperties
@@ -87,7 +87,9 @@ internal partial class Helper
             {
                 continue;
             }
-            if (mapInfos.Any(m => m.SourceName.Contains(sp.Name)))
+            if (mapperTarget.Maps.Any(m => m.SourceName.Contains(sp.Name))
+                || mapperTarget.ConstructorParameters.Contains(sp.Name)
+                || mapperTarget.Ignores.Contains(sp.Name))
             {
                 continue;
             }
@@ -143,7 +145,7 @@ internal partial class Helper
                 mi.TargetProp = [tp];
             }
 
-            mapInfos.Add(mi);
+            mapperTarget.Maps.Add(mi);
         }
         return null;
     }

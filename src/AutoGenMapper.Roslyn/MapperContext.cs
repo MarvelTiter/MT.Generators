@@ -37,6 +37,7 @@ public class MapperTarget(INamedTypeSymbol target)
 {
     public INamedTypeSymbol TargetType { get; } = target;
     public string[] ConstructorParameters { get; set; } = [];
+    public string[] Ignores { get; set; } = [];
     public List<MapInfo> Maps { get; set; } = [];
 }
 

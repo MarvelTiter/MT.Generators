@@ -36,6 +36,11 @@ namespace AutoGenMapperGenerator.ReflectMapper
             mapperProfiles.TryAdd((typeof(TSource), typeof(TTarget)), profile);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TProfile"></typeparam>
+        /// <exception cref="ArgumentException"></exception>
         public void AddProfile<TProfile>()
             where TProfile : new()
         {

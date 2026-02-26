@@ -7,6 +7,9 @@ using System.Reflection;
 using static AutoGenMapperGenerator.ReflectMapper.ExpressionHelper;
 namespace AutoGenMapperGenerator.ReflectMapper;
 
+#if NET8_0_OR_GREATER
+[RequiresDynamicCode("ExpressionMapper为运行时反射构建")]
+#endif
 internal static partial class ExpressionMapper<
 #if NET8_0_OR_GREATER
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]

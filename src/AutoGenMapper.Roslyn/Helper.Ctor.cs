@@ -14,6 +14,10 @@ internal partial class Helper
         try
         {
             List<MapperTarget> targets = [];
+            symbol.GetAttribute(GenMapIgnoreAttribute, out var ignore);
+            object?[]? ignoreProps = null;
+            ignore?.GetConstructorValues(0, out ignoreProps);
+            string[] ignoreList = ignoreProps?.Select(p => p!.ToString()).ToArray() ?? [];
             if (symbol is INamedTypeSymbol source)
             {
                 foreach (var a in source.GetAttributes(GenMapperAttributeFullName))
@@ -23,7 +27,10 @@ internal partial class Helper
                     {
                         target = (a.ConstructorArguments.FirstOrDefault().Value as INamedTypeSymbol) ?? source;
                     }
-                    var mapTarget = new MapperTarget(target);
+                    var mapTarget = new MapperTarget(target)
+                    {
+                        Ignores = ignoreList
+                    };
                     // 处理构造函数
                     if (a?.ConstructorArguments.Length > 1)
                     {
@@ -45,8 +52,6 @@ internal partial class Helper
                             TrySetDefaultCtor(source, mapTarget);
                         }
                     }
-
-
                     targets.Add(mapTarget);
                 }
             }
@@ -55,7 +60,7 @@ internal partial class Helper
                 var (IsTask, HasReturn, ReturnType) = method.GetReturnTypeInfo();
                 var methodSource = (INamedTypeSymbol)method.Parameters[0].Type;
                 var target = (INamedTypeSymbol)ReturnType;
-                var mapTarget = new MapperTarget(target);
+                var mapTarget = new MapperTarget(target) { Ignores = ignoreList };
                 if (method.GetAttribute(GenMapConstructorAttributeFullName, out var c) && c!.ConstructorArguments.Length == 1)
                 {
                     mapTarget.ConstructorParameters =
