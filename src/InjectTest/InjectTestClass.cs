@@ -59,5 +59,18 @@ namespace InjectTest
     {
 
     }
+
+    public interface IA;
+
+    public class ParentType : IA
+    {
+
+    }
+
+    [AutoInject]
+    public class ChildType : ParentType
+    {
+
+    }
 }
 

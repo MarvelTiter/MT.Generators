@@ -85,12 +85,14 @@ namespace TestProject1
                 { "Name", "Test Product" },
                 { "Category", "Category A" },
                 { "ProductDate", date },
+                { nameof(Product2.NullableInt), 1 },
             };
             var product = dict.ToEntity<Product2>();
             Assert.IsNotNull(product);
             Assert.AreEqual(1, product.Id);
             Assert.AreEqual("Test Product", product.Name);
             Assert.AreEqual("Category A", product.Category);
+            Assert.AreEqual(1, product.NullableInt);
         }
 
         [TestMethod]

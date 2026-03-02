@@ -18,6 +18,24 @@ internal static class AutoInjectContextGeneratorHelpers
     public const string AutoInjectModule = "AutoInjectGenerator.AutoInjectModuleAttribute";
     private static bool IsInjectSelf(AttributeData data) => data.AttributeClass?.ToDisplayString() == AutoInjectSelf;
 
+    private static bool TryGetInterfaceFromBaseType(INamedTypeSymbol baseType, out INamedTypeSymbol? i)
+    {
+        if (baseType.Interfaces.Length >= 1)
+        {
+            i = baseType.Interfaces[0];
+            return true;
+        }
+        else
+        {
+            if (baseType.BaseType is not null)
+            {
+                return TryGetInterfaceFromBaseType(baseType.BaseType, out i);
+            }
+            i = null;
+            return false;
+        }
+    }
+
     // new ServiceDescriptor()
     private static string FormatInjectType(object? t)
     {
@@ -186,7 +204,7 @@ internal static class AutoInjectContextGeneratorHelpers
             {
                 serviceType = info.Implement;
             }
-            else if(a.GetNamedValue("ServiceType", out var t) && t is INamedTypeSymbol type)
+            else if (a.GetNamedValue("ServiceType", out var t) && t is INamedTypeSymbol type)
             {
                 serviceType = type.ToDisplayString();
                 if (!classSymbol.AllInterfaces.Contains(type)
@@ -201,6 +219,10 @@ internal static class AutoInjectContextGeneratorHelpers
             else if (classSymbol.Interfaces.Length >= 1)
             {
                 serviceType = classSymbol.Interfaces[0].ToDisplayString();
+            }
+            else if (classSymbol.BaseType is not null && TryGetInterfaceFromBaseType(classSymbol, out var i))
+            {
+                serviceType = i!.ToDisplayString();
             }
             else
             {

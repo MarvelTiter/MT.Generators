@@ -106,6 +106,7 @@ internal partial class Product2
     public Product2? SubProduct { get; set; }
     public IEnumerable<Product2> Products { get; set; } = [];
     public string? SplitValue { get; set; }
+    public int? NullableInt { get; set; }
 
 }
 
