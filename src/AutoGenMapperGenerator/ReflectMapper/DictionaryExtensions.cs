@@ -10,13 +10,14 @@ internal static class DictionaryExtensions
 
     private static T TryParse<T>(string str, CultureInfo culture)
     {
-        var targetType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+        var targetType = typeof(T);
         if (conversionCache.TryGetValue(targetType, out var del))
         {
             var parser = (Func<string, CultureInfo, T>)del;
             return parser(str, culture);
         }
-        Func<string, CultureInfo, T> parserFunc = targetType switch
+        var underType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+        Func<string, CultureInfo, T> parserFunc = underType switch
         {
             Type t when t == typeof(int) => (s, c) => (T)(object)int.Parse(s, NumberStyles.Any, c),
             Type t when t == typeof(long) => (s, c) => (T)(object)long.Parse(s, NumberStyles.Any, c),
@@ -66,6 +67,7 @@ internal static class DictionaryExtensions
             value = (TValue)Enum.Parse(conversionTargetType, dictValue.ToString() ?? string.Empty, true);
             return true;
         }
+        var t = dictValue.GetType();
         if (dictValue is string str)
         {
             // string转基础类型

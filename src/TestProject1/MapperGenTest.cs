@@ -81,15 +81,15 @@ namespace TestProject1
             var date = DateTime.Now;
             var dict = new Dictionary<string, object?>()
             {
-                { "Id", 1 },
+                { "Id", "0" },
                 { "Name", "Test Product" },
                 { "Category", "Category A" },
                 { "ProductDate", date },
-                { nameof(Product2.NullableInt), 1 },
+                { nameof(Product2.NullableInt), "1" },
             };
             var product = dict.ToEntity<Product2>();
             Assert.IsNotNull(product);
-            Assert.AreEqual(1, product.Id);
+            Assert.AreEqual(0, product.Id);
             Assert.AreEqual("Test Product", product.Name);
             Assert.AreEqual("Category A", product.Category);
             Assert.AreEqual(1, product.NullableInt);
@@ -141,4 +141,41 @@ namespace TestProject1
             Assert.AreEqual(u.Category, dto.Display);
         }
     }
+}
+
+public class JobFile
+{
+    public int JOB_ID { get; set; }
+
+    public string FLT_ID { get; set; }
+
+    public string FLT_CATEGORY { get; set; }
+
+    public int JFL_EXIST { get; set; }
+
+    public int? JFL_OK { get; set; }
+
+    public int? JFL_NO { get; set; }
+
+    public DateTime? JFL_DATE { get; set; }
+
+    public int? JFL_NEED { get; set; }
+
+    public string JFL_REMARK { get; set; }
+
+    public string JFL_NAME { get; set; }
+
+
+    #region 智能审核
+
+    public int? JG { get; set; }
+    // 韶关
+    public string SM { get; set; }
+    // 广州
+    public string? BTGYY { get; set; }
+
+    #endregion
+    public int Rotate { get; set; }
+    public bool Uploading { get; set; }
+    public long Timestamp { get; set; } = DateTime.Now.Ticks;
 }
