@@ -1,6 +1,6 @@
-<Project>
+﻿<Project>
 	<PropertyGroup>
-		<BuildVersion>2026.02.26.1</BuildVersion>
+		<BuildVersion>2026.03.26.1</BuildVersion>
 		<Version>$(BuildVersion)</Version>
 		<!--<AssemblyVersion>$(BuildVersion)</AssemblyVersion>-->
 		<FileVersion>$(BuildVersion)</FileVersion>
