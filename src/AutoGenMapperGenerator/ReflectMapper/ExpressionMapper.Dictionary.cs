@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AutoGenMapperGenerator.ReflectMapper;
-internal static class ExpressionMapper<TEntity>
+
+internal static class ExpressionMapper<
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TEntity>
 {
     private static readonly Func<IDictionary<string, object?>, TEntity> mapFromDictionaryFunc;
     private static readonly Func<TEntity, IDictionary<string, object?>> mapToDictionaryFunc;
@@ -63,7 +63,8 @@ internal static class ExpressionMapper<TEntity>
         return lambda.Compile();
     }
 
-    private static readonly MethodInfo tryGetValueMethod = typeof(DictionaryExtensions).GetMethod("TryGetValue")!;
+    private static readonly MethodInfo tryGetValueMethod = typeof(DictionaryExtensions).GetMethod(nameof(DictionaryExtensions.TryGetValue))!;
+
     private static Func<IDictionary<string, object?>, TEntity> CreateMapFromDelegate()
     {
         var dictParam = Expression.Parameter(typeof(IDictionary<string, object?>), "dict");
@@ -83,9 +84,9 @@ internal static class ExpressionMapper<TEntity>
             //var (IsComplex, IsDictionary, IsEnumerable) = ExpressionHelper.IsComplexType(propType);
 
             var keyConst = Expression.Constant(prop.Name);
+            var typeConst = Expression.Constant(propType);
             // 2. 调用 TryGetValue 方法
-            var genericTryGetValueMethod = tryGetValueMethod.MakeGenericMethod(prop.PropertyType);
-            var tryGetValueCall = Expression.Call(genericTryGetValueMethod, dictParam, keyConst, outVariable);
+            var tryGetValueCall = Expression.Call(tryGetValueMethod, dictParam, keyConst, typeConst, outVariable);
             //var tryGetValueCall = Expression.Call(dictParam, tryGetValueMethod, keyConst, outVariable);
 
             // 3. 构建转换逻辑：如果 TryGetValue 返回 true，则转换 outVariable；否则使用默认值
@@ -116,7 +117,7 @@ internal static class ExpressionMapper<TEntity>
             {
                 return sourceExpr;
             }
-            
+
             // 处理可空类型
             var underlyingType = Nullable.GetUnderlyingType(targetType);
             var conversionTargetType = underlyingType ?? targetType;
@@ -137,5 +138,6 @@ internal static class ExpressionMapper<TEntity>
             }
             return Expression.Convert(sourceExpr, targetType);
         }
+
     }
 }

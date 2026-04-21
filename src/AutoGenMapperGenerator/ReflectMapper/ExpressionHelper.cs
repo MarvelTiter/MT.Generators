@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq.Expressions;
@@ -9,7 +10,9 @@ namespace AutoGenMapperGenerator.ReflectMapper;
 
 internal static class ExpressionHelper
 {
-    public static (bool IsComplex, bool IsDictionary, bool IsEnumerable) IsComplexType(Type type)
+    [RequiresDynamicCode("MakeGenericType on IEnumerable<>")]
+    public static (bool IsComplex, bool IsDictionary, bool IsEnumerable) IsComplexType(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type)
     {
         if (type.IsPrimitive ||
             type == typeof(string) ||
@@ -28,7 +31,7 @@ internal static class ExpressionHelper
         var isEnumerable = IsCollectionType(type);
         return (type.IsClass && type != typeof(string), false, isEnumerable);
 
-        static bool IsCollectionType(Type type)
+        static bool IsCollectionType([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type)
         {
             // 数组
             if (type.IsArray)
@@ -88,7 +91,10 @@ internal static class ExpressionHelper
     {
         return ",是,1,Y,YES,TRUE,".Contains(valueString.ToUpper()) ? "True" : "False";
     }
-    public static Expression GetConversionExpression(Type SourceType, Expression SourceExpression, Type TargetType, CultureInfo Culture)
+    public static Expression GetConversionExpression(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        Type SourceType, Expression SourceExpression,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type TargetType, CultureInfo Culture)
     {
         Expression TargetExpression;
         if (TargetType == SourceType)
@@ -120,7 +126,7 @@ internal static class ExpressionHelper
         return TargetExpression;
     }
 
-    private static Expression GetArrayHandlerExpression(Expression sourceExpression, Type targetType)
+    private static Expression GetArrayHandlerExpression(Expression sourceExpression, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type targetType)
     {
         Expression TargetExpression;
         if (targetType == typeof(byte[]))
@@ -138,7 +144,7 @@ internal static class ExpressionHelper
         }
         return TargetExpression;
     }
-    private static Expression GetParseExpression(Expression SourceExpression, Type TargetType, CultureInfo Culture)
+    private static Expression GetParseExpression(Expression SourceExpression, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type TargetType, CultureInfo Culture)
     {
         Type UnderlyingType = GetUnderlyingType(TargetType);
         if (UnderlyingType.IsEnum)
@@ -186,13 +192,13 @@ internal static class ExpressionHelper
                 return Expression.Convert(ParseExpression, TargetType);
             }
         }
-        Expression GetGenericParseExpression(Expression sourceExpression, Type type)
+        Expression GetGenericParseExpression(Expression sourceExpression, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type)
         {
             MethodInfo ParseMetod = type.GetMethod("Parse", [typeof(string)])!;
             MethodCallExpression CallExpression = Expression.Call(ParseMetod, [sourceExpression]);
             return CallExpression;
         }
-        Expression GetDateTimeParseExpression(Expression sourceExpression, Type type, CultureInfo culture)
+        Expression GetDateTimeParseExpression(Expression sourceExpression, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type, CultureInfo culture)
         {
             MethodInfo ParseMetod = type.GetMethod("Parse", [typeof(string), typeof(DateTimeFormatInfo)])!;
             ConstantExpression ProviderExpression = Expression.Constant(culture.DateTimeFormat, typeof(DateTimeFormatInfo));
@@ -211,27 +217,28 @@ internal static class ExpressionHelper
             return CallExpression;
         }
 
-        MethodCallExpression GetNumberParseExpression(Expression sourceExpression, Type type, CultureInfo culture)
+        MethodCallExpression GetNumberParseExpression(Expression sourceExpression, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type, CultureInfo culture)
         {
             MethodInfo ParseMetod = type.GetMethod("Parse", [typeof(string), typeof(NumberFormatInfo)])!;
             ConstantExpression ProviderExpression = Expression.Constant(culture.NumberFormat, typeof(NumberFormatInfo));
             MethodCallExpression CallExpression = Expression.Call(ParseMetod, [sourceExpression, ProviderExpression]);
             return CallExpression;
         }
-        Expression TryParseStringToBoolean(Expression sourceExpression, Type type)
+        Expression TryParseStringToBoolean(Expression sourceExpression, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type)
         {
             var valueExpression = Expression.Call(CustomStringParseToBoolean, [sourceExpression]);
             return GetGenericParseExpression(valueExpression, type);
         }
     }
-    private static Type GetUnderlyingType(Type targetType)
+    [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+    private static Type GetUnderlyingType([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type targetType)
     {
         return Nullable.GetUnderlyingType(targetType) ?? targetType;
     }
 
-    static MethodInfo changeType = typeof(Convert).GetMethod("ChangeType", [typeof(object), typeof(Type)])!;
-    static MethodInfo isNullOrEmpty = typeof(string).GetMethod(nameof(string.IsNullOrEmpty))!;
-    private static ConditionalExpression ConvertTypeExpression(Expression source, Type sourceType, Type targetType)
+    static readonly MethodInfo changeType = typeof(Convert).GetMethod("ChangeType", [typeof(object), typeof(Type)])!;
+    static readonly MethodInfo isNullOrEmpty = typeof(string).GetMethod(nameof(string.IsNullOrEmpty))!;
+    private static ConditionalExpression ConvertTypeExpression(Expression source, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type sourceType, Type targetType)
     {
         var underType = Nullable.GetUnderlyingType(targetType) ?? targetType;
         var isNull = Expression.Equal(source, Expression.Constant(null));
