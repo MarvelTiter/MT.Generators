@@ -21,14 +21,6 @@ public class ControllerGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        //var ctx = context.SyntaxProvider.ForAttributeWithMetadataName(
-        //    WebControllerAssemblyAttributeFullName,
-        //    static (node, token) => true,
-        //    static (c, t) => c);
-        //var items = context.SyntaxProvider.ForAttributeWithMetadataName(
-        //    WebControllerAttributeFullName
-        //    , static (node, _) => true
-        //    , static (ctx, _) => ctx);
 #if DEBUG && false
         if (!Debugger.IsAttached)
         {
@@ -318,38 +310,6 @@ public class ControllerGenerator : IIncrementalGenerator
                 return WebMethod[(int)m!];
             }
         }
-
-        //没有指定Method，就默认Post
         return WebMethod[1];
-
-        //var symbol = data.Item1;
-        ////if (symbol.Parameters.Any(p =>p.Type.isr))
-
-        //var name = symbol.Name;
-        //if (name.StartsWith("create", StringComparison.OrdinalIgnoreCase)
-        //    || name.StartsWith("add", StringComparison.OrdinalIgnoreCase))
-        //{
-        //    return WebMethod[1];
-        //}
-        //else if (name.StartsWith("get", StringComparison.OrdinalIgnoreCase)
-        //    || name.StartsWith("find", StringComparison.OrdinalIgnoreCase)
-        //    || name.StartsWith("query", StringComparison.OrdinalIgnoreCase))
-        //{
-        //    return WebMethod[0];
-        //}
-        //else if (name.StartsWith("update", StringComparison.OrdinalIgnoreCase)
-        //    || name.StartsWith("put", StringComparison.OrdinalIgnoreCase))
-        //{
-        //    return WebMethod[2];
-        //}
-        //else if (name.StartsWith("delete", StringComparison.OrdinalIgnoreCase)
-        //    || name.StartsWith("remove", StringComparison.OrdinalIgnoreCase))
-        //{
-        //    return WebMethod[3];
-        //}
-        //else
-        //{
-        //    return WebMethod[1];
-        //}
     }
 }
