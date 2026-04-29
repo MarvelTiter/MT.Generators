@@ -7,12 +7,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 namespace AutoAopProxyGenerator;
 
-/// <summary></summary>
-
+/// <summary>
+/// </summary>
+#if NET8_0_OR_GREATER
+[RequiresUnreferencedCode("Uses reflection to load types.")]
+#endif
 public class AutoAopProxyServiceProviderFactory : IServiceProviderFactory<IServiceCollection>
 {
     private enum ImplType
@@ -64,7 +66,6 @@ public class AutoAopProxyServiceProviderFactory : IServiceProviderFactory<IServi
         return services;
     }
     /// <summary></summary>
-
     public IServiceProvider CreateServiceProvider(IServiceCollection containerBuilder)
     {
         Dictionary<SDInfoKey, List<SDInfo>> needToHandle = [];
@@ -96,7 +97,7 @@ public class AutoAopProxyServiceProviderFactory : IServiceProviderFactory<IServi
 
         return serviceCollection.BuildServiceProvider();
 #if NET8_0_OR_GREATER
-        [RequiresUnreferencedCode("Uses reflection to load types and attributes.")]
+        [RequiresUnreferencedCode("Uses reflection to load types.")]
         [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
 #endif
 
