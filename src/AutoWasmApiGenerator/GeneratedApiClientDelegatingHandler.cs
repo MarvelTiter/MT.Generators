@@ -4,15 +4,15 @@ using System.Threading.Tasks;
 namespace AutoWasmApiGenerator;
 
 /// <summary>
-/// <see cref="IGeneratedApiInvokeDelegatingHandler"/>的空实现
+/// <see cref="IGeneratedApiClientDelegatingHandler"/>的空实现
 /// </summary>
-public class GeneratedApiInvokeDelegatingHandler : IGeneratedApiInvokeDelegatingHandler
+public class GeneratedApiClientDelegatingHandler : IGeneratedApiClientDelegatingHandler
 {
-    private static readonly Lazy<IGeneratedApiInvokeDelegatingHandler> lazy = new(() => new GeneratedApiInvokeDelegatingHandler());
+    private static readonly Lazy<IGeneratedApiClientDelegatingHandler> lazy = new(() => new GeneratedApiClientDelegatingHandler());
     /// <summary>
     /// 单例
     /// </summary>
-    public static IGeneratedApiInvokeDelegatingHandler Default => lazy.Value;
+    public static IGeneratedApiClientDelegatingHandler Default => lazy.Value;
     /// <summary>
     /// 
     /// </summary>

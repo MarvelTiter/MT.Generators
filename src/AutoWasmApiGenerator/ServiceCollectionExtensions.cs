@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
@@ -37,7 +38,7 @@ public static class ServiceCollectionExtensions
 #if NET8_0_OR_GREATER
     [RequiresUnreferencedCode("Uses reflection to load types and attributes.")]
 #endif
-    public static IServiceCollection AddGeneratedApiInvokerServices(this IServiceCollection services
+    public static IServiceCollection AddGeneratedApiClientServices(this IServiceCollection services
         , Func<Type, ServiceLifetime>? overrideLifetime = null)
     {
         var entry = Assembly.GetEntryAssembly();
@@ -59,6 +60,7 @@ public static class ServiceCollectionExtensions
                     var interfaceType = attributeData.NamedArguments.FirstOrDefault(arg => arg.MemberName == nameof(GeneratedByAutoWasmApiGeneratorAttribute.InterfaceType)).TypedValue.Value as Type;
                     var lifetime = overrideLifetime?.Invoke(interfaceType!) ?? ServiceLifetime.Scoped;
                     services.Add(new ServiceDescriptor(interfaceType!, type, lifetime));
+                    Debug.WriteLine($"注册{interfaceType?.FullName} -> {type.FullName}");
                 }
 
             }

@@ -54,7 +54,7 @@ SayHello Response: @response
         currentCount++;
         name = $"Marvel{currentCount}";
         var responseTest = await Service.TestQueryParameter(name);
-        response = responseTest.ToString();
+        response = responseTest?.ToString();
         StateHasChanged();
     }
 
@@ -63,7 +63,7 @@ SayHello Response: @response
         currentCount++;
         name = $"Marvel{currentCount}";
         var responseTest = await Service.TestQueryParameter2(name, currentCount);
-        response = responseTest.ToString();
+        response = responseTest?.ToString();
         StateHasChanged();
     }
 
@@ -72,7 +72,7 @@ SayHello Response: @response
         currentCount++;
         name = $"Marvel{currentCount}";
         var responseTest = await Service.TestHeaderParameter(name);
-        response = responseTest.ToString();
+        response = responseTest?.ToString();
         StateHasChanged();
     }
 
@@ -81,7 +81,7 @@ SayHello Response: @response
         currentCount++;
         name = $"Marvel{currentCount}";
         var responseTest = await Service.TestRouterParameter(name);
-        response = responseTest.ToString();
+        response = responseTest?.ToString();
         StateHasChanged();
     }
 
@@ -90,7 +90,7 @@ SayHello Response: @response
         currentCount++;
         name = $"Marvel{currentCount}";
         var responseTest = await Service.TestFormParameter(name);
-        response = responseTest.ToString();
+        response = responseTest?.ToString();
         StateHasChanged();
     }
 
@@ -99,7 +99,7 @@ SayHello Response: @response
         currentCount++;
         name = $"Marvel{currentCount}";
         var responseTest = await Service.TestMultiParameter(currentCount, name);
-        response = responseTest.ToString();
+        response = responseTest?.ToString();
         StateHasChanged();
     }
 

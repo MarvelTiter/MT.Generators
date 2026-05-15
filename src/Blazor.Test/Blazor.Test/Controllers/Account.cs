@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Blazor.Test.Client.Services;
+using InjectTest;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Text.Json;
@@ -8,6 +11,7 @@ using System.Threading.Tasks;
 namespace Blazor.Test.Controllers;
 
 [Route("[controller]")]
+[Authorize]
 public class AccountController : ControllerBase
 {
     [HttpGet("[action]")]

@@ -1,5 +1,9 @@
 ﻿# 版本功能更新记录
 
+## v2026.05.15
+- 🛠`ApiInvoker` -> `ApiClient`
+- 🛠重构`WebControllerGenerator`代码，支持`MinimalApi`模式
+
 ## v2026.02.12
 - ⚡️方法标注`WebMethodNotSupportedAttribute`时，理应同时处理为`ApiInvokeNotSupported`
 

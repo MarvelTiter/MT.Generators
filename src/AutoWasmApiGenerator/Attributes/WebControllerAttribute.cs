@@ -21,4 +21,19 @@ public class WebControllerAttribute : Attribute
     /// 是否需要授权才可以访问
     /// </summary>
     public bool Authorize { get; set; }
+
+    /// <summary>
+    /// 鉴权Scheme
+    /// </summary>
+    public string? Scheme { get; set; }
+
+    /// <summary>
+    /// 鉴权Policy
+    /// </summary>
+    public string? Policy { get; set; }
+    
+    /// <summary>
+    /// 鉴权Roles
+    /// </summary>
+    public string? Roles { get; set; }
 }

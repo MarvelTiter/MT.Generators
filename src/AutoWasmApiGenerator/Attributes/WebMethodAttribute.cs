@@ -24,4 +24,19 @@ public class WebMethodAttribute : Attribute
     /// 是否需要授权
     /// </summary>
     public bool Authorize { get; set; }
+
+    /// <summary>
+    /// 鉴权Scheme
+    /// </summary>
+    public string? Scheme { get; set; }
+
+    /// <summary>
+    /// 鉴权Policy
+    /// </summary>
+    public string? Policy { get; set; }
+
+    /// <summary>
+    /// 鉴权Roles
+    /// </summary>
+    public string? Roles { get; set; }
 }

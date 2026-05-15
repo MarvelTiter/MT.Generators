@@ -16,7 +16,7 @@ public enum PartType
     /// <summary>
     /// 调用类
     /// </summary>
-    ApiInvoker
+    ApiClient
 }
 
 /// <summary>

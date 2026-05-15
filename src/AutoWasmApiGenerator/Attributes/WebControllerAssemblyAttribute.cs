@@ -16,14 +16,14 @@ public class WebControllerAssemblyAttribute : Attribute
         /// <summary>
         /// 生成Minimal API
         /// </summary>
-        MinimalApi,
+        MinimalApi = 0,
         /// <summary>
         /// 生成Controller
         /// </summary>
-        Controller,
+        Controller = 1,
     }
     /// <summary>
     /// Api生成模式
     /// </summary>
-    public ApiMode Mode { get; set; } = ApiMode.Controller;
+    public ApiMode Mode { get; set; } = ApiMode.MinimalApi;
 }
