@@ -2,7 +2,17 @@
 
 ## v2026.05.15
 - 🛠`ApiInvoker` -> `ApiClient`
-- 🛠重构`WebControllerGenerator`代码，支持`MinimalApi`模式
+- 🛠重构`WebControllerGenerator`代码，支持`MinimalApi`模式(默认)
+```csharp
+
+[assembly: WebControllerAssembly(Mode = ApiMode.Controller)]
+[assembly: WebControllerAssembly]
+
+// minimal api 模式
+app.MapAutoWasmApiEndPoints();
+// controller 模式
+app.MapControllers();
+```
 
 ## v2026.02.12
 - ⚡️方法标注`WebMethodNotSupportedAttribute`时，理应同时处理为`ApiInvokeNotSupported`

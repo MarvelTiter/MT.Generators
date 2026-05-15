@@ -8,7 +8,7 @@ using AutoPageStateContainerGenerator;
 using AutoGenMapperGenerator.ReflectMapper;
 using Blazor.Test.Client.Models;
 using AutoWasmApiGenerator;
-//[assembly: WebControllerAssembly(Mode = WebControllerAssemblyAttribute.ApiMode.Controller)]
+//[assembly: WebControllerAssembly(Mode = ApiMode.Controller)]
 [assembly:WebControllerAssembly]
 var builder = WebApplication.CreateBuilder(args);
 
