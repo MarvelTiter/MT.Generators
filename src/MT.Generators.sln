@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.5.11709.299 stable
+VisualStudioVersion = 18.5.11709.299
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProject1", "TestProject1\TestProject1.csproj", "{6994C35E-E92F-418C-B5C9-B437FF25A6A0}"
 EndProject
@@ -178,6 +178,7 @@ Global
 		Shared\Generators.Shared\Generators.Shared.projitems*{26dd2068-dd76-4ff9-8fb6-8e354188f7f7}*SharedItemsImports = 5
 		Shared\Generators.Shared\Generators.Shared.projitems*{625157ff-90bb-4950-9643-7baef5cef6a8}*SharedItemsImports = 5
 		AutoProjectShared\AutoProjectShared.projitems*{6fff3104-ccd7-4916-a911-aeb9a5d35536}*SharedItemsImports = 5
+		AutoProjectShared\AutoProjectShared.projitems*{8638056f-e36d-4ebc-a4ea-a7ae22ddc161}*SharedItemsImports = 5
 		AutoProjectShared\AutoProjectShared.projitems*{900bb3c7-6d8f-4a8e-b02c-7df95b976395}*SharedItemsImports = 13
 		Shared\Generators.Shared\Generators.Shared.projitems*{ba595e23-bd3a-4b36-a094-06e5814fe5e9}*SharedItemsImports = 5
 		Shared\Generators.Shared\Generators.Shared.projitems*{c1046cbb-499b-448e-84b7-8b103311a224}*SharedItemsImports = 5
