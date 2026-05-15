@@ -8,7 +8,10 @@ using System.Reflection;
 namespace AutoGenMapperGenerator.ReflectMapper;
 
 internal static class ExpressionMapper<
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TEntity>
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+TEntity>
 {
     private static readonly Func<IDictionary<string, object?>, TEntity> mapFromDictionaryFunc;
     private static readonly Func<TEntity, IDictionary<string, object?>> mapToDictionaryFunc;

@@ -14,17 +14,27 @@ namespace AutoGenMapperGenerator.ReflectMapper
     /// </summary>
     public sealed class MapperOptions
     {
+        private readonly record struct TypeMap
+        {
+            public TypeMap(Type source, Type target)
+            {
+                Source = source;
+                Target = target;
+            }
+            public Type Source { get; }
+            public Type Target { get; }
+        }
         private MapperOptions()
         {
 
         }
-        private static readonly Lazy<MapperOptions> lazyInstance = new(new MapperOptions());
+        private static readonly Lazy<MapperOptions> lazyInstance = new(() => new MapperOptions());
         /// <summary>
         /// 
         /// </summary>
         public static MapperOptions Instance => lazyInstance.Value;
 
-        private readonly ConcurrentDictionary<(Type Source, Type Target), object> mapperProfiles = new();
+        private readonly ConcurrentDictionary<TypeMap, object> mapperProfiles = new();
         /// <summary>
         /// 
         /// </summary>
@@ -33,7 +43,7 @@ namespace AutoGenMapperGenerator.ReflectMapper
         /// <param name="profile"></param>
         public void AddProfile<TSource, TTarget>(MapperProfile<TSource, TTarget> profile)
         {
-            mapperProfiles.TryAdd((typeof(TSource), typeof(TTarget)), profile);
+            mapperProfiles.TryAdd(new(typeof(TSource), typeof(TTarget)), profile);
         }
 
         /// <summary>
@@ -48,7 +58,7 @@ namespace AutoGenMapperGenerator.ReflectMapper
             var genericArgs = profileType.BaseType?.GetGenericArguments();
             if (genericArgs?.Length == 2)
             {
-                var key = (genericArgs[0], genericArgs[1]);
+                TypeMap key = new(genericArgs[0], genericArgs[1]);
                 mapperProfiles.TryAdd(key, new TProfile());
             }
             else
@@ -65,7 +75,7 @@ namespace AutoGenMapperGenerator.ReflectMapper
         /// <param name="configAction"></param>
         public void ConfigProfile<TSource, TTarget>(Action<MapperProfile<TSource, TTarget>> configAction)
         {
-            var key = (typeof(TSource), typeof(TTarget));
+            TypeMap key = new(typeof(TSource), typeof(TTarget));
             if (mapperProfiles.TryGetValue(key, out var existingProfileObj) && existingProfileObj is MapperProfile<TSource, TTarget> existingProfile)
             {
                 configAction(existingProfile);
@@ -80,7 +90,7 @@ namespace AutoGenMapperGenerator.ReflectMapper
 
         internal bool TryGetProfile<TSource, TTarget>([NotNullWhen(true)] out MapperProfile<TSource, TTarget>? profile)
         {
-            var key = (typeof(TSource), typeof(TTarget));
+            TypeMap key = new(typeof(TSource), typeof(TTarget));
             if (mapperProfiles.TryGetValue(key, out var existingProfileObj) && existingProfileObj is MapperProfile<TSource, TTarget> existingProfile)
             {
                 profile = existingProfile;
@@ -99,7 +109,7 @@ namespace AutoGenMapperGenerator.ReflectMapper
     public class MapperProfile<TSource, TTarget>
     {
         private readonly List<MappingConfiguration> configurations = [];
-        private readonly List<(Type, string)> constructorParameters = [];
+        private readonly List<MemberTypeInfo> constructorParameters = [];
         private readonly List<string> ignoreMembers = [];
         /// <summary>
         /// 
@@ -155,7 +165,7 @@ namespace AutoGenMapperGenerator.ReflectMapper
             return configurations.AsReadOnly();
         }
 
-        internal IReadOnlyList<(Type, string)> GetConstructorParameters()
+        internal IReadOnlyList<MemberTypeInfo> GetConstructorParameters()
         {
             return constructorParameters.AsReadOnly();
         }

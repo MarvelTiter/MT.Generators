@@ -7,6 +7,8 @@ using System.Reflection;
 using static AutoGenMapperGenerator.ReflectMapper.ExpressionHelper;
 namespace AutoGenMapperGenerator.ReflectMapper;
 
+#pragma warning disable IL2060,IL2070,IL2071,IL2072,IL2075,IL2076
+
 #if NET8_0_OR_GREATER
 [RequiresDynamicCode("ExpressionMapper为运行时反射构建")]
 #endif
@@ -102,8 +104,10 @@ TTarget>
             }
             var sourceType = sourceProp.PropertyType;
             var targetType = targetProp.PropertyType;
+
             var sp = IsComplexType(sourceType);
             var tp = IsComplexType(targetType);
+
             Expression convertedSource;
             if ((sp.IsEnumerable || tp.IsEnumerable) && !(sp.IsDictionary || tp.IsDictionary)) // 排除字典
             {
@@ -158,7 +162,7 @@ TTarget>
     }
 
     private static NewExpression CreateNewWithParameters(ParameterExpression source
-        , IReadOnlyList<(Type, string)> parameters, Action<string> each)
+        , IReadOnlyList<MemberTypeInfo> parameters, Action<string> each)
     {
         var ctorInfo = typeof(TTarget).GetConstructors().FirstOrDefault(FindConstructor) ?? throw new InvalidOperationException("No matching constructor found for the specified parameters.");
 
@@ -166,8 +170,8 @@ TTarget>
         List<Expression> cps = [];
         foreach (var item in parameters)
         {
-            cps.Add(Expression.Property(source, item.Item2));
-            each.Invoke(item.Item2);
+            cps.Add(Expression.Property(source, item.Name));
+            each.Invoke(item.Name);
         }
         return Expression.New(ctorInfo, cps);
 #pragma warning restore IL2026 
@@ -178,7 +182,7 @@ TTarget>
             if (pp.Length != parameters.Count) return false;
             for (int i = 0; i < pp.Length; i++)
             {
-                if (pp[i].ParameterType != parameters[i].Item1) return false;
+                if (pp[i].ParameterType != parameters[i].Type) return false;
             }
             return true;
         }
@@ -212,7 +216,7 @@ TTarget>
         {
             var mapperType = typeof(ExpressionMapper<,>).MakeGenericType(sourceElementType, targetElementType);
             var mapMethod = mapperType.GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
-            conversionExpr = Expression.Call(mapMethod, itemParam);
+            conversionExpr = Expression.Call(mapMethod!, itemParam);
         }
         else if (elementSp.IsDictionary)
         {
@@ -250,18 +254,18 @@ TTarget>
             if (targetType.IsArray)
             {
                 // 如果目标是数组，调用 ToArray()
-                var toArrayMethod = typeof(Enumerable).GetMethod("ToArray").MakeGenericMethod(targetElementType);
+                var toArrayMethod = typeof(Enumerable).GetMethod("ToArray")!.MakeGenericMethod(targetElementType);
                 result = Expression.Call(toArrayMethod, selectCall);
             }
             else
             {
                 // 如果目标是 List<T> 或 IEnumerable<T>，调用 ToList()
                 targetType = typeof(List<>).MakeGenericType(targetElementType);
-                var toListMethod = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(targetElementType);
+                var toListMethod = typeof(Enumerable).GetMethod("ToList")!.MakeGenericMethod(targetElementType);
                 result = Expression.Call(toListMethod, selectCall);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // 如果 Linq 方法调用失败（例如方法未找到），回退到直接转换
             result = Expression.Convert(sourceExpression, targetType);

@@ -36,7 +36,11 @@ public interface IMapperService
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="entity"></param>
     /// <returns></returns>
-    IDictionary<string, object?> ToDictionary<TEntity>(TEntity entity);
+    IDictionary<string, object?> ToDictionary<
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+    TEntity>(TEntity entity);
 
     /// <summary>
     /// 
@@ -44,13 +48,27 @@ public interface IMapperService
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="dict"></param>
     /// <returns></returns>
-    TEntity ToEntity<TEntity>(IDictionary<string, object?> dict);
+    TEntity ToEntity<
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+    TEntity>(IDictionary<string, object?> dict);
 }
 
-
+#if NET8_0_OR_GREATER
+[RequiresDynamicCode("MakeGenericType on IEnumerable<>")]
+#endif
 internal sealed class MapperService : IMapperService
 {
-    public TTarget Map<[DynamicallyAccessedMembers((DynamicallyAccessedMemberTypes)(-1))] TSource, [DynamicallyAccessedMembers((DynamicallyAccessedMemberTypes)(-1))] TTarget>(TSource source)
+    public TTarget Map<
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+    TSource,
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+    TTarget>(TSource source)
     {
         if (source is null)
         {
@@ -60,19 +78,24 @@ internal sealed class MapperService : IMapperService
         {
             return m.MapTo<TTarget>();
         }
-        var (IsComplex, IsDictionary, IsEnumerable) = ExpressionHelper.IsComplexType(typeof(TSource));
-        if (IsComplex && IsDictionary)
+        var ti = ExpressionHelper.IsComplexType(typeof(TSource));
+        if (ti.IsComplex && ti.IsDictionary)
         {
             throw new InvalidOperationException("请使用TEntity ToEntity<TEntity>(this IDictionary<string, object?> dict)");
         }
-        if (IsComplex && IsEnumerable)
+        if (ti.IsComplex && ti.IsEnumerable)
         {
             throw new InvalidOperationException("不支持集合类型的映射，请使用LINQ的Select方法进行映射");
         }
         return ExpressionMapper<TSource, TTarget>.Map(source);
     }
 
-    public IDictionary<string, object?> ToDictionary<TEntity>(TEntity entity)
+    public IDictionary<string, object?> ToDictionary<
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+    TEntity
+        >(TEntity entity)
     {
         if (entity is null)
         {
@@ -81,7 +104,11 @@ internal sealed class MapperService : IMapperService
         return ExpressionMapper<TEntity>.MapToDictionary(entity);
     }
 
-    public TEntity ToEntity<TEntity>(IDictionary<string, object?> dict)
+    public TEntity ToEntity<
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+    TEntity>(IDictionary<string, object?> dict)
     {
         return ExpressionMapper<TEntity>.MapFromDictionary(dict);
     }

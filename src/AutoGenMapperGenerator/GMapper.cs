@@ -9,6 +9,9 @@ namespace AutoGenMapperGenerator;
 /// <summary>
 /// <para>G -> Generator</para>
 /// </summary>
+#if NET8_0_OR_GREATER
+[RequiresDynamicCode("MakeGenericType on IEnumerable<>")]
+#endif
 public static class GMapper
 {
     /// <summary>
@@ -37,12 +40,12 @@ public static class GMapper
         {
             return m.MapTo<TTarget>();
         }
-        var (IsComplex, IsDictionary, IsEnumerable) = ExpressionHelper.IsComplexType(typeof(TSource));
-        if (IsComplex && IsDictionary)
+        var ti = ExpressionHelper.IsComplexType(typeof(TSource));
+        if (ti.IsComplex && ti.IsDictionary)
         {
             throw new InvalidOperationException("请使用TEntity ToEntity<TEntity>(this IDictionary<string, object?> dict)");
         }
-        if (IsComplex && IsEnumerable)
+        if (ti.IsComplex && ti.IsEnumerable)
         {
             throw new InvalidOperationException("不支持集合类型的映射，请使用LINQ的Select方法进行映射");
         }
@@ -55,7 +58,11 @@ public static class GMapper
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="entity"></param>
     /// <returns></returns>
-    public static IDictionary<string, object?> ToDictionary<TEntity>(this TEntity entity)
+    public static IDictionary<string, object?> ToDictionary<
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+    TEntity>(this TEntity entity)
     {
         if (entity is null)
         {
@@ -70,7 +77,11 @@ public static class GMapper
     /// <typeparam name="TEntity"></typeparam>
     /// <param name="dict"></param>
     /// <returns></returns>
-    public static TEntity ToEntity<TEntity>(this IDictionary<string, object?> dict)
+    public static TEntity ToEntity<
+#if NET8_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+    TEntity>(this IDictionary<string, object?> dict)
     {
         return ExpressionMapper<TEntity>.MapFromDictionary(dict);
     }

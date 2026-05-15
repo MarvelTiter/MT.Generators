@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.11.35111.106
+# Visual Studio Version 18
+VisualStudioVersion = 18.5.11709.299 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProject1", "TestProject1\TestProject1.csproj", "{6994C35E-E92F-418C-B5C9-B437FF25A6A0}"
 EndProject
@@ -62,6 +62,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoPageStateContainer.Roslyn", "AutoPageStateContainer.Roslyn\AutoPageStateContainer.Roslyn.csproj", "{C1046CBB-499B-448E-84B7-8B103311A224}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorTest.Pages", "Blazor.Test\BlazorTest.Pages\BlazorTest.Pages.csproj", "{B0ACF64F-D955-6114-6693-0AC22B877011}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "items", "items", "{68FC6C09-3184-4993-A78B-91C5D77103F4}"
+	ProjectSection(SolutionItems) = preProject
+		SupportedFrameworks.props = SupportedFrameworks.props
+	EndProjectSection
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "AutoProjectShared", "AutoProjectShared\AutoProjectShared.shproj", "{900BB3C7-6D8F-4A8E-B02C-7DF95B976395}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -161,6 +168,7 @@ Global
 		{D07C8E12-510C-4D21-B1AF-819A42465377} = {B83F7AC9-3860-4606-8AB3-3FD47A945E55}
 		{C1046CBB-499B-448E-84B7-8B103311A224} = {B83F7AC9-3860-4606-8AB3-3FD47A945E55}
 		{B0ACF64F-D955-6114-6693-0AC22B877011} = {47FB0C42-25F4-49C1-A98C-D6536116B894}
+		{900BB3C7-6D8F-4A8E-B02C-7DF95B976395} = {71D54FEF-E30B-4829-9EF2-C27DF766E235}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E16846FC-C2B2-43ED-A534-5726B5C9DDEE}
@@ -169,6 +177,8 @@ Global
 		Shared\Generators.Shared\Generators.Shared.projitems*{0c3325bb-c186-4e45-a567-69daf5411e8b}*SharedItemsImports = 13
 		Shared\Generators.Shared\Generators.Shared.projitems*{26dd2068-dd76-4ff9-8fb6-8e354188f7f7}*SharedItemsImports = 5
 		Shared\Generators.Shared\Generators.Shared.projitems*{625157ff-90bb-4950-9643-7baef5cef6a8}*SharedItemsImports = 5
+		AutoProjectShared\AutoProjectShared.projitems*{6fff3104-ccd7-4916-a911-aeb9a5d35536}*SharedItemsImports = 5
+		AutoProjectShared\AutoProjectShared.projitems*{900bb3c7-6d8f-4a8e-b02c-7df95b976395}*SharedItemsImports = 13
 		Shared\Generators.Shared\Generators.Shared.projitems*{ba595e23-bd3a-4b36-a094-06e5814fe5e9}*SharedItemsImports = 5
 		Shared\Generators.Shared\Generators.Shared.projitems*{c1046cbb-499b-448e-84b7-8b103311a224}*SharedItemsImports = 5
 		Shared\Generators.Shared\Generators.Shared.projitems*{e48c1c4f-8111-4513-86ec-0c968e5437cd}*SharedItemsImports = 5
