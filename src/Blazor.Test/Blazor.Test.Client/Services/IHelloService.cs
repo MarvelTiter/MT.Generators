@@ -24,15 +24,15 @@ public interface IHelloService
     Task<QueryResult> TestReturnQueryResult(string name);
 
     [WebMethod(Method = WebMethod.Get)]
-    //[ApiInvokeNotSupported]
+
     Task<(bool Success, string Message, (string Prop, int Value) Info)> TestReturnTuple(string name);
 
     [WebMethod(Method = WebMethod.Get)]
-    [ApiInvokeNotSupported]
+    [ApiClientNotSupported]
     void TestReturnVoid();
 
-    //[WebMethod(Route = "rp")]
-    Task<string> TestRouterParameter(string test);
+    [WebMethod(Route = "{test}", Authorize = true)]
+    Task<string> TestRouterParameter([WebMethodParameterBinding(BindingType.FromRoute)] string test);
     Task<string> TestFormParameter([WebMethodParameterBinding(BindingType.FromForm)] string name);
 
     [WebMethod(Route = "{id}")]

@@ -7,7 +7,7 @@ namespace AutoWasmApiGenerator;
 /// <summary>
 /// API调用类的切面处理器
 /// </summary>
-public interface IGeneratedApiInvokeDelegatingHandler
+public interface IGeneratedApiClientDelegatingHandler
 {
     /// <summary>
     /// 接口调用前

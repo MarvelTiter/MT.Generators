@@ -1,20 +1,21 @@
-﻿using Blazor.Test.Client.Services;
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+﻿using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using AutoWasmApiGenerator;
 using Blazor.Test.Client.Models;
 using AutoPageStateContainerGenerator;
-[assembly:AutoWasmApiGenerator.ApiInvokerAssembly]
+using Blazor.Test.Client.Aop;
+[assembly: ApiClientAssembly]
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.Services.ConfigureHttpClientDefaults(c =>
 {
     c.ConfigureHttpClient(h => { h.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress); });
 });
 
-builder.Services.AddScoped<IHelloService, HelloServiceApiInvoker>();
-
+//builder.Services.AddScoped<IHelloService, HelloServiceApiInvoker>();
+//builder.Services.AddScoped<IB, BApiClient>();
+builder.Services.AddScoped<IGeneratedApiClientDelegatingHandler, HttpExceptionHandler>();
 builder.Services.AddStateContainers();
 //builder.Services.AddGeneratedContainerServices();
-builder.Services.AddGeneratedApiInvokerServices();
+builder.Services.AddGeneratedApiClientServices();
 builder.Services.AddAutoWasmErrorResultHandler(config =>
 {
     config.CreateErrorResult<QueryResult>(context =>

@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using AutoPageStateContainerGenerator;
 using AutoGenMapperGenerator.ReflectMapper;
 using Blazor.Test.Client.Models;
-
-[assembly: AutoWasmApiGenerator.WebControllerAssembly]
+using AutoWasmApiGenerator;
+//[assembly: WebControllerAssembly(Mode = ApiMode.Controller)]
+[assembly:WebControllerAssembly]
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -21,7 +22,6 @@ builder.Services.AddScoped<TestAop>();
 builder.Services.AddScoped<ExceptionAop>();
 builder.Host.UseServiceProviderFactory(new AutoAopProxyGenerator.AutoAopProxyServiceProviderFactory());
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
-builder.Services.AddControllers();
 builder.Services.Inject();
 builder.Services.InjectHybrid();
 builder.Services.AddHttpClient();
@@ -35,7 +35,6 @@ builder.Services.AddMapperService(o =>
 });
 //builder.Services.();
 var app = builder.Build();
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -53,5 +52,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Blazor.Test.Client._Imports).Assembly);
-app.MapControllers();
+
+app.MapAutoWasmApiEndPoints();
+
 app.Run();

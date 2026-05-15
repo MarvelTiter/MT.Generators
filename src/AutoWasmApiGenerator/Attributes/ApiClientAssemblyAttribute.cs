@@ -6,7 +6,7 @@ namespace AutoWasmApiGenerator;
 /// 指定API调用类生成位置
 /// </summary>
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
-public class ApiInvokerAssemblyAttribute : Attribute
+public class ApiClientAssemblyAttribute : Attribute
 {
     /// <summary>
     /// <para>当接口调用发生异常时，需要返回一个有实际意义的返回值</para>

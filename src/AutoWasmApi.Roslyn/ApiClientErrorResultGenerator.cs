@@ -6,7 +6,7 @@
 //namespace AutoWasmApiGenerator;
 
 //[Generator(LanguageNames.CSharp)]
-//public class ApiInvokeErrorResultGenerator : IIncrementalGenerator
+//public class ApiClientErrorResultGenerator : IIncrementalGenerator
 //{
 //    public void Initialize(IncrementalGeneratorInitializationContext context)
 //    {

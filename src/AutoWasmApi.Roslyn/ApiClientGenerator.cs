@@ -15,14 +15,14 @@ using System;
 namespace AutoWasmApiGenerator
 {
     [Generator(LanguageNames.CSharp)]
-    public class ApiInvokerGenerator : IIncrementalGenerator
+    public class ApiClientGenerator : IIncrementalGenerator
     {
         private const string CUSTOM_JSON_OPTION = "AutoWasmApiGenerator.AutoWasmApiGeneratorJsonHelper.Option";
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             //var list = context.SyntaxProvider.ForAttributeWithMetadataName(
-            //   ApiInvokerAssemblyAttributeFullName,
+            //   ApiClientAssemblyAttributeFullName,
             //   static (node, token) => true,
             //   static (c, t) => c);
 
@@ -30,11 +30,11 @@ namespace AutoWasmApiGenerator
             {
                 try
                 {
-                    if (!compilation.Assembly.HasAttribute(ApiInvokerAssemblyAttributeFullName))
+                    if (!compilation.Assembly.HasAttribute(ApiClientAssemblyAttributeFullName))
                     {
                         return;
                     }
-                    _ = compilation.Assembly.GetAttribute(ApiInvokerAssemblyAttributeFullName, out var asmAttributeData);
+                    _ = compilation.Assembly.GetAttribute(ApiClientAssemblyAttributeFullName, out var asmAttributeData);
                     var all = compilation.GetAllSymbols(WebControllerAttributeFullName);
                     foreach (var item in all)
                     {
@@ -54,7 +54,7 @@ namespace AutoWasmApiGenerator
                         id: "ERROR00001",
                         title: "生成错误",
                         messageFormat: ex.Message,
-                        category: typeof(ApiInvokerGenerator).FullName!,
+                        category: typeof(ApiClientGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Warning,
                         isEnabledByDefault: true
                     ), Location.None));
@@ -98,7 +98,7 @@ namespace AutoWasmApiGenerator
             members.AddRange(fields);
             members.Add(constructor);
 
-            file = CodeFile.New($"{interfaceSymbol.FormatFileName()}ApiInvoker.g.cs")
+            file = CodeFile.New($"{interfaceSymbol.FormatFileName()}ApiClient.g.cs")
                 .AddUsings("using Microsoft.Extensions.DependencyInjection;")
                 .AddMembers(ns.AddMembers(invokeClass.AddMembers([.. members])));
 
@@ -127,7 +127,7 @@ namespace AutoWasmApiGenerator
                     .Generic([.. methodSymbol.GetTypeParameters()])
                     .ReturnType(methodSymbol.ReturnType.ToDisplayString())
                     .AddParameter([.. methodSymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}")])
-                    .AddGeneratedCodeAttribute(typeof(ApiInvokerGenerator))
+                    .AddGeneratedCodeAttribute(typeof(ApiClientGenerator))
                     .Lambda("throw new global::System.NotSupportedException()");
                 return (b, null);
             }
@@ -489,7 +489,7 @@ namespace AutoWasmApiGenerator
                 .Async()
                 .ReturnType(methodSymbol.ReturnType.ToDisplayString())
                 .AddParameter([.. methodSymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}")])
-                .AddGeneratedCodeAttribute(typeof(ApiInvokerGenerator))
+                .AddGeneratedCodeAttribute(typeof(ApiClientGenerator))
                 .AddBody([.. statements]);
             return (builder, null);
         }
@@ -589,7 +589,7 @@ namespace AutoWasmApiGenerator
                 .MemberType("global::System.Net.Http.IHttpClientFactory")
                 .FieldName("clientFactory");
             yield return FieldBuilder.Default
-                .MemberType("global::AutoWasmApiGenerator.IGeneratedApiInvokeDelegatingHandler")
+                .MemberType("global::AutoWasmApiGenerator.IGeneratedApiClientDelegatingHandler")
                 .FieldName("delegatingHandler");
             yield return FieldBuilder.Default
                 .MemberType("global::System.IServiceProvider")
@@ -606,11 +606,11 @@ namespace AutoWasmApiGenerator
 
             parameters.Add("global::System.IServiceProvider services");
             body.Add("serviceProvider = services");
-            body.Add("delegatingHandler = services.GetService<global::AutoWasmApiGenerator.IGeneratedApiInvokeDelegatingHandler>() ?? global::AutoWasmApiGenerator.GeneratedApiInvokeDelegatingHandler.Default");
+            body.Add("delegatingHandler = services.GetService<global::AutoWasmApiGenerator.IGeneratedApiClientDelegatingHandler>() ?? global::AutoWasmApiGenerator.GeneratedApiClientDelegatingHandler.Default");
 
 
             return ConstructorBuilder.Default
-                .MethodName($"{FormatClassName(classSymbol.MetadataName)}ApiInvoker")
+                .MethodName($"{FormatClassName(classSymbol.MetadataName)}ApiClient")
                 .AddParameter([.. parameters])
                 .AddBody([.. body]);
         }
@@ -618,19 +618,19 @@ namespace AutoWasmApiGenerator
         private static ClassBuilder CreateHttpClassBuilder(INamedTypeSymbol interfaceSymbol)
         {
             // IEnumerable<string> additionalAttribute = [];
-            // if (interfaceSymbol.GetAttribute(ApiInvokerAttributeFullName, out var data))
+            // if (interfaceSymbol.GetAttribute(ApiClientAttributeFullName, out var data))
             // {
-            //     //var o = data.GetAttributeValue(nameof(ApiInvokerGeneraAttribute.Attribute));
-            //     additionalAttribute = interfaceSymbol.GetAttributeInitInfo(ApiInvokerAttributeFullName, data!);
+            //     //var o = data.GetAttributeValue(nameof(ApiClientGeneraAttribute.Attribute));
+            //     additionalAttribute = interfaceSymbol.GetAttributeInitInfo(ApiClientAttributeFullName, data!);
             // }
             var attchAttribute = "AutoWasmApiGenerator.Attributes.GeneratedByAutoWasmApiGeneratorAttribute";
             (string, string?)[] attrParams = [
                 ("InterfaceType", $"typeof({interfaceSymbol.ToDisplayString()})"),
-                ("Part", "AutoWasmApiGenerator.Attributes.PartType.ApiInvoker")
+                ("Part", "AutoWasmApiGenerator.Attributes.PartType.ApiClient")
                 ];
             return ClassBuilder.Default
-                .ClassName($"{FormatClassName(interfaceSymbol.MetadataName)}ApiInvoker")
-                .AddGeneratedCodeAttribute(typeof(ApiInvokerGenerator))
+                .ClassName($"{FormatClassName(interfaceSymbol.MetadataName)}ApiClient")
+                .AddGeneratedCodeAttribute(typeof(ApiClientGenerator))
                 .Attribute(attchAttribute, attrParams)
                 // .Attribute([.. additionalAttribute.Select(i => i.ToString())])
                 .BaseType(interfaceSymbol.ToDisplayString());

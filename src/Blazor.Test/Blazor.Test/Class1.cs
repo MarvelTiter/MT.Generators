@@ -11,7 +11,7 @@ namespace Blazor.Test
     [WebController(Authorize = true)]
     public interface ITest
     {
-        [ApiInvokeNotSupported]
+        [ApiClientNotSupported]
         void Log(string message);
         [WebMethod(Method = WebMethod.Get)]
         Task<bool> LogAsync(string message);
