@@ -1,5 +1,9 @@
 ﻿# 版本功能更新记录
 
+## v2026.05.20
+- ⚡️现在可以通过`AutoInjectAttribute`的`Factory`,`Instance`,`DeclaredType`等属性配置工厂模式或者实例的注入
+- ⚡️新增`ManualInjectAttribute`, 用于在任意地方配置需要注入的服务(通常在标记`AutoInjectContext`的地方使用)
+
 ## v2026.03.02
 - ⚡️没有继承接口的时候，默认会从基类寻找可用接口作为服务类型
 

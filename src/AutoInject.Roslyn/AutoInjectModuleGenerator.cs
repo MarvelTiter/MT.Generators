@@ -36,6 +36,19 @@ public class AutoInjectModuleGenerator : IIncrementalGenerator
         {
             var (compilation, services) = source;
             var asm = compilation.Assembly;
+            bool shouldBreak = false;
+            foreach (var item in services)
+            {
+                if (item?.Diagnostic is not null)
+                {
+                    spc.ReportDiagnostic(item.Diagnostic);
+                    shouldBreak = true;
+                }
+            }
+            if (shouldBreak)
+            {
+                return;
+            }
             var codeFile = CreateModuleServiceInitClass(asm, services!);
             if (codeFile is not null)
             {
@@ -53,7 +66,7 @@ public class AutoInjectModuleGenerator : IIncrementalGenerator
         var gclass = ClassBuilder.Default.ClassName($"AutoInjectModuleServices")
             .Attribute(AutoInjectModule)
             .AddGeneratedCodeAttribute(typeof(AutoInjectModuleGenerator));
-            
+
         gclass.AddMembers([.. InitMethods(asm, services)]);
         return CodeFile.New($"{asm.SafeMetaName()}.AutoInject.ModuleServices.g.cs").AddUsings("using Microsoft.Extensions.DependencyInjection;")
             .AddUsings("using Microsoft.Extensions.DependencyInjection.Extensions;")
@@ -119,7 +132,20 @@ public class AutoInjectModuleGenerator : IIncrementalGenerator
             if (item.Length == 1)
             {
                 var r = item[0];
-                yield return (DoCreate(serviceName, r.ServiceType, implement, r.Scoped, r.Key));
+                if (!r.Factory.IsNullOrEmpty())
+                {
+                    var factoryExpression = $"p => global::{r.DeclaredType.ToDisplayString()}.{r.Factory}(p)";
+                    yield return (DoCreate(serviceName, r.ServiceType, factoryExpression, r.Scoped, r.Key, factoryReturnType: $", {implement}"));
+                }
+                else if (!r.Instance.IsNullOrEmpty())
+                {
+                    var ins = $"global::{r.DeclaredType.ToDisplayString()}.{r.Instance}";
+                    yield return (DoCreateInstance(serviceName, r.ServiceType, ins, r.Key));
+                }
+                else
+                {
+                    yield return (DoCreate(serviceName, r.ServiceType, implement, r.Scoped, r.Key));
+                }
             }
             else
             {
@@ -135,7 +161,20 @@ public class AutoInjectModuleGenerator : IIncrementalGenerator
                     if (r.ServiceType == info.Implement)
                     {
                         // 显式注入自身，说明前面的self不为null
-                        yield return (DoCreate(serviceName, r.ServiceType, implement, r.Scoped, r.Key));
+                        if (!r.Factory.IsNullOrEmpty())
+                        {
+                            var factoryExpression = $"p => global::{r.DeclaredType.ToDisplayString()}.{r.Factory}(p)";
+                            yield return (DoCreate(serviceName, r.ServiceType, factoryExpression, r.Scoped, r.Key, factoryReturnType: $", {implement}"));
+                        }
+                        else if (!r.Instance.IsNullOrEmpty())
+                        {
+                            var ins = $"global::{r.DeclaredType.ToDisplayString()}.{r.Instance}";
+                            yield return (DoCreateInstance(serviceName, r.ServiceType, ins, r.Key));
+                        }
+                        else
+                        {
+                            yield return (DoCreate(serviceName, r.ServiceType, implement, r.Scoped, r.Key));
+                        }
                     }
                     else
                     {
@@ -167,6 +206,19 @@ public class AutoInjectModuleGenerator : IIncrementalGenerator
             else
             {
                 return $"{serviceName}.{method}(new {SD}(typeof({serviceType}), {implement}, {scoped}{factoryReturnType}))";
+            }
+        }
+
+        static string DoCreateInstance(string serviceName, string serviceType, string instance, string? key, bool tryadd = false)
+        {
+            var method = tryadd ? "TryAdd" : "Add";
+            if (key is not null)
+            {
+                return $"""{serviceName}.{method}(new {SD}(typeof({serviceType}), "{key}", {instance}))""";
+            }
+            else
+            {
+                return $"{serviceName}.{method}(new {SD}(typeof({serviceType}), {instance}))";
             }
         }
     }

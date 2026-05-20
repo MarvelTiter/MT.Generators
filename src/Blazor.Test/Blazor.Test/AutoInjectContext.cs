@@ -1,8 +1,11 @@
 ﻿using AutoInjectGenerator;
+using InjectTest;
 
 namespace Blazor.Test
 {
     [AutoInjectContext]
+    [ManualInject(typeof(IDisposable), typeof(Base), Factory = nameof(Base.BaseInstanceFactory), DeclaredType = typeof(Base))]
+
     public static partial class AutoInjectContext
     {
         [AutoInjectConfiguration(Include = "SERVER")]

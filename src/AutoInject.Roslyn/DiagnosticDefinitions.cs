@@ -57,5 +57,44 @@ namespace AutoInjectGenerator
                         category: typeof(AutoInjectContextGenerator).FullName!,
                         defaultSeverity: DiagnosticSeverity.Error,
                         isEnabledByDefault: true), location);
+
+        /// <summary>
+        /// 不能同时自定义Factory和Instance
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public static Diagnostic AIG00005(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
+                        id: "AIG00005",
+                        title: "不能同时自定义Factory和Instance",
+                        messageFormat: "不能同时自定义Factory和Instance",
+                        category: typeof(AutoInjectContextGenerator).FullName!,
+                        defaultSeverity: DiagnosticSeverity.Error,
+                        isEnabledByDefault: true), location);
+
+        /// <summary>
+        /// 未在目标类中中找到自定义Factory或者自定义Instance
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public static Diagnostic AIG00006(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
+                        id: "AIG00006",
+                        title: "未在目标类中中找到自定义Factory或者自定义Instance",
+                        messageFormat: "未在目标类中中找到自定义Factory或者自定义Instance",
+                        category: typeof(AutoInjectContextGenerator).FullName!,
+                        defaultSeverity: DiagnosticSeverity.Error,
+                        isEnabledByDefault: true), location);
+
+        /// <summary>
+        /// 相同分组中的相同生命周期中，只能有一个实现注入
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public static Diagnostic AIG00007(Location? location) => Diagnostic.Create(new DiagnosticDescriptor(
+                        id: "AIG00007",
+                        title: "相同分组中的相同生命周期中，只能有一个实现注入",
+                        messageFormat: "相同分组中的相同生命周期中，只能有一个实现注入",
+                        category: typeof(AutoInjectContextGenerator).FullName!,
+                        defaultSeverity: DiagnosticSeverity.Error,
+                        isEnabledByDefault: true), location);
     }
 }

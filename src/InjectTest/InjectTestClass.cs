@@ -18,9 +18,15 @@ namespace InjectTest
 
     //[AutoInject]
     //[AutoInject(ServiceType = typeof(Base))]
-    [AutoInjectSelf]
+    //[AutoInject(Factory = nameof(BaseInstanceFactory))]
     public class Base : IDisposable
     {
+        public static Base IB => new Base();
+        public static Base BaseInstanceFactory(IServiceProvider serviceProvider)
+        {
+            return new Base();
+        }
+
         public void Dispose()
         {
 
@@ -69,6 +75,11 @@ namespace InjectTest
 
     [AutoInject]
     public class ChildType : ParentType
+    {
+
+    }
+
+    public class InjectConfig
     {
 
     }

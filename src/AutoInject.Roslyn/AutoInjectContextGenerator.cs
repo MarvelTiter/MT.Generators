@@ -14,41 +14,41 @@ namespace AutoInjectGenerator;
 //[Generator(LanguageNames.CSharp)]
 public class AutoInjectContextGenerator //: IIncrementalGenerator
 {
-    public void Initialize(IncrementalGeneratorInitializationContext context)
-    {
-        context.RegisterSourceOutput(context.CompilationProvider, static (context, source) =>
-        {
-            var allContext = source.FindByAttributeMetadataName(
-                AutoInjectContext
-                , CollectContextInfo).ToArray();
-            foreach (var item in allContext)
-            {
-                if (!EqualityComparer<IAssemblySymbol>.Default.Equals(item.TargetSymbol.ContainingAssembly, source.SourceModule.ContainingAssembly))
-                {
-                    continue;
-                }
-                if (item.Diagnostic != null)
-                {
-                    context.ReportDiagnostic(item.Diagnostic);
-                    return;
-                }
-                var services = source.FindByAttributeMetadataName(
-               AutoInject, CollectInjectInfo, true).ToArray();
-                if (services.Any(a => a?.Diagnostic is not null))
-                {
-                    foreach (var a in services.Where(a => a?.Diagnostic is not null))
-                    {
-                        context.ReportDiagnostic(a!.Diagnostic!);
-                    }
-                    return;
-                }
-                var codefile = CreateContextCodeFile(item, services);
-#if DEBUG
-                var ss = codefile?.ToString();
-#endif
-                context.AddSource(codefile);
-            }
-        });
+//    public void Initialize(IncrementalGeneratorInitializationContext context)
+//    {
+//        context.RegisterSourceOutput(context.CompilationProvider, static (context, source) =>
+//        {
+//            var allContext = source.FindByAttributeMetadataName(
+//                AutoInjectContext
+//                , CollectContextInfo).ToArray();
+//            foreach (var item in allContext)
+//            {
+//                if (!EqualityComparer<IAssemblySymbol>.Default.Equals(item.TargetSymbol.ContainingAssembly, source.SourceModule.ContainingAssembly))
+//                {
+//                    continue;
+//                }
+//                if (item.Diagnostic != null)
+//                {
+//                    context.ReportDiagnostic(item.Diagnostic);
+//                    return;
+//                }
+//                var services = source.FindByAttributeMetadataName(
+//               AutoInject, CollectInjectInfo, true).ToArray();
+//                if (services.Any(a => a?.Diagnostic is not null))
+//                {
+//                    foreach (var a in services.Where(a => a?.Diagnostic is not null))
+//                    {
+//                        context.ReportDiagnostic(a!.Diagnostic!);
+//                    }
+//                    return;
+//                }
+//                var codefile = CreateContextCodeFile(item, services);
+//#if DEBUG
+//                var ss = codefile?.ToString();
+//#endif
+//                context.AddSource(codefile);
+//            }
+//        });
 
         //context.RegisterSourceOutput(context.CompilationProvider, static (context, source) =>
         //{
@@ -69,7 +69,7 @@ public class AutoInjectContextGenerator //: IIncrementalGenerator
         //        CreateContextFile(context, item, all);
         //    }
         //});
-    }
+    //}
 
     private static void CreateContextFile(SourceProductionContext context, INamedTypeSymbol classSymbol,
         IEnumerable<INamedTypeSymbol> all)

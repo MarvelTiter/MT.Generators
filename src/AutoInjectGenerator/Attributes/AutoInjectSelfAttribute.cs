@@ -11,3 +11,19 @@ public class AutoInjectSelfAttribute : AutoInjectAttribute
 {
 
 }
+
+/// <summary>
+/// 
+/// </summary>
+public class ManualInjectAttribute : AutoInjectAttribute
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="serviceType"></param>
+    /// <param name="implType"></param>
+    public ManualInjectAttribute(Type serviceType, Type implType)
+    {
+        
+    }
+}

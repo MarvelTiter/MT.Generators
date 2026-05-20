@@ -34,6 +34,21 @@ public class AutoInjectAttribute : Attribute
     /// </summary>
     [Obsolete]
     public bool IsTry { get; set; }
+
+    /// <summary>
+    /// <strong>静态</strong>自定义工厂方法，方法签名为Func&lt;IServiceProvider, object&gt;，返回值为要注册的服务实例
+    /// </summary>
+    public string? Factory { get; set; }
+
+    /// <summary>
+    /// <strong>静态</strong>自定义实例
+    /// </summary>
+    public string? Instance { get; set; }
+
+    /// <summary>
+    /// <see cref="Factory"/> 或者<see cref="Instance"/>的声明所在类型，默认为当前类型
+    /// </summary>
+    public Type? DeclaredType { get; set; }
 }
 
 /// <summary>

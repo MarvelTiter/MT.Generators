@@ -13,12 +13,12 @@ public class AutoInjectInfo(INamedTypeSymbol targetSymbol)
     //public string? MemberShip { get; set; }
 }
 
-public class RegisterServiceInfo(string scoped, string serviceType, string? key, string? group)
+public record RegisterServiceInfo(string Scoped, string ServiceType, string? Key, string? MemberShip, string? Factory, string? Instance, INamedTypeSymbol DeclaredType)
 {
-    public string ServiceType { get; set; } = serviceType;
-    public string? Key { get; set; } = key;
-    public string Scoped { get; set; } = scoped;
-    public string? MemberShip { get; set; } = group;
+    //public string ServiceType { get; set; } = serviceType;
+    //public string? Key { get; set; } = key;
+    //public string Scoped { get; set; } = scoped;
+    //public string? MemberShip { get; set; } = group;
 }
 
 //namespace AutoInjectGenerator
